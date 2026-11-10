@@ -1,0 +1,29 @@
+{
+  "name": "power-utility-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Power Utility Management System - website (React + Vite + Tailwind CSS + Chart.js)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "dependencies": {
+    "chart.js": "^4.6.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.4",
+    "@vitejs/plugin-react": "^6.2.1",
+    "oxlint": "^1.89.0",
+    "tailwindcss": "^4.3.4",
+    "vite": "^8.3.5"
+  }
+}

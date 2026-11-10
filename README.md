@@ -71,3 +71,4 @@ Power Utility Management System/
 - The frontend builds and lints with **zero** errors and warnings, and every page was opened in Chrome with no runtime errors.
 
 See [docs/06_testing_report.md](docs/06_testing_report.md).
+# power-utility-management-system

@@ -4,6 +4,21 @@ import jwt from 'jsonwebtoken';
 import env from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
 
+export function requireLogin(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'Please log in' });
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    res.status(401).json({ message: 'Session expired, log in again' });
+  }
+}
+
+export function requireRole(role) {
+  return (req, res, next) => (req.user.role === role ? next() : res.status(403).json({ message: 'Not allowed' }));
+}
+
 export function requireAuth(req, res, next) {
   const header = req.headers.authorization || '';
   const [scheme, token] = header.split(' ');

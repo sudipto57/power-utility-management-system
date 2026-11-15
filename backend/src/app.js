@@ -13,6 +13,7 @@ import billRoutes from './routes/bills.routes.js';
 import requestRoutes from './routes/requests.routes.js';
 import reportRoutes from './routes/reports.routes.js';
 import myRoutes from './routes/my.routes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/connections', connectionRoutes);

@@ -1,10 +1,13 @@
 # Dependencies (re-created with "npm install")
 node_modules/
 
-# Secrets - NEVER commit these
+# Secrets - NEVER commit these (passwords, JWT secret, Brevo API key)
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+
+# Real survey answers (people's names, mobile numbers, emails) - keep them private
+**/Survey Responses*.xlsx
 
 # Build output
 dist/

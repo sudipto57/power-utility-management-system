@@ -1,10 +1,12 @@
 import Logo from '../common/Logo';
 import StatusBadge from '../common/StatusBadge';
+import useCountUp from '../../hooks/useCountUp';
 import { formatDate, formatMoney, formatNumber } from '../../utils/format';
 
 /** Printable bill. Used by the admin "Bill details" page and the customer "My bill" page. */
 export default function BillInvoice({ bill }) {
   const isPaid = bill.status === 'Paid';
+  const animatedTotal = useCountUp(bill.total_amount); // the total counts up when the bill opens
 
   return (
     <article className="print-area relative animate-fade-up overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70">
@@ -104,7 +106,11 @@ export default function BillInvoice({ bill }) {
             <tfoot>
               <tr className="border-t-2 border-slate-900">
                 <td className="pt-4 text-base font-extrabold text-slate-900">Total</td>
-                <td className="pt-4 text-right text-xl font-extrabold text-slate-900">{formatMoney(bill.total_amount)}</td>
+                <td className="pt-4 text-right font-display text-xl font-extrabold text-slate-900">
+                  <span className="tabular-nums print:hidden">{formatMoney(animatedTotal)}</span>
+                  {/* The printed copy always shows the exact amount */}
+                  <span className="hidden print:inline">{formatMoney(bill.total_amount)}</span>
+                </td>
               </tr>
               <tr>
                 <td className="pt-2 text-slate-500">Paid</td>

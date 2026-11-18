@@ -1,199 +1,184 @@
 import { useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
-import Logo from '../../components/common/Logo';
 import Icon from '../../components/common/Icon';
-import Button from '../../components/common/Button';
-import FormError from '../../components/common/FormError';
-import { Field, Input } from '../../components/common/FormField';
 import { homePathFor } from '../../utils/routes';
+import LandingNavbar from '../../components/landing/LandingNavbar';
+import AuthCard from '../../components/landing/AuthCard';
+import WatchDemoButton from '../../components/landing/WatchDemo';
+import LandingFooter from '../../components/landing/LandingFooter';
+import { EstimatorSection, FaqSection, HowItWorks, ServicesSection, VisionSection } from '../../components/landing/LandingSections';
+import { HERO_POINTS, STATS } from '../../components/landing/landingData';
 
-// Demo accounts from database/04_sample_data.sql (handy for the checkpoint demo)
-const DEMO_ACCOUNTS = [
-  { label: 'Admin demo', login: 'admin', password: 'admin123', icon: 'key' },
-  { label: 'Customer demo', login: 'john.kamau', password: 'customer123', icon: 'user' },
-];
+// Smoothly scroll to a section of this page by its id
+function scrollToId(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
-const FEATURES = [
-  { icon: 'users', text: 'Customers, connections and meters in one place' },
-  { icon: 'receipt', text: 'Bills calculated from real tariff slabs' },
-  { icon: 'complaint', text: 'Service requests tracked from start to finish' },
-];
-
+/** The first page of the website: hero + role based login / customer sign up + info sections. */
 export default function Login() {
-  const { user, login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [form, setForm] = useState({ login: '', password: '' });
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+
+  // Shared page state (navbar, login card and services all use it)
+  const [role, setRole] = useState('customer'); // 'customer' | 'admin'
+  const [mode, setMode] = useState('login'); // 'login' | 'signup'
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('All');
 
   // Already logged in? Go straight to the right home page.
   if (user) return <Navigate to={homePathFor(user)} replace />;
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setError('');
-    if (!form.login.trim() || !form.password) {
-      setError('Please enter your email/username and password.');
-      return;
-    }
-    setLoading(true);
-    try {
-      const loggedIn = await login(form.login.trim(), form.password);
-      const home = homePathFor(loggedIn);
-      const from = location.state?.from;
-      navigate(from && from.startsWith(home) ? from : home, { replace: true });
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
+  // Used by the navbar / footer / buttons: open the card on the right tab
+  const openAuth = (newRole, newMode) => {
+    setRole(newRole);
+    setMode(newRole === 'admin' ? 'login' : newMode);
+    scrollToId('auth');
+  };
+
+  const pickCategory = (name) => {
+    setCategory(name);
+    scrollToId('services');
   };
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      {/* ---------- Left: animated brand panel ---------- */}
-      <section className="relative hidden overflow-hidden bg-slate-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <div className="absolute -left-24 top-1/4 h-80 w-80 animate-glow rounded-full bg-amber-500/20 blur-3xl" />
-        <div
-          className="absolute -right-24 bottom-10 h-72 w-72 animate-glow rounded-full bg-sky-500/20 blur-3xl"
-          style={{ animationDelay: '1.2s' }}
-        />
+    <div className="min-h-screen bg-white">
+      <LandingNavbar search={search} onSearch={setSearch} onPickCategory={pickCategory} onOpenAuth={openAuth} />
 
-        {/* Power grid illustration: towers with flowing current */}
-        <svg className="absolute inset-x-0 bottom-0 h-72 w-full" viewBox="0 0 600 280" fill="none" aria-hidden="true">
-          {[90, 300, 510].map((x) => (
-            <g key={x} stroke="#334155" strokeWidth="2">
-              <path d={`M${x} 270 L${x - 22} 270 L${x} 120 L${x + 22} 270 Z`} />
-              <path d={`M${x - 40} 140 H${x + 40}`} />
-              <path d={`M${x - 30} 170 H${x + 30}`} />
-            </g>
-          ))}
-          <path d="M-20 140 Q 90 175 50 140 T 260 140 T 470 140 T 640 140" stroke="#1e293b" strokeWidth="2" />
-          <path
-            d="M-20 140 C 40 168, 70 168, 130 140 S 220 112, 260 140 S 350 168, 400 140 S 520 112, 640 140"
-            stroke="#f59e0b"
-            strokeWidth="2.5"
-            strokeDasharray="8 14"
-            className="animate-flow"
+      <main>
+        {/* ================= HERO ================= */}
+        <section id="home" className="relative overflow-hidden bg-gradient-to-b from-orange-50/70 via-white to-white">
+          {/* Background video: wind and solar power flowing to a city (silent, loops).
+              Hidden on phones and for people who turn animations off. */}
+          <video
+            className="pointer-events-none absolute inset-x-0 top-0 hidden h-[620px] w-full object-cover md:block motion-reduce:hidden"
+            src="/videos/hero-loop.webm"
+            poster="/videos/hero-poster.jpg"
+            autoPlay
+            muted
+            loop
+            playsInline
+            aria-hidden="true"
           />
-          <path
-            d="M-20 170 C 50 195, 90 195, 140 170 S 230 145, 270 170 S 360 195, 410 170 S 530 145, 640 170"
-            stroke="#38bdf8"
-            strokeWidth="1.5"
-            strokeDasharray="5 16"
-            className="animate-flow"
-            style={{ animationDuration: '3s' }}
-          />
-        </svg>
+          {/* Soft colour layer on top of the video, so the text stays easy to read */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 hidden h-[620px] bg-gradient-to-b from-orange-50/80 via-white/85 to-white md:block motion-reduce:hidden" />
+          {/* Animated colour blobs */}
+          <div className="absolute -left-32 top-10 h-96 w-96 animate-glow rounded-full bg-amber-300/30 blur-3xl" />
+          <div className="absolute right-0 top-40 h-96 w-96 animate-glow rounded-full bg-fuchsia-300/25 blur-3xl" style={{ animationDelay: '0.8s' }} />
+          <div className="absolute bottom-0 left-1/3 h-80 w-80 animate-glow rounded-full bg-sky-300/25 blur-3xl" style={{ animationDelay: '1.6s' }} />
+          <div className="app-backdrop absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
 
-        <div className="relative animate-fade-up">
-          <Logo light />
-        </div>
+          {/* Power lines with flowing current along the bottom */}
+          <svg className="absolute inset-x-0 bottom-0 h-40 w-full" viewBox="0 0 1200 160" preserveAspectRatio="none" fill="none" aria-hidden="true">
+            <path d="M0 90 C 200 140, 400 40, 600 90 S 1000 140, 1200 90" stroke="#fde68a" strokeWidth="2" />
+            <path d="M0 90 C 200 140, 400 40, 600 90 S 1000 140, 1200 90" stroke="#f97316" strokeWidth="2.5" strokeDasharray="10 18" className="animate-flow" />
+            <path d="M0 120 C 250 70, 450 160, 700 110 S 1050 70, 1200 120" stroke="#c4b5fd" strokeWidth="1.5" strokeDasharray="6 16" className="animate-flow" style={{ animationDuration: '3s' }} />
+          </svg>
 
-        <div className="relative max-w-md">
-          <h1 className="animate-fade-up text-4xl font-extrabold leading-tight tracking-tight" style={{ animationDelay: '80ms' }}>
-            Keep the lights on.
-            <span className="block bg-gradient-to-r from-amber-300 to-amber-500 bg-clip-text text-transparent">
-              Keep the bills right.
-            </span>
-          </h1>
-          <ul className="mt-8 space-y-4">
-            {FEATURES.map((feature, index) => (
-              <li
-                key={feature.text}
-                className="flex animate-fade-up items-center gap-3 text-sm text-slate-300"
-                style={{ animationDelay: `${200 + index * 90}ms` }}
+          <div className="relative mx-auto max-w-7xl px-5 pb-24 pt-12 lg:pt-16">
+            {/* Project name: one line, bold, moving gradient */}
+            <div className="text-center">
+              <span className="inline-flex animate-fade-up items-center gap-2 rounded-full bg-white/80 px-4 py-1.5 text-xs font-bold text-orange-600 shadow-sm ring-1 ring-orange-100">
+                <Icon name="bolt" className="h-3.5 w-3.5" />
+                Smart electricity billing &amp; service
+              </span>
+              <h1
+                className="mt-5 animate-fade-up whitespace-nowrap font-display text-[clamp(1.1rem,4.3vw,4rem)] font-extrabold leading-tight tracking-tight"
+                style={{ animationDelay: '80ms' }}
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-amber-300 ring-1 ring-white/10">
-                  <Icon name={feature.icon} className="h-4 w-4" />
-                </span>
-                {feature.text}
-              </li>
-            ))}
-          </ul>
-        </div>
+                <span className="animate-gradient bg-gradient-to-r from-amber-500 via-orange-500 via-50% to-fuchsia-600 bg-[length:200%_auto] bg-clip-text text-transparent">
+                  Power Utility
+                </span>{' '}
+                <span className="text-slate-900">Management System</span>
+              </h1>
+              <p className="mx-auto mt-4 max-w-xl animate-fade-up text-base text-slate-500 sm:text-lg" style={{ animationDelay: '160ms' }}>
+                Keep the lights on. Keep the bills right.
+              </p>
+            </div>
 
-        <p className="relative text-xs text-slate-500">Power Utility Management System · Academic DBMS project</p>
-      </section>
+            <div className="mt-12 grid items-start gap-12 lg:grid-cols-[1fr_440px]">
+              {/* ---------- Left: points, buttons, stats ---------- */}
+              <div className="animate-fade-up lg:pt-6" style={{ animationDelay: '240ms' }}>
+                <h2 className="text-2xl font-extrabold leading-snug tracking-tight text-slate-900 sm:text-3xl">
+                  Your electricity account,
+                  <span className="block text-slate-400">simple, clear and online.</span>
+                </h2>
 
-      {/* ---------- Right: login form ---------- */}
-      <section className="app-backdrop flex items-center justify-center px-5 py-12">
-        <div className="w-full max-w-md animate-scale-in">
-          <div className="mb-8 lg:hidden">
-            <Logo />
-          </div>
-          <div className="rounded-3xl bg-white p-8 shadow-xl shadow-slate-200/70 ring-1 ring-slate-200/70">
-            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Welcome back</h2>
-            <p className="mt-1 text-sm text-slate-500">Log in with your email or username.</p>
+                <ul className="mt-7 space-y-4">
+                  {HERO_POINTS.map((point) => (
+                    <li key={point} className="flex items-start gap-3 text-slate-700">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white">
+                        <Icon name="check" className="h-3.5 w-3.5" strokeWidth={3} />
+                      </span>
+                      {point}
+                    </li>
+                  ))}
+                </ul>
 
-            <form onSubmit={handleSubmit} className="mt-7 space-y-5" noValidate>
-              <Field label="Email or username">
-                <Input
-                  autoFocus
-                  autoComplete="username"
-                  value={form.login}
-                  onChange={(e) => setForm({ ...form, login: e.target.value })}
-                  placeholder="admin  or  you@email.com"
-                />
-              </Field>
-              <Field label="Password">
-                <div className="relative">
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    placeholder="••••••••"
-                    className="pr-11"
-                  />
+                <div className="mt-8 flex flex-wrap gap-3">
                   <button
                     type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 hover:text-slate-700"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    onClick={() => openAuth('customer', 'signup')}
+                    className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-slate-800 dark:ring-1 dark:ring-white/20"
                   >
-                    <Icon name={showPassword ? 'eyeOff' : 'eye'} className="h-4 w-4" />
+                    Create customer account
+                    <Icon name="arrowRight" className="h-4 w-4" />
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollToId('services')}
+                    className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-slate-700 ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:ring-slate-300"
+                  >
+                    <Icon name="search" className="h-4 w-4" />
+                    Explore services
+                  </button>
+                  <WatchDemoButton />
                 </div>
-              </Field>
 
-              <FormError message={error} />
+                <div className="mt-10 grid max-w-lg grid-cols-4 gap-3">
+                  {STATS.map((stat) => (
+                    <div key={stat.label} className="rounded-2xl bg-white/80 p-3 text-center ring-1 ring-slate-200/70 backdrop-blur">
+                      <p className="font-display text-xl font-extrabold text-slate-900">{stat.value}</p>
+                      <p className="mt-0.5 text-[11px] font-semibold leading-tight text-slate-500">{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-              <Button type="submit" variant="primary" size="lg" loading={loading} className="w-full">
-                {loading ? 'Logging in...' : 'Log in'}
-                {!loading && <Icon name="arrowRight" className="h-4 w-4" />}
-              </Button>
-            </form>
+              {/* ---------- Right: role based login / sign up card ---------- */}
+              <div id="auth" className="relative scroll-mt-24 animate-scale-in" style={{ animationDelay: '200ms' }}>
+                {/* Little floating cards for a lively look (decoration only) */}
+                <div className="absolute -left-28 top-10 z-10 hidden animate-float items-center gap-2 rounded-2xl bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200 xl:flex" aria-hidden="true">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                    <Icon name="check" className="h-4 w-4" strokeWidth={3} />
+                  </span>
+                  <span className="text-xs font-bold text-slate-700">Bill paid</span>
+                </div>
+                <div
+                  className="absolute -bottom-6 -right-6 z-10 hidden animate-float items-center gap-2 rounded-2xl bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200 xl:flex"
+                  style={{ animationDelay: '1.5s' }}
+                  aria-hidden="true"
+                >
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                    <Icon name="gauge" className="h-4 w-4" />
+                  </span>
+                  <span className="text-xs font-bold text-slate-700">Reading saved</span>
+                </div>
 
-            <div className="mt-7 border-t border-slate-100 pt-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Quick demo login</p>
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                {DEMO_ACCOUNTS.map((account) => (
-                  <button
-                    key={account.login}
-                    type="button"
-                    onClick={() => {
-                      setForm({ login: account.login, password: account.password });
-                      setError('');
-                    }}
-                    className="group flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2.5 text-left ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-amber-50 hover:ring-amber-200"
-                  >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-slate-500 ring-1 ring-slate-200 transition group-hover:text-amber-600">
-                      <Icon name={account.icon} className="h-4 w-4" />
-                    </span>
-                    <span className="leading-tight">
-                      <span className="block text-xs font-bold text-slate-800">{account.label}</span>
-                      <span className="block text-[11px] text-slate-500">{account.login}</span>
-                    </span>
-                  </button>
-                ))}
+                <AuthCard role={role} mode={mode} onRoleChange={setRole} onModeChange={setMode} />
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* ================= SCROLL-DOWN SECTIONS ================= */}
+        <VisionSection />
+        <ServicesSection search={search} onSearch={setSearch} category={category} onCategory={setCategory} />
+        <EstimatorSection />
+        <HowItWorks onSignUp={() => openAuth('customer', 'signup')} />
+        <FaqSection />
+      </main>
+
+      <LandingFooter onOpenAuth={openAuth} />
     </div>
   );
 }

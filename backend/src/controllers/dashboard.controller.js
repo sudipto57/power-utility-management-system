@@ -20,6 +20,7 @@ export async function getStats(req, res) {
             FROM bills b WHERE b.status = ANY($1))                       AS outstanding_amount,
          (SELECT COUNT(*) FROM service_requests WHERE status IN ('Pending', 'In Progress')) AS open_requests,
          (SELECT COUNT(*) FROM service_requests WHERE status = 'Pending')                   AS pending_requests,
+         (SELECT COUNT(*) FROM profile_change_requests WHERE status = 'Pending')            AS pending_change_requests,
          (SELECT COALESCE(SUM(amount), 0) FROM payments
             WHERE status = 'Completed' AND date_trunc('month', payment_date) = date_trunc('month', CURRENT_DATE)) AS collected_this_month`,
       [OPEN_BILL_STATUSES]

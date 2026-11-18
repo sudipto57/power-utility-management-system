@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Power Utility Management System API",
-    "description": "All endpoints of the Power Utility Management System backend.\n\nHOW TO USE\n1. Import this collection and Local.postman_environment.json\n2. Pick the \"Power Utility - Local\" environment (top-right)\n3. Start the backend (npm run dev in the backend folder)\n4. Run \"Login as Admin\" and \"Login as Customer\" first - they save the tokens automatically\n5. Or press \"Run collection\" to test everything in order.\n\nDemo logins: admin / admin123   and   john.kamau / customer123",
+    "description": "All endpoints of the Power Utility Management System backend.\n\nHOW TO USE\n1. Import this collection and Local.postman_environment.json\n2. Pick the \"Power Utility - Local\" environment (top-right)\n3. Start the backend (npm run dev in the backend folder)\n4. Run \"Login as Admin\" and \"Login as Customer\" first - they save the tokens automatically\n5. Or press \"Run collection\" to test everything in order.\n\nDemo logins: PUMSadmin / PUMS@dmin578   and   sumaiya.khanam / customer123",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -92,7 +92,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"login\": \"admin\",\n  \"password\": \"admin123\"\n}",
+              "raw": "{\n  \"login\": \"PUMSadmin\",\n  \"password\": \"PUMS@dmin578\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -141,7 +141,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"login\": \"john.kamau@email.com\",\n  \"password\": \"customer123\"\n}",
+              "raw": "{\n  \"login\": \"sumaiya_khanam1988@example.com\",\n  \"password\": \"customer123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -191,7 +191,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"login\": \"admin\",\n  \"password\": \"wrong-password\"\n}",
+              "raw": "{\n  \"login\": \"PUMSadmin\",\n  \"password\": \"wrong-password\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -238,7 +238,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
-                  "pm.test(\"Returns the admin\", () => pm.expect(pm.response.json().data.username).to.eql(\"admin\"));"
+                  "pm.test(\"Returns the admin\", () => pm.expect(pm.response.json().data.username).to.eql(\"PUMSadmin\"));"
                 ]
               }
             }
@@ -356,7 +356,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/customers?search=kamau",
+              "raw": "{{baseUrl}}/customers?search=khanam",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -366,7 +366,7 @@
               "query": [
                 {
                   "key": "search",
-                  "value": "kamau"
+                  "value": "khanam"
                 }
               ]
             },
@@ -379,7 +379,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
-                  "pm.test(\"Finds John Kamau\", () => pm.expect(pm.response.json().data[0].full_name).to.eql(\"John Kamau\"));"
+                  "pm.test(\"Finds Sumaiya Khanam\", () => pm.expect(pm.response.json().data.map((c) => c.full_name)).to.include(\"Sumaiya Khanam\"));"
                 ]
               }
             }
@@ -451,7 +451,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"full_name\": \"Test Customer\",\n  \"phone\": \"+254 700 000 000\",\n  \"email\": \"{{newEmail}}\",\n  \"address\": \"1 Test Street, Nairobi\",\n  \"customer_type\": \"Residential\",\n  \"status\": \"Active\",\n  \"create_login\": true,\n  \"username\": \"{{newUsername}}\",\n  \"password\": \"test123\"\n}",
+              "raw": "{\n  \"full_name\": \"Test Customer\",\n  \"phone\": \"+8801711000000\",\n  \"email\": \"{{newEmail}}\",\n  \"address\": \"House 12, Road 5, Dhanmondi, Dhaka\",\n  \"customer_type\": \"Residential\",\n  \"status\": \"Active\",\n  \"create_login\": true,\n  \"username\": \"{{newUsername}}\",\n  \"password\": \"test123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -544,7 +544,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"+254 711 111 111\",\n  \"address\": \"2 Updated Road, Nairobi\"\n}",
+              "raw": "{\n  \"phone\": \"+8801811111111\",\n  \"address\": \"Flat 3B, Road 2, Mirpur 10, Dhaka\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -559,7 +559,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
-                  "pm.test(\"Phone changed\", () => pm.expect(pm.response.json().data.phone).to.eql(\"+254 711 111 111\"));"
+                  "pm.test(\"Phone changed\", () => pm.expect(pm.response.json().data.phone).to.eql(\"+8801811111111\"));"
                 ]
               }
             }
@@ -646,7 +646,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/connections?search=MET-0045",
+              "raw": "{{baseUrl}}/connections?search=9843930076",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -656,7 +656,7 @@
               "query": [
                 {
                   "key": "search",
-                  "value": "MET-0045"
+                  "value": "9843930076"
                 }
               ]
             },
@@ -669,7 +669,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
-                  "pm.test(\"Finds MET-0045\", () => pm.expect(pm.response.json().data[0].meter_number).to.eql(\"MET-0045\"));"
+                  "pm.test(\"Finds meter 9843930076\", () => pm.expect(pm.response.json().data[0].meter_number).to.eql(\"9843930076\"));"
                 ]
               }
             }
@@ -1003,8 +1003,8 @@
                 "exec": [
                   "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
                   "const b = pm.response.json().data;",
-                  "// Residential single phase, 120 kWh: 50x2.50 + 50x3.50 + 20x5.00 = 400; fixed 150; VAT 16% = 88",
-                  "pm.test(\"Total is 638.00\", () => pm.expect(b.total_amount).to.eql(638));"
+                  "// Residential single phase, 120 kWh: 75x5.26 + 45x8.50 = 777; fixed 84; VAT 5% = 43.05",
+                  "pm.test(\"Total is 904.05\", () => pm.expect(b.total_amount).to.eql(904.05));"
                 ]
               }
             }
@@ -1052,7 +1052,7 @@
                   "pm.environment.set(\"billId\", b.id);",
                   "pm.environment.set(\"billNumber\", b.bill_number);",
                   "pm.test(\"New bill is Unpaid\", () => pm.expect(b.status).to.eql(\"Unpaid\"));",
-                  "pm.test(\"Total is 638.00\", () => pm.expect(b.total_amount).to.eql(638));"
+                  "pm.test(\"Total is 904.05\", () => pm.expect(b.total_amount).to.eql(904.05));"
                 ]
               }
             }
@@ -1362,7 +1362,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
-                  "pm.test(\"It is John\", () => pm.expect(pm.response.json().data.full_name).to.eql(\"John Kamau\"));"
+                  "pm.test(\"It is Sumaiya\", () => pm.expect(pm.response.json().data.full_name).to.eql(\"Sumaiya Khanam\"));"
                 ]
               }
             }
@@ -2132,6 +2132,40 @@
               }
             }
           ]
+        },
+        {
+          "name": "Safety headers are sent",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"No framing (clickjacking)\", () => pm.expect(pm.response.headers.get(\"X-Frame-Options\")).to.eql(\"DENY\"));",
+                  "pm.test(\"No type guessing\", () => pm.expect(pm.response.headers.get(\"X-Content-Type-Options\")).to.eql(\"nosniff\"));",
+                  "pm.test(\"Express is not announced\", () => pm.expect(pm.response.headers.has(\"X-Powered-By\")).to.eql(false));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -2234,7 +2268,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"full_name\": \"Temporary Customer\",\n  \"phone\": \"+254 700 999 999\",\n  \"address\": \"Temp address\",\n  \"customer_type\": \"Commercial\"\n}",
+              "raw": "{\n  \"full_name\": \"Temporary Customer\",\n  \"phone\": \"+8801911999999\",\n  \"address\": \"Temp address\",\n  \"customer_type\": \"Commercial\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2280,6 +2314,1029 @@
                 "exec": [
                   "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
                   "pm.test(\"Deleted\", () => pm.expect(pm.response.json().data.deleted).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12. Bill estimator (public)",
+      "description": "Used by the bill estimator on the first page. No login needed: tariff prices are public.",
+      "item": [
+        {
+          "name": "Estimate a bill (250 kWh)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tariffs/estimate?customer_type=Residential&connection_type=Single Phase&units=250",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tariffs",
+                "estimate"
+              ],
+              "query": [
+                {
+                  "key": "customer_type",
+                  "value": "Residential"
+                },
+                {
+                  "key": "connection_type",
+                  "value": "Single Phase"
+                },
+                {
+                  "key": "units",
+                  "value": "250"
+                }
+              ]
+            },
+            "description": "Residential, Single Phase, 250 kWh: fixed 84 + energy 1,912 + VAT 99.80 = 2,095.80 (same as calculate_bill_amount in pgAdmin).",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data;",
+                  "pm.test(\"Total comes from calculate_bill_amount (৳2,095.80)\", () => pm.expect(d.total_amount).to.eql(2095.8));",
+                  "pm.test(\"Slab amounts add up to the energy charge\", () => {",
+                  "  const sum = d.slabs.reduce((total, s) => total + s.amount, 0);",
+                  "  pm.expect(sum).to.eql(d.variable_charge);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Estimate with wrong units (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tariffs/estimate?customer_type=Residential&connection_type=Single Phase&units=-5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tariffs",
+                "estimate"
+              ],
+              "query": [
+                {
+                  "key": "customer_type",
+                  "value": "Residential"
+                },
+                {
+                  "key": "connection_type",
+                  "value": "Single Phase"
+                },
+                {
+                  "key": "units",
+                  "value": "-5"
+                }
+              ]
+            },
+            "description": "Negative units are refused with a clear message.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Clear message\", () => pm.expect(pm.response.json().message).to.include(\"Units\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "13. Account security & profile changes",
+      "item": [
+        {
+          "name": "Sign up (a code is emailed, no login yet)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Postman Test\",\n  \"email\": \"{{signupEmail}}\",\n  \"phone\": \"01711000000\",\n  \"address\": \"Road 1, Dhaka\",\n  \"customer_type\": \"Residential\",\n  \"username\": \"{{signupUsername}}\",\n  \"password\": \"Postman123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// A new username/email every run",
+                  "const n = Date.now();",
+                  "pm.environment.set('signupUsername', 'postman' + n);",
+                  "pm.environment.set('signupEmail', 'postman' + n + '@example.com');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Needs email confirmation\", () => pm.expect(body.data.needs_confirmation).to.eql(true));",
+                  "pm.test(\"No token before confirming\", () => pm.expect(body.data.token).to.eql(undefined));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Log in before confirming the email (expect 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"{{signupUsername}}\",\n  \"password\": \"Postman123\",\n  \"role\": \"customer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"Code is EMAIL_NOT_CONFIRMED\", () => pm.expect(pm.response.json().code).to.eql(\"EMAIL_NOT_CONFIRMED\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirm with a wrong code (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/confirm-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "confirm-email"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"{{signupEmail}}\",\n  \"code\": \"000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ask for a new code too soon (expect 429)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/resend-code",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "resend-code"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"{{signupEmail}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 429\", () => pm.response.to.have.status(429));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sign up with a weak password (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Weak Password\",\n  \"email\": \"weak@example.com\",\n  \"phone\": \"01711000001\",\n  \"address\": \"Dhaka\",\n  \"customer_type\": \"Residential\",\n  \"username\": \"weak.password\",\n  \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Says what a strong password is\", () => pm.expect(pm.response.json().message).to.include(\"letter and one number\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Forgot password (same answer for every email)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"nobody@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Does not say if the account exists\", () => pm.expect(pm.response.json().data.message).to.include(\"If an account matches\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reset password with a wrong code (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"sumaiya.khanam\",\n  \"code\": \"000000\",\n  \"password\": \"NewPass123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Old admin login admin / admin123 (expect 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"admin\",\n  \"password\": \"admin123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Edit my name and address",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "profile"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Sumaiya Khanam\",\n  \"address\": \"House 7, Zindabazar, Sylhet\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Address saved\", () => pm.expect(pm.response.json().data.address).to.eql(\"House 7, Zindabazar, Sylhet\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change my email directly (expect 400: needs a request)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "profile"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Sumaiya Khanam\",\n  \"address\": \"House 7, Zindabazar, Sylhet\",\n  \"email\": \"new@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Request a phone number change",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/change-requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "change-requests"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"field\": \"phone\",\n  \"new_value\": \"{{newPhone}}\",\n  \"reason\": \"New SIM card\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('newPhone', '017' + Math.floor(10000000 + Math.random() * 89999999));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.environment.set(\"changeRequestId\", body.data.id);",
+                  "pm.test(\"Waits for an admin\", () => pm.expect(body.data.status).to.eql(\"Pending\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Same request again (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/change-requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "change-requests"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"field\": \"phone\",\n  \"new_value\": \"{{newPhone}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My change requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/my/change-requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "change-requests"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Is a list\", () => pm.expect(pm.response.json().data).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer opens the admin list (expect 403)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/change-requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "change-requests"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: waiting change requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/change-requests?status=Pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "change-requests"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "Pending"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const ids = pm.response.json().data.map((r) => r.id);",
+                  "pm.test(\"Our request is in the list\", () => pm.expect(ids).to.include(pm.environment.get(\"changeRequestId\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: approve the phone change",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/change-requests/{{changeRequestId}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "change-requests",
+                "{{changeRequestId}}",
+                "approve"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Checked by phone call\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Approved\", () => pm.expect(pm.response.json().data.status).to.eql(\"Approved\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve it again (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/change-requests/{{changeRequestId}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "change-requests",
+                "{{changeRequestId}}",
+                "approve"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Request an email change",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/change-requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "change-requests"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"field\": \"email\",\n  \"new_value\": \"sumaiya.new{{$timestamp}}@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.environment.set(\"emailChangeId\", pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: reject the email change",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/change-requests/{{emailChangeId}}/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "change-requests",
+                "{{emailChangeId}}",
+                "reject"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Please visit the office with your NID\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Rejected\", () => pm.expect(pm.response.json().data.status).to.eql(\"Rejected\"));"
                 ]
               }
             }

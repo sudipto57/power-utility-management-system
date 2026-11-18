@@ -8,7 +8,9 @@ import {
   getMyProfile,
   getMyRequest,
   getMyRequests,
+  updateMyProfile,
 } from '../controllers/my.controller.js';
+import { createMyChangeRequest, getMyChangeRequests } from '../controllers/changeRequests.controller.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireRole } from '../middleware/requireRole.js';
 
@@ -16,6 +18,9 @@ const router = Router();
 router.use(requireAuth, requireRole('customer'));
 
 router.get('/profile', getMyProfile);
+router.put('/profile', updateMyProfile); // name and address only
+router.get('/change-requests', getMyChangeRequests); // email, phone, types: admin must approve
+router.post('/change-requests', createMyChangeRequest);
 router.get('/dashboard', getMyDashboard);
 router.get('/bills', getMyBills);
 router.get('/bills/:id', getMyBill);

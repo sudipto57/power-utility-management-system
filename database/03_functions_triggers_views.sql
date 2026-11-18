@@ -217,3 +217,109 @@ BEGIN
     RETURN QUERY SELECT v_fixed, ROUND(v_variable, 2), v_tax, v_fixed + ROUND(v_variable, 2) + v_tax;
 END;
 $$ LANGUAGE plpgsql;
+
+-- =====================================================================
+-- FIXES (17 Nov 2026). Safe to run more than once.
+-- Found by checking the Supabase database and its Security/Performance Advisor.
+-- No table or column is added, removed or renamed.
+-- =====================================================================
+
+-- F1. users.customer_id had no foreign key, so a login could point at a customer
+--     that does not exist. Now it must point at a real customer (or be empty).
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_customer_id_fkey;
+ALTER TABLE users ADD CONSTRAINT users_customer_id_fkey
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL;
+
+-- F2. Rules that stop impossible data
+ALTER TABLE meter_readings DROP CONSTRAINT IF EXISTS meter_readings_one_per_day;
+ALTER TABLE meter_readings ADD CONSTRAINT meter_readings_one_per_day UNIQUE (connection_id, reading_date);
+
+ALTER TABLE bills DROP CONSTRAINT IF EXISTS bills_one_per_period;
+ALTER TABLE bills ADD CONSTRAINT bills_one_per_period UNIQUE (connection_id, billing_period_end);
+
+ALTER TABLE bills DROP CONSTRAINT IF EXISTS bills_valid_dates;
+ALTER TABLE bills ADD CONSTRAINT bills_valid_dates
+    CHECK (billing_period_end >= billing_period_start AND due_date >= billing_period_end);
+
+ALTER TABLE bills DROP CONSTRAINT IF EXISTS bills_amounts_not_negative;
+ALTER TABLE bills ADD CONSTRAINT bills_amounts_not_negative
+    CHECK (fixed_charge >= 0 AND variable_charge >= 0 AND tax_amount >= 0 AND total_amount >= 0);
+
+ALTER TABLE tariffs DROP CONSTRAINT IF EXISTS tariffs_valid_amounts;
+ALTER TABLE tariffs ADD CONSTRAINT tariffs_valid_amounts
+    CHECK (fixed_charge >= 0 AND tax_rate >= 0 AND tax_rate <= 100);
+
+ALTER TABLE tariff_slabs DROP CONSTRAINT IF EXISTS tariff_slabs_order_unique;
+ALTER TABLE tariff_slabs ADD CONSTRAINT tariff_slabs_order_unique UNIQUE (tariff_id, slab_order);
+
+ALTER TABLE tariff_slabs DROP CONSTRAINT IF EXISTS tariff_slabs_valid_range;
+ALTER TABLE tariff_slabs ADD CONSTRAINT tariff_slabs_valid_range
+    CHECK (start_unit >= 0 AND (end_unit IS NULL OR end_unit >= start_unit) AND rate_per_unit >= 0);
+
+-- F3. Bangladesh VAT is 5% (the old default was 16%)
+ALTER TABLE tariffs ALTER COLUMN tax_rate SET DEFAULT 5.00;
+
+-- F4. Indexes for foreign keys that had none (Supabase Performance Advisor: "Unindexed foreign keys")
+CREATE INDEX IF NOT EXISTS idx_customers_user_id ON customers(user_id);
+CREATE INDEX IF NOT EXISTS idx_meter_readings_recorded_by ON meter_readings(recorded_by);
+CREATE INDEX IF NOT EXISTS idx_payments_recorded_by ON payments(recorded_by);
+CREATE INDEX IF NOT EXISTS idx_service_requests_assigned_to ON service_requests(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_service_request_comments_user_id ON service_request_comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_bill_adjustments_approved_by ON bill_adjustments(approved_by);
+CREATE INDEX IF NOT EXISTS idx_meter_reading_schedules_assigned_to ON meter_reading_schedules(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_meter_reading_schedules_actual_reading_id ON meter_reading_schedules(actual_reading_id);
+
+-- F5. Three indexes were exact copies of the indexes that UNIQUE already makes. Remove the copies.
+DROP INDEX IF EXISTS idx_connections_meter_number;   -- connections_meter_number_key already indexes meter_number
+DROP INDEX IF EXISTS idx_users_email;                -- users_email_key already indexes email
+DROP INDEX IF EXISTS idx_users_customer_id;          -- unique_customer_user already indexes customer_id
+
+-- F6. Bill status trigger, improved:
+--     * a bill that is still not fully paid after its due date becomes 'Overdue' at once
+--       (before, deleting a payment made it 'Unpaid' even when it was late)
+--     * if a payment is moved to another bill, BOTH bills are recalculated
+CREATE OR REPLACE FUNCTION update_bill_status()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_bill_id    UUID;
+    total_paid   DECIMAL(12,2);
+    bill_total   DECIMAL(12,2);
+    bill_due     DATE;
+    new_status   VARCHAR(20);
+BEGIN
+    FOR v_bill_id IN
+        SELECT DISTINCT x FROM unnest(ARRAY[
+            CASE WHEN TG_OP IN ('UPDATE', 'DELETE') THEN OLD.bill_id END,
+            CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN NEW.bill_id END
+        ]) AS x WHERE x IS NOT NULL
+    LOOP
+        SELECT COALESCE(SUM(amount), 0) INTO total_paid
+        FROM payments
+        WHERE bill_id = v_bill_id AND status = 'Completed';
+
+        SELECT total_amount, due_date INTO bill_total, bill_due FROM bills WHERE id = v_bill_id;
+        CONTINUE WHEN bill_total IS NULL;           -- the bill itself is being deleted
+
+        IF total_paid >= bill_total THEN
+            new_status := 'Paid';
+        ELSIF bill_due < CURRENT_DATE THEN
+            new_status := 'Overdue';
+        ELSIF total_paid > 0 THEN
+            new_status := 'Partially Paid';
+        ELSE
+            new_status := 'Unpaid';
+        END IF;
+
+        UPDATE bills SET status = new_status, updated_at = NOW() WHERE id = v_bill_id;
+    END LOOP;
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- F7. Fixed search_path for every project function (Supabase Security Advisor:
+--     "Function Search Path Mutable"). The function then always uses our tables.
+ALTER FUNCTION update_updated_at_column() SET search_path = public, pg_temp;
+ALTER FUNCTION check_reading_sequence() SET search_path = public, pg_temp;
+ALTER FUNCTION update_bill_status() SET search_path = public, pg_temp;
+ALTER FUNCTION check_overdue_bills() SET search_path = public, pg_temp;
+ALTER FUNCTION calculate_bill_amount(VARCHAR, VARCHAR, INTEGER) SET search_path = public, pg_temp;

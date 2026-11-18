@@ -7,6 +7,7 @@ import StatusBadge from '../../components/common/StatusBadge';
 import InfoRow from '../../components/common/InfoRow';
 import ErrorState from '../../components/common/ErrorState';
 import RequestTimeline from '../../components/common/RequestTimeline';
+import RequestProgress from '../../components/common/RequestProgress';
 import { PageSkeleton } from '../../components/common/Skeleton';
 import { formatDateTime } from '../../utils/format';
 
@@ -30,6 +31,9 @@ export default function MyRequestDetails() {
           </>
         }
       />
+      <Card title="Progress" className="animate-fade-up">
+        <RequestProgress status={r.status} size="lg" />
+      </Card>
       <div className="grid gap-6 lg:grid-cols-3">
         <Card title="Updates" className="animate-fade-up lg:col-span-2">
           <RequestTimeline request={r} />

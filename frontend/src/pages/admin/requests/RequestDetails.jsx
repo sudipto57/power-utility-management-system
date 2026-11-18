@@ -11,6 +11,7 @@ import StatusBadge from '../../../components/common/StatusBadge';
 import ErrorState from '../../../components/common/ErrorState';
 import FormError from '../../../components/common/FormError';
 import RequestTimeline from '../../../components/common/RequestTimeline';
+import RequestProgress from '../../../components/common/RequestProgress';
 import { PageSkeleton } from '../../../components/common/Skeleton';
 import { Field, Select, Textarea } from '../../../components/common/FormField';
 import { REQUEST_PRIORITIES, REQUEST_STATUSES } from '../../../utils/options';
@@ -97,6 +98,10 @@ export default function RequestDetails() {
           </>
         }
       />
+
+      <Card title="Progress" className="animate-fade-up">
+        <RequestProgress status={request.status} size="lg" />
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

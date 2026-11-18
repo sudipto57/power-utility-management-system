@@ -127,6 +127,8 @@ erDiagram
 | `service_request_comments` | Conversation on a request | |
 | `tariffs`, `tariff_slabs` | Prices used by the bill calculator | |
 | `bill_adjustments`, `bill_installments`, `meter_reading_schedules` | On the "Later" list (no UI yet) | |
+| `account_codes` *(new, file 09)* | 6-digit email codes for **confirming the email** after sign up and for **forgot password** | only a SHA-256 hash of the code is stored; `purpose` CHECK; works 15 minutes; 5 wrong tries. A customer with an unused `confirm_email` code cannot log in yet |
+| `profile_change_requests` *(new, file 09)* | A customer asks to change their email, phone, customer type or a meter's connection type; an admin approves or rejects | `field` and `status` CHECK; `connection_id` only for `connection_type` (CHECK); **one waiting request per thing** (partial UNIQUE index `change_requests_one_pending`) |
 
 ## Database logic (the DBMS part)
 
@@ -142,11 +144,11 @@ erDiagram
 
 ## How a bill is calculated
 
-1. Find the active tariff for the customer type + connection type (e.g. *Residential Single Phase*: fixed 150, VAT 16 %).
-2. Walk through the slabs: Residential = 50 units × 2.50, next 50 × 3.50, next 100 × 5.00, next 300 × 7.50, rest × 10.00.
-3. `tax = (fixed + variable) × 16 %`, `total = fixed + variable + tax`.
+1. Find the active tariff for the customer type + connection type (e.g. *Residential Single Phase*: fixed 84, VAT 5 %). Rates are the Bangladesh BERC tariff of June 2026.
+2. Walk through the slabs: Residential = first 75 units × 5.26, units 76-200 × 8.50, 201-300 × 9.10, 301-400 × 9.62, 401-600 × 15.01, above 600 × 17.35. Commercial = every unit × 15.36.
+3. `tax = (fixed + variable) × 5 %`, `total = fixed + variable + tax`.
 
-Example, 250 kWh residential: 125 + 175 + 500 + 375 = **1,175** → +150 → 1,325 → +212 VAT → **1,537.00**.
+Example, 250 kWh residential single phase: 394.50 + 1,062.50 + 455.00 = **1,912.00** → +84 → 1,996.00 → +99.80 VAT → **2,095.80**.
 
 ## How "Paid / Unpaid" works
 

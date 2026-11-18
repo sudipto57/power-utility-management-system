@@ -4,6 +4,7 @@ import ApiError from '../utils/ApiError.js';
 import { generateNumber } from '../utils/generateNumber.js';
 import { BILL_STATUSES, PAYMENT_METHODS } from '../utils/constants.js';
 import { clean, optionalDate, optionalOneOf, optionalText, requireUuid } from '../utils/validate.js';
+import { billEmail, sendEmail } from '../utils/email.js';
 
 // One bill with its customer, meter, the reading it came from and how much is paid.
 // A bill belongs to the reading taken the day after the billing period ends.
@@ -164,7 +165,15 @@ export async function generateBill(req, res) {
     return rows[0].id;
   });
 
-  res.status(201).json({ data: await findBill(billId) });
+  // Email the new bill to the customer (if they have an email address).
+  // The bill is already saved, so an email problem never undoes it.
+  const bill = await findBill(billId);
+  let emailSent = false;
+  if (bill.customer_email) {
+    const { subject, html } = billEmail(bill);
+    emailSent = await sendEmail({ to: bill.customer_email, name: bill.customer_name, subject, html });
+  }
+  res.status(201).json({ data: { ...bill, email_sent: emailSent } });
 }
 
 // POST /api/bills/:id/mark-paid   body: { method, reference, payment_date }  (all optional)

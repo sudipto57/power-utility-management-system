@@ -11,5 +11,5 @@ const ADMIN_MENU = [
 ];
 
 export default function AdminLayout() {
-  return <AppLayout menu={ADMIN_MENU} roleLabel="Admin panel" />;
+  return <AppLayout menu={ADMIN_MENU} roleLabel="Admin panel" role="admin" />;
 }

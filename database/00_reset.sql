@@ -4,7 +4,7 @@
 --
 -- SAFE ON SUPABASE: it does NOT drop the "public" schema (Supabase needs it).
 -- WARNING: all project data (customers, bills, ...) is deleted.
--- Run order: 00 -> 01 -> 02 -> 03 -> 04 -> (05 local only) -> 06 -> 07 (Supabase only)
+-- Run order: 00 -> 01 -> 02 -> 03 -> 04 -> (05 local only) -> 06 -> 07 (Supabase only) -> 09
 -- =====================================================================
 
 -- Views first
@@ -12,6 +12,8 @@ DROP VIEW IF EXISTS customer_billing_summary CASCADE;
 DROP VIEW IF EXISTS connection_consumption CASCADE;
 
 -- Tables (children first; CASCADE also removes their triggers and indexes)
+DROP TABLE IF EXISTS profile_change_requests CASCADE;  -- from 09
+DROP TABLE IF EXISTS account_codes CASCADE;            -- from 09
 DROP TABLE IF EXISTS meter_reading_schedules CASCADE;
 DROP TABLE IF EXISTS bill_installments CASCADE;
 DROP TABLE IF EXISTS bill_adjustments CASCADE;

@@ -1,5 +1,16 @@
 import { useMemo } from 'react';
 import ChartCanvas from './ChartCanvas';
+import { formatNumber } from '../../utils/format';
+
+// Each bar fades from its colour (top) to a lighter version of it (bottom)
+function gradientFill(context, color) {
+  const { ctx, chartArea } = context.chart;
+  if (!chartArea) return color; // very first draw: the chart size is not known yet
+  const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+  gradient.addColorStop(0, color);
+  gradient.addColorStop(1, `${color}55`);
+  return gradient;
+}
 
 /**
  * <BarChart labels={['Aug', 'Sep']} series={[{ label: 'Billed', data: [1, 2], color: '#f59e0b' }]} />
@@ -12,9 +23,9 @@ export default function BarChart({ labels, series, height = 280, stacked = false
       datasets: series.map((s) => ({
         label: s.label,
         data: s.data,
-        backgroundColor: s.color,
+        backgroundColor: (context) => gradientFill(context, s.color),
         hoverBackgroundColor: s.color,
-        borderRadius: 8,
+        borderRadius: 10,
         borderSkipped: false,
         maxBarThickness: 34,
       })),
@@ -31,8 +42,7 @@ export default function BarChart({ labels, series, height = 280, stacked = false
           stacked,
           beginAtZero: true,
           border: { display: false },
-          grid: { color: '#f1f5f9' },
-          ticks: { callback: (value) => Number(value).toLocaleString('en-US') },
+          ticks: { callback: (value) => formatNumber(value) }, // same digit grouping as the rest of the site
         },
       },
     }),

@@ -60,7 +60,7 @@ export default function MyBills() {
               type="button"
               onClick={() => setStatus(s)}
               className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                status === s ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                status === s ? 'bg-slate-900 text-white shadow dark:bg-orange-500' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               {s || 'All'}

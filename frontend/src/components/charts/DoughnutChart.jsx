@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
 import ChartCanvas from './ChartCanvas';
+import useTheme from '../../hooks/useTheme';
 
 /** <DoughnutChart labels={['Paid', 'Unpaid']} values={[5, 3]} colors={['#10b981', '#f59e0b']} /> */
 export default function DoughnutChart({ labels, values, colors, height = 260 }) {
+  const { dark } = useTheme();
   const data = useMemo(
     () => ({
       labels,
@@ -11,13 +13,13 @@ export default function DoughnutChart({ labels, values, colors, height = 260 }) 
           data: values,
           backgroundColor: colors,
           hoverBackgroundColor: colors,
-          borderColor: '#ffffff',
+          borderColor: dark ? '#0f172a' : '#ffffff', // gap between the slices = card colour
           borderWidth: 3,
           hoverOffset: 8,
         },
       ],
     }),
-    [labels, values, colors]
+    [labels, values, colors, dark]
   );
 
   const options = useMemo(

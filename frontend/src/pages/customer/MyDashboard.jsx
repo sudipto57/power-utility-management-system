@@ -7,13 +7,38 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Icon from '../../components/common/Icon';
 import StatCard from '../../components/common/StatCard';
+import WelcomeBanner, { BannerChip } from '../../components/common/WelcomeBanner';
 import StatusBadge from '../../components/common/StatusBadge';
 import ErrorState from '../../components/common/ErrorState';
 import EmptyState from '../../components/common/EmptyState';
 import { PageSkeleton } from '../../components/common/Skeleton';
 import BarChart from '../../components/charts/BarChart';
+import UsageGauge from '../../components/charts/UsageGauge';
+import EnergyTips from '../../components/common/EnergyTips';
 import { CHART_COLORS } from '../../components/charts/colors';
-import { formatDate, formatMoney, formatNumber } from '../../utils/format';
+import { firstName, formatDate, formatMoney, formatNumber } from '../../utils/format';
+
+/** "↓ 12% less than last month" (green) or "↑ 8% more than last month" (red), with a moving arrow. */
+function CompareBadge({ current, previous }) {
+  if (!previous || previous.units === 0) {
+    return <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">First month on record</span>;
+  }
+  if (current.units === previous.units) {
+    return <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">Same as {previous.month}</span>;
+  }
+  const less = current.units < previous.units;
+  const percent = Math.round((Math.abs(current.units - previous.units) / previous.units) * 100);
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold ring-1 ${
+        less ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : 'bg-rose-50 text-rose-700 ring-rose-200'
+      }`}
+    >
+      <Icon name="arrowRight" className={`h-3.5 w-3.5 animate-float ${less ? 'rotate-90' : '-rotate-90'}`} strokeWidth={2.6} />
+      {percent}% {less ? 'less' : 'more'} than {previous.month}
+    </span>
+  );
+}
 
 export default function MyDashboard() {
   const { user } = useAuth();
@@ -31,37 +56,32 @@ export default function MyDashboard() {
   if (error) return <ErrorState message={error} onRetry={reload} />;
 
   const bill = d.latest_bill;
+  // Latest month and the month before it, for the gauge and the "compared to last month" badge
+  const thisMonth = d.usage[d.usage.length - 1];
+  const lastMonth = d.usage[d.usage.length - 2];
 
   return (
     <div className="space-y-6">
       {/* Welcome banner */}
-      <div className="relative animate-fade-up overflow-hidden rounded-3xl bg-slate-950 p-7 text-white shadow-lg">
-        <div className="absolute -right-10 -top-16 h-64 w-64 animate-glow rounded-full bg-amber-500/25 blur-3xl" />
-        <svg className="absolute bottom-0 right-0 h-28 w-2/3 opacity-40" viewBox="0 0 400 100" fill="none" aria-hidden="true">
-          <path
-            d="M0 70 C 60 40, 110 95, 170 60 S 290 20, 400 50"
-            stroke="#f59e0b"
-            strokeWidth="2"
-            strokeDasharray="7 12"
-            className="animate-flow"
-          />
-        </svg>
-        <div className="relative flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <p className="text-sm text-slate-400">Welcome back,</p>
-            <h1 className="mt-1 text-3xl font-extrabold tracking-tight">{user?.full_name}</h1>
-            <p className="mt-2 text-sm text-slate-400">Here is your electricity account at a glance.</p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Button variant="accent" icon="complaint" to="/my/requests/new">
+      <WelcomeBanner
+        role="customer"
+        eyebrow="Customer portal"
+        title={`Welcome back, ${firstName(user?.full_name)}!`}
+        subtitle="Here is your electricity account at a glance."
+        actions={
+          <>
+            <Button variant="secondary" icon="complaint" to="/my/requests/new">
               Report a problem
             </Button>
-            <Button variant="secondary" icon="receipt" to="/my/bills">
+            <Button variant="glass" icon="receipt" to="/my/bills">
               My bills
             </Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      >
+        <BannerChip>{d.outstanding_amount > 0 ? `💳 ${formatMoney(d.outstanding_amount)} to pay` : '✅ All bills paid'}</BannerChip>
+        <BannerChip>🔌 {formatNumber(d.connections_active)} active service(s)</BannerChip>
+      </WelcomeBanner>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -121,12 +141,12 @@ export default function MyDashboard() {
                 <span className="font-mono text-sm font-bold text-slate-500">{bill.bill_number}</span>
                 <StatusBadge status={bill.status} />
               </div>
-              <p className="mt-4 text-4xl font-extrabold tracking-tight text-slate-900">{formatMoney(bill.total_amount)}</p>
+              <p className="mt-4 font-display text-4xl font-extrabold tracking-tight text-slate-900">{formatMoney(bill.total_amount)}</p>
               <p className="mt-1 text-sm text-slate-500">
                 {formatNumber(bill.consumption)} kWh · {formatDate(bill.billing_period_start)} –{' '}
                 {formatDate(bill.billing_period_end)}
               </p>
-              <div className="mt-5 flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200/70">
+              <div className="mt-5 flex items-center gap-3 rounded-2xl bg-gradient-to-r from-orange-50 to-rose-50 px-4 py-3 ring-1 ring-orange-100">
                 <Icon name="calendar" className="h-5 w-5 text-amber-500" />
                 <div className="text-sm">
                   <p className="text-slate-500">Due date</p>
@@ -143,12 +163,39 @@ export default function MyDashboard() {
               </div>
               <Link
                 to={`/my/bills/${bill.id}`}
-                className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-sky-600 hover:underline"
+                className="mt-5 inline-flex items-center gap-1.5 text-sm font-extrabold text-orange-600 hover:underline"
               >
                 View full bill <Icon name="arrowRight" className="h-4 w-4" />
               </Link>
             </div>
           )}
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card
+          title="This month's usage"
+          subtitle={thisMonth ? `Units used in ${thisMonth.month}` : 'Shown after your first reading'}
+          className="animate-fade-up"
+          style={{ animationDelay: '260ms' }}
+        >
+          {thisMonth ? (
+            <div className="flex flex-col items-center gap-4">
+              <UsageGauge units={thisMonth.units} />
+              <CompareBadge current={thisMonth} previous={lastMonth} />
+            </div>
+          ) : (
+            <EmptyState icon="gauge" title="No readings yet" text="Your usage appears here after the first meter reading." />
+          )}
+        </Card>
+
+        <Card
+          title="Energy-saving tips"
+          subtitle="Small habits that lower your bill"
+          className="animate-fade-up"
+          style={{ animationDelay: '320ms' }}
+        >
+          <EnergyTips />
         </Card>
       </div>
     </div>

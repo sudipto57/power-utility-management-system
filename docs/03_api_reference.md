@@ -26,8 +26,24 @@ Base URL: `http://localhost:5000/api`
 
 | Method | URL | Who | Body / query | Answer |
 | --- | --- | --- | --- | --- |
-| POST | `/auth/login` | everyone | `{ "login": "admin", "password": "admin123" }` (email or username) | `{ token, user }` |
+| POST | `/auth/login` | everyone | `{ "login": "PUMSadmin", "password": "PUMS@dmin578", "role": "admin" }` (email or username; `role` = `admin` or `customer`, optional) | `{ token, user }`; **403 `EMAIL_NOT_CONFIRMED`** for a customer who has not typed the email code yet |
+| POST | `/auth/signup` | everyone (creates **customers only**) | `{ "full_name", "email", "phone", "address", "customer_type": "Residential", "username", "password" }` (password: 8+ characters with a letter and a number) | `{ needs_confirmation: true, email, email_sent }` - a 6-digit code is emailed, no login yet |
+| POST | `/auth/confirm-email` | everyone | `{ "login": "email or username", "code": "123456" }` | `{ token, user }` (email confirmed, logged in) |
+| POST | `/auth/resend-code` | everyone | `{ "login" }` | always the same message (429 if asked again within a minute) |
+| POST | `/auth/forgot-password` | everyone (customers) | `{ "login": "email, username or phone" }` | always the same message; the code goes to the account's email |
+| POST | `/auth/reset-password` | everyone (customers) | `{ "login", "code", "password" }` | new password saved; every old login token stops working |
 | GET | `/auth/me` | logged in | | the current user |
+
+**Codes:** 6 digits, work for 15 minutes, 5 wrong tries, stored only as a SHA-256 hash (table `account_codes`).
+**Limits per visitor (IP):** login 20 / 15 min, sign up 10 / hour, typing a code 15 / 15 min, asking for an email 5 / 15 min → `429 "Too many tries"`.
+
+**Role Based Login:** when `role` is sent, the account must have that role, otherwise the answer is `403` ("This is an admin account. Switch to the Admin tab to log in."). Sign up always creates a `customer` login + customer profile; admin accounts are never created here.
+
+## Bill estimator - public (no login)
+
+| Method | URL | Query | Answer |
+| --- | --- | --- | --- |
+| GET | `/tariffs/estimate` | `customer_type` (Residential / Commercial), `connection_type` (Single Phase / Three Phase), `units` (0 - 100000) | `{ units, slabs: [{ slab_order, start_unit, end_unit, rate_per_unit, units, amount }], fixed_charge, variable_charge, tax_amount, total_amount }` — totals from `calculate_bill_amount()` |
 
 ## Dashboard (feature 3) - admin
 
@@ -105,6 +121,19 @@ Every query uses the customer id inside the login token, so a customer only ever
 | GET | `/my/requests` | | own requests |
 | GET | `/my/requests/:id` | | one own request + updates |
 | POST | `/my/requests` | `{ "category": "Power Outage", "priority": "High", "description": "..." }` | new request (Pending) |
+| PUT | `/my/profile` | `{ "full_name", "address" }` | saved straight away (email / phone / type here → 400) |
+| GET | `/my/change-requests` | | own profile change requests + the office's answer |
+| POST | `/my/change-requests` | `{ "field": "email" \| "phone" \| "customer_type" \| "connection_type", "new_value", "connection_id" (only for connection_type), "reason" }` | new request (Pending); 409 if one is already waiting for the same thing |
+
+## Profile change requests - admin
+
+| Method | URL | Body / query | Notes |
+| --- | --- | --- | --- |
+| GET | `/change-requests` | `?status=Pending` (or Approved / Rejected) | waiting ones first |
+| POST | `/change-requests/:id/approve` | `{ "note" }` (optional) | makes the change + marks Approved (one transaction), emails the customer |
+| POST | `/change-requests/:id/reject` | `{ "note" }` (optional, shown to the customer) | marks Rejected, emails the customer |
+
+**Emails:** a new bill (`POST /bills/generate`, answer has `email_sent`), codes and change answers are emailed through Brevo. Without `BREVO_API_KEY` they are printed in the backend terminal.
 
 ## Allowed values
 

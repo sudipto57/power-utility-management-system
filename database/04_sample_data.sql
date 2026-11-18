@@ -5,7 +5,7 @@
 --
 -- What is inside:
 --   * Bangladesh tariffs (BERC order of June 2026, 5% VAT) used by calculate_bill_amount()
---   * 3 staff logins (password PUMS@dmin578): PUMSadmin, tech.john, billing.officer
+--   * 3 staff logins (password <staff password>): PUMSadmin, tech.john, billing.officer
 --   * 200 sample customers built from the electricity survey (fake people: no real
 --     respondent's name, phone, email or meter number is used). 100 men, 100 women,
 --     all 8 divisions, all 6 distribution companies, homes, shops, factories and farms.
@@ -57,7 +57,7 @@ INSERT INTO tariff_slabs (tariff_id, slab_order, start_unit, end_unit, rate_per_
 SELECT t.id, 1, 0, NULL, 15.36 FROM tariffs t WHERE t.customer_type = 'Commercial';
 
 -- ---------------------------------------------------------------------
--- 3. Staff logins (password: PUMS@dmin578)
+-- 3. Staff logins (password: <staff password>)
 -- ---------------------------------------------------------------------
 INSERT INTO users (username, email, full_name, role, status, password_hash) VALUES
 ('PUMSadmin',       'admin@powerutility.com',     'System Administrator', 'admin', 'Active', '$2b$10$D5XbuCWsC50s/A9d8zdOTufMk7X2uUxnZiVmFxUb6tc2qpPlWlZva'),
@@ -3239,7 +3239,7 @@ JOIN users u ON u.username = v.username;
 
 -- ---------------------------------------------------------------------
 -- Demo logins created by this file
---   Staff (Admin tab):     PUMSadmin / PUMS@dmin578   (also tech.john, billing.officer)
+--   Staff (Admin tab):     PUMSadmin / <staff password>   (also tech.john, billing.officer)
 --   Customers (Customer tab), password customer123:
 --     sumaiya.khanam         CUST-011  Sylhet      Postpaid  Home
 --     nayeem.sheikh          CUST-007  Chattogram  Postpaid  Home

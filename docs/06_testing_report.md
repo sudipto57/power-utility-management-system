@@ -23,7 +23,7 @@ Run the API tests yourself: Postman → collection → **Run collection** (see `
 
 | # | Feature | Steps | Expected | ✓ |
 | --- | --- | --- | --- | --- |
-| 1 | Login | Log in as `PUMSadmin` / `PUMS@dmin578`; then try a wrong password | Admin dashboard; then "Wrong email/username or password" | ☐ |
+| 1 | Login | Log in as `PUMSadmin` / `<staff password>`; then try a wrong password | Admin dashboard; then "Wrong email/username or password" | ☐ |
 | 2 | Roles | Log in as `sumaiya.khanam` / `customer123`; type `/admin` in the address bar | Customer portal; sent back to `/my` | ☐ |
 | 3 | Dashboard | Open Dashboard | 4 numbers, 2 charts, recent activity | ☐ |
 | 4 | Customer management | Add a customer, edit the phone, delete a customer without bills | Each change shows a green message and appears in the list | ☐ |

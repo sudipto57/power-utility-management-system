@@ -109,6 +109,7 @@ Totals (billed, collected, outstanding, VAT), customers by type, **top customers
 - **My Bills**: every bill with its payment status; open one for the full printable bill. The browser tab shows how many bills are still unpaid, e.g. *(1) My Bills*.
 - **My Requests → New request**: choose what it is about, how urgent, describe it. Follow the progress bar (Pending → In Progress → Resolved) and staff replies.
 - **My Profile**: contact details and meters (the meter numbers roll up like a real meter).
+- **Give Feedback** (also at the bottom of the first page, no login needed): choose 1-5 stars and a topic, write what you think. Each message is emailed to the team.
   - **Edit my details**: change your **name and address** straight away.
   - **Request a change**: a new **email, phone number, customer type** or a meter's **connection type** needs the office's OK. The request appears under **My change requests** as *Pending*, then *Approved* or *Rejected* (with the office's note). You also get an email with the answer.
 

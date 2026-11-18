@@ -6,6 +6,7 @@ import useDebounce from '../../hooks/useDebounce';
 import useCountUp from '../../hooks/useCountUp';
 import { estimateBill } from '../../api/tariffs';
 import WatchDemoButton from './WatchDemo';
+import FeedbackForm from '../common/FeedbackForm';
 import { formatMoney, formatNumber } from '../../utils/format';
 import { CATEGORIES, FAQS, SERVICES, STEPS, VISION } from './landingData';
 
@@ -358,6 +359,24 @@ export function HowItWorks({ onSignUp }) {
             <Icon name="arrowRight" className="h-4 w-4" />
           </button>
           <WatchDemoButton dark />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- Feedback (emailed to the team) ---------------- */
+export function FeedbackSection() {
+  return (
+    <section id="feedback" className="scroll-mt-20 bg-slate-50 py-20">
+      <div className="mx-auto max-w-2xl px-5">
+        <SectionTitle
+          eyebrow="Feedback"
+          title="Help us make Power Utility better"
+          text="Tell us what you like, what is hard to use, or what we should add next. It takes one minute."
+        />
+        <div className="mt-10 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70 sm:p-8">
+          <FeedbackForm />
         </div>
       </div>
     </section>

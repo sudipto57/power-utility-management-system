@@ -7,7 +7,14 @@ import LandingNavbar from '../../components/landing/LandingNavbar';
 import AuthCard from '../../components/landing/AuthCard';
 import WatchDemoButton from '../../components/landing/WatchDemo';
 import LandingFooter from '../../components/landing/LandingFooter';
-import { EstimatorSection, FaqSection, HowItWorks, ServicesSection, VisionSection } from '../../components/landing/LandingSections';
+import {
+  EstimatorSection,
+  FaqSection,
+  FeedbackSection,
+  HowItWorks,
+  ServicesSection,
+  VisionSection,
+} from '../../components/landing/LandingSections';
 import { HERO_POINTS, STATS } from '../../components/landing/landingData';
 
 // Smoothly scroll to a section of this page by its id
@@ -176,6 +183,7 @@ export default function Login() {
         <EstimatorSection />
         <HowItWorks onSignUp={() => openAuth('customer', 'signup')} />
         <FaqSection />
+        <FeedbackSection />
       </main>
 
       <LandingFooter onOpenAuth={openAuth} />

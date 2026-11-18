@@ -7,7 +7,7 @@ How to use each feature. Screenshots are in `docs/images/`.
 Open http://localhost:5173. The first page has the login card on the right.
 
 1. Pick **Customer** or **Admin** on the slide switch (Role Based Login: an account only works on its own tab).
-2. Type your **email or username** and password (demo logins: `PUMSadmin` / `PUMS@dmin578` on the Admin tab, `sumaiya.khanam` / `customer123` on the Customer tab). The eye button shows or hides the password.
+2. Type your **email or username** and password (demo logins: `PUMSadmin` / `<staff password>` on the Admin tab, `sumaiya.khanam` / `customer123` on the Customer tab). The eye button shows or hides the password.
 3. New customers can press **Create an account** (or **Sign up** in the top bar). Sign up is for customers only; admin accounts are made by the system administrator.
    The password needs **8+ characters with a letter and a number** (both password boxes have an eye button).
    **Customers: every login has a second step, like GitHub.** After the right password, the card shows **Verify your identity**: an **8-digit code** is emailed to you (subject *[Power Utility] Sudo email verification code*), valid for 15 minutes and usable once. Type it and press **Verify**. No email? Check spam, or press **Send a new code** (once a minute). Admins log in with the password only.

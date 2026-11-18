@@ -33,7 +33,7 @@ Run each file once, top to bottom. If anything fails halfway, run `00_reset.sql`
 | 1 | Sample bill amounts did not match the readings or the bill function | Bills in `04` are calculated with `calculate_bill_amount()` from the readings |
 | 2 | First slab "0-50" counted 51 units | Each slab now counts exactly its own units (0-75 = 75 units, 76-200 = 125 units ...) |
 | 3 | Rates picked by connection type only, hard-coded, no VAT | Function reads `tariffs` + `tariff_slabs` by customer type **and** connection type and adds VAT |
-| 4 | All demo users had the same password hash | Real bcrypt hashes: staff = `PUMS@dmin578` (was `admin123`, which was public), customers = `customer123` |
+| 4 | All demo users had the same password hash | Real bcrypt hashes: staff = `<staff password>` (was `admin123`, which was public), customers = `customer123` |
 | 5 | Users and customers point at each other twice | Kept both columns (schema unchanged); the backend keeps them in sync |
 | 6 | Deleting a customer erased their bills | The API refuses and offers "Deactivate" instead |
 | 7 | `check_overdue_bills()` was never called | The API calls it before showing bills and the dashboard |
@@ -77,7 +77,7 @@ Source: BERC retail tariff order, June 2026. Real irrigation (Tk 6.04) and indus
 
 | Username | Password | Role |
 | --- | --- | --- |
-| PUMSadmin, tech.john, billing.officer | PUMS@dmin578 | admin |
+| PUMSadmin, tech.john, billing.officer | <staff password> | admin |
 | sumaiya.khanam (CUST-011, has an Overdue bill), nayeem.sheikh, khadija.yasmin (prepaid), rafiqul.islam (shop), sohag.howlader (farm), sadia.sultana (factory), tapas.saha | customer123 | customer |
 
 The 200 sample customers are made-up people built from the electricity survey (see `docs/data-collection/Survey_Sample_Data_200.xlsx`). No real respondent's name, phone, email or meter number is used.

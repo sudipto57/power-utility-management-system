@@ -31,7 +31,7 @@ cd backend && npm install && npm run db:test && npm run dev
 cd frontend && npm install && npm run dev
 ```
 
-Demo logins (from `database/04_sample_data.sql`): `PUMSadmin` / `PUMS@dmin578`, `sumaiya.khanam` / `customer123` (Bangladesh sample data: 200 customers CUST-001 … CUST-200, emails end in `@example.com` so test emails never reach real people).
+Demo logins (from `database/04_sample_data.sql`): `PUMSadmin` / staff password (ask the team: it is shared privately and never written in GitHub), `sumaiya.khanam` / `customer123` (Bangladesh sample data: 200 customers CUST-001 … CUST-200, emails end in `@example.com` so test emails never reach real people).
 Website sign-ups (and customers added by an admin) are saved in the database and then copied by the backend into the marked "WEBSITE CUSTOMERS" part at the end of `database/04_sample_data.sql` (`backend/src/utils/saveCustomersToSql.js`; by hand: `npm run db:save-customers`). Never edit that part by hand.
 Database setup order: `00_reset` → `01` → `02` → `03` → `04` → `07` (Supabase only) → `09`. `05` is local-only, `06` is practice queries. Full steps: `docs/04_setup_guide.md`.
 

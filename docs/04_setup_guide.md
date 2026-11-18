@@ -37,12 +37,15 @@ You already connected Supabase to pgAdmin. We run the SQL files there.
 | 4 | `database/03_functions_triggers_views.sql` |
 | 5 | `database/04_sample_data.sql` |
 | 6 | `database/07_supabase_security.sql` |
+| 7 | `database/09_account_security.sql` (email codes + profile change requests) |
 
 *(Skip `05_roles_and_grants.sql` on Supabase. `06_report_queries.sql` is optional practice.)*
 
 **Alternative:** Supabase dashboard → **SQL Editor** → **New query** → paste a file's text → **Run**, one file at a time, same order.
 
-✅ **Check:** run `SELECT * FROM calculate_bill_amount('Residential', 'Single Phase', 250);`. The total should be **1537.00**.
+✅ **Check:** run `SELECT * FROM calculate_bill_amount('Residential', 'Single Phase', 250);`. The total should be **2095.80**.
+
+**Already set up before 18 Nov 2026?** Just run **`09_account_security.sql`** once (it adds the tables for email codes and profile change requests). The backend will not start without it.
 
 > "relation already exists" error? You skipped 00. Run `00_reset.sql`, then 01 → 07 again.
 
@@ -63,7 +66,16 @@ You already connected Supabase to pgAdmin. We run the SQL files there.
 | (your Supabase database password) | `DB_PASSWORD=` |
 | | `DB_SSL=true` (always true for Supabase) |
 
-3. Change `JWT_SECRET` to any long random text.
+3. Change `JWT_SECRET` to a long random text. Make one with:
+   `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`
+4. **Emails (optional on your computer).** Leave `BREVO_API_KEY` empty: confirmation codes, reset codes and bill emails are then **printed in the backend terminal**, so you can copy the code from there.
+   To send real emails (needed on the live website):
+   1. Make a free account at **brevo.com** (300 emails a day).
+   2. **Senders, Domains & IPs → Senders → Add a sender** with your Gmail address, and click the link Brevo emails you.
+   3. **SMTP & API → API Keys → Generate a new API key**. Put it in `BREVO_API_KEY=`, and your sender address in `EMAIL_FROM=`.
+   4. `APP_URL=` is the website address used for the buttons in the emails (your Vercel address when the site is live).
+
+> `backend/.env` holds your passwords and keys. It is in `.gitignore`: **never** upload it to GitHub, and never paste real values into `.env.example`.
 
 **Which host should I use?**
 
@@ -107,7 +119,7 @@ npm install
 npm run dev
 ```
 
-✅ **Check:** open **http://localhost:5173**. Click **Admin demo** → **Log in**. The dashboard appears with numbers and charts.
+✅ **Check:** open **http://localhost:5173**. Pick the **Admin** tab, type `PUMSadmin` / `PUMS@dmin578` → **Log in**. The dashboard appears with numbers and charts.
 
 ---
 
@@ -135,7 +147,9 @@ cd frontend && npm run dev
 | `'npm' is not recognized` | Node.js not installed, or terminal opened before installing | Install Node LTS, close and reopen VS Code |
 | `npm.ps1 cannot be loaded because running scripts is disabled` | PowerShell security setting | Run once: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, or switch the terminal to **Command Prompt** (the ˅ next to +) |
 | `Vite requires Node.js version 20.19+ or 22.12+` | Node too old | Install the current Node LTS |
-| `[setup] backend/.env file not found` | Step 2 not done / file named `.env.txt` | Create `backend/.env` (turn on "File name extensions" in Explorer to see `.txt`) |
+| `[setup] These settings are missing: DB_HOST ...` | Step 2 not done / file named `.env.txt` | Create `backend/.env` (turn on "File name extensions" in Explorer to see `.txt`). On Render: add the settings on the Environment page |
+| `[database] ... tables for email codes and change requests are missing` | `09_account_security.sql` not run yet | Run it once in pgAdmin / Supabase SQL Editor |
+| No email arrives | `BREVO_API_KEY` / `EMAIL_FROM` empty or the sender not verified in Brevo | Without a key the email is printed in the backend terminal. With a key, check Brevo → Transactional → Logs |
 | `[setup] backend/.env still has the example values` | Example values left in `.env` | Put your real DB_USER / DB_PASSWORD |
 | `password authentication failed` | Wrong user/password | Copy them from pgAdmin; pooler user is `postgres.<project-ref>` |
 | `Tenant or user not found` | Pooler host with user `postgres` | Use `postgres.<project-ref>` as DB_USER |

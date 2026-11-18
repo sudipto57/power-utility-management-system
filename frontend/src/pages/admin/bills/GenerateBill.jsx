@@ -69,7 +69,10 @@ export default function GenerateBill() {
     setSaveError('');
     try {
       const bill = await generateBill({ reading_id: readingId, due_date: dueDate });
-      toast.success(`Bill ${bill.bill_number} created: ${formatMoney(bill.total_amount)}`);
+      toast.success(
+        `Bill ${bill.bill_number} created: ${formatMoney(bill.total_amount)}` +
+          (bill.email_sent ? ` · emailed to ${bill.customer_email}` : bill.customer_email ? ' · email could not be sent' : ' · no email on file')
+      );
       navigate(`/admin/bills/${bill.id}`);
     } catch (err) {
       setSaveError(err.message);

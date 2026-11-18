@@ -32,11 +32,27 @@ export default function AuthProvider({ children }) {
     return () => window.removeEventListener('auth:expired', onExpired);
   }, []);
 
-  const login = useCallback(async (loginName, password) => {
-    const result = await authApi.login(loginName, password);
+  const login = useCallback(async (loginName, password, role) => {
+    const result = await authApi.login(loginName, password, role);
     tokenStore.set(result.token);
     setUser(result.user);
     return result.user;
+  }, []);
+
+  // Customer sign up: the account is created and a 6-digit code is emailed (no login yet)
+  const signup = useCallback((data) => authApi.signup(data), []);
+
+  // The right code from the email confirms the account and logs the customer in
+  const confirmEmail = useCallback(async (loginName, code) => {
+    const result = await authApi.confirmEmail(loginName, code);
+    tokenStore.set(result.token);
+    setUser(result.user);
+    return result.user;
+  }, []);
+
+  // After the customer changes their name: show the new name in the top bar
+  const refreshUser = useCallback(async () => {
+    setUser(await authApi.getMe());
   }, []);
 
   const logout = useCallback(() => {
@@ -44,6 +60,9 @@ export default function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, checking, login, logout }), [user, checking, login, logout]);
+  const value = useMemo(
+    () => ({ user, checking, login, signup, confirmEmail, refreshUser, logout }),
+    [user, checking, login, signup, confirmEmail, refreshUser, logout]
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

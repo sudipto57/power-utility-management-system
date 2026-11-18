@@ -1,6 +1,6 @@
 // Customer portal: a logged-in customer sees ONLY their own data.
 // Features 3 (customer dashboard), 5 (own profile), 10/11 (own bills), 12 (service requests)
-import { query } from '../config/db.js';
+import { query, withTransaction } from '../config/db.js';
 import ApiError from '../utils/ApiError.js';
 import { generateNumber } from '../utils/generateNumber.js';
 import { BILL_STATUSES, OPEN_BILL_STATUSES, REQUEST_CATEGORIES, REQUEST_PRIORITIES } from '../utils/constants.js';
@@ -38,6 +38,24 @@ export async function getMyProfile(req, res) {
     [customerId]
   );
   res.json({ data: { ...rows[0], connections: connections.rows } });
+}
+
+// PUT /api/my/profile   body: { full_name, address }
+// The customer can change these alone. Email, phone and the types need an admin (change requests).
+export async function updateMyProfile(req, res) {
+  const customerId = myCustomerId(req);
+  const body = req.body || {};
+  if ('email' in body || 'phone' in body || 'customer_type' in body) {
+    throw new ApiError(400, 'Email, phone and customer type change only after an admin approves. Please send a change request');
+  }
+  const fullName = requireText(body.full_name, 'Full name', 100);
+  const address = requireText(body.address, 'Address', 500);
+
+  await withTransaction(async (client) => {
+    await client.query('UPDATE customers SET full_name = $1, address = $2 WHERE id = $3', [fullName, address, customerId]);
+    await client.query('UPDATE users SET full_name = $1 WHERE id = $2', [fullName, req.user.id]); // name shown after login
+  });
+  return getMyProfile(req, res);
 }
 
 // GET /api/my/dashboard

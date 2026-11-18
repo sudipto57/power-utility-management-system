@@ -8,11 +8,9 @@ import Icon from '../../components/common/Icon';
 import StatusBadge from '../../components/common/StatusBadge';
 import ErrorState from '../../components/common/ErrorState';
 import EmptyState from '../../components/common/EmptyState';
+import RequestProgress from '../../components/common/RequestProgress';
 import { PageSkeleton } from '../../components/common/Skeleton';
 import { timeAgo } from '../../utils/format';
-
-// Progress steps shown on each request card
-const STEPS = ['Pending', 'In Progress', 'Resolved'];
 
 export default function MyRequests() {
   const { data, loading, error, reload } = useFetch(getMyRequests);
@@ -48,7 +46,6 @@ export default function MyRequests() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {data.map((r, index) => {
-            const step = r.status === 'Cancelled' ? -1 : STEPS.indexOf(r.status);
             return (
               <Link
                 key={r.id}
@@ -66,25 +63,9 @@ export default function MyRequests() {
                 <p className="mt-2 line-clamp-2 text-sm text-slate-600">{r.description}</p>
 
                 {/* Progress bar: Pending -> In Progress -> Resolved */}
-                {step >= 0 && (
-                  <div className="mt-5 flex items-center gap-2">
-                    {STEPS.map((s, i) => (
-                      <div key={s} className="flex-1">
-                        <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-                          {i <= step && (
-                            <div
-                              className="h-full origin-left animate-grow rounded-full bg-amber-400"
-                              style={{ animationDelay: `${i * 150}ms` }}
-                            />
-                          )}
-                        </div>
-                        <p className={`mt-1.5 text-[11px] font-semibold ${i <= step ? 'text-slate-700' : 'text-slate-400'}`}>
-                          {s}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className="mt-5">
+                  <RequestProgress status={r.status} />
+                </div>
 
                 <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
                   <span>

@@ -139,7 +139,7 @@ export default function Reports() {
       {/* ---------- Customer summary ---------- */}
       <section className="space-y-4">
         <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">Customer summary</h2>
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card title="Customers by type" className="animate-fade-up">
             <DoughnutChart {...charts.customerTypes} height={240} />
             <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -153,7 +153,7 @@ export default function Reports() {
           <Card
             title="Top customers by amount billed"
             subtitle="From the customer_billing_summary view"
-            bodyClassName="p-0"
+            bodyClassName="overflow-x-auto p-0"
             className="animate-fade-up lg:col-span-2"
           >
             <table className="min-w-full text-sm">
@@ -206,7 +206,7 @@ export default function Reports() {
       {/* ---------- Bill summary ---------- */}
       <section className="space-y-4">
         <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">Bill summary</h2>
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card title="Amount billed per month" subtitle="By billing period" className="animate-fade-up lg:col-span-2">
             {charts.billsByMonth.labels.length ? (
               <BarChart {...charts.billsByMonth} height={260} />
@@ -227,7 +227,7 @@ export default function Reports() {
       {/* ---------- Payment summary ---------- */}
       <section className="space-y-4">
         <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">Payment summary</h2>
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card title="Money collected per month" subtitle="By payment date" className="animate-fade-up lg:col-span-2">
             {charts.paymentsByMonth.labels.length ? (
               <LineChart {...charts.paymentsByMonth} height={260} />

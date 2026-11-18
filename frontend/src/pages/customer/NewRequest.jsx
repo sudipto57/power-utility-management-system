@@ -60,7 +60,7 @@ export default function NewRequest() {
                   onClick={() => setForm((f) => ({ ...f, category }))}
                   className={`flex animate-fade-up flex-col items-start gap-3 rounded-2xl p-4 text-left ring-1 transition hover:-translate-y-0.5 ${
                     selected
-                      ? 'bg-slate-950 text-white shadow-lg ring-slate-950'
+                      ? 'bg-slate-950 text-white shadow-lg ring-slate-950 dark:bg-orange-500 dark:ring-orange-500'
                       : 'bg-white text-slate-700 ring-slate-200 hover:ring-amber-300'
                   }`}
                   style={{ animationDelay: `${index * 40}ms` }}
@@ -88,7 +88,7 @@ export default function NewRequest() {
                     onClick={() => setForm((f) => ({ ...f, priority }))}
                     className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
                       form.priority === priority
-                        ? 'bg-slate-900 text-white shadow'
+                        ? 'bg-slate-900 text-white shadow dark:bg-orange-500'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >

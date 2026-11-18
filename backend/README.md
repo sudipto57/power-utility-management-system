@@ -27,10 +27,11 @@ Open http://localhost:5000/api/health: `"status": "ok"` means the API and the da
 ```
 src/
 ├── config/        env.js (reads .env), db.js (connection pool + friendly connection tips)
-├── middleware/    auth.js (checks the token), requireRole.js (admin/customer), errorHandler.js
+├── middleware/    auth.js (checks the token), requireRole.js (admin/customer), errorHandler.js,
+│                  security.js (safety headers + limits on login/code attempts)
 ├── routes/        one file per URL group: which URL -> which controller function
 ├── controllers/   the work: validate input, run SQL, send JSON
-├── utils/         ApiError, validation helpers, allowed values, number generator (CUST-009 ...)
+├── utils/         ApiError, validation helpers, allowed values, number generator (CUST-009 ...), email.js (Brevo emails)
 ├── app.js         builds the Express app
 └── server.js      checks the database, then starts listening
 ```

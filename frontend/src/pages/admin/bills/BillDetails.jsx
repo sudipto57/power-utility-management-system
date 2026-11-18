@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import useFetch from '../../../hooks/useFetch';
 import useToast from '../../../hooks/useToast';
@@ -10,6 +10,7 @@ import ConfirmDialog from '../../../components/common/ConfirmDialog';
 import { PageSkeleton } from '../../../components/common/Skeleton';
 import BillInvoice from '../../../components/bills/BillInvoice';
 import MarkPaidModal from '../../../components/bills/MarkPaidModal';
+import PaidCelebration from '../../../components/bills/PaidCelebration';
 
 export default function BillDetails() {
   const { id } = useParams();
@@ -18,6 +19,8 @@ export default function BillDetails() {
   const [paying, setPaying] = useState(false);
   const [confirmUnpaid, setConfirmUnpaid] = useState(false);
   const [working, setWorking] = useState(false);
+  const [celebrate, setCelebrate] = useState(false); // green tick + confetti after "Mark paid"
+  const closeCelebration = useCallback(() => setCelebrate(false), []);
 
   if (loading && !bill) return <PageSkeleton />;
   if (error) return <ErrorState message={error} onRetry={reload} />;
@@ -76,10 +79,12 @@ export default function BillDetails() {
           onPaid={(updated) => {
             setData(updated);
             setPaying(false);
+            setCelebrate(true);
             toast.success(`${updated.bill_number} marked as Paid`);
           }}
         />
       )}
+      {celebrate && <PaidCelebration billNumber={bill.bill_number} onDone={closeCelebration} />}
       <ConfirmDialog
         open={confirmUnpaid}
         title="Mark as unpaid?"

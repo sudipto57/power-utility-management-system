@@ -1,29 +1,30 @@
 // Formatting helpers used on every page.
 
-// Currency label shown before amounts. The sample data is from Kenya (KES).
-// Change this one line (e.g. to 'BDT' or '৳') if you use your own local data.
-export const CURRENCY = 'KES';
+// Bangladeshi Taka. Every amount on every page (and the printed bill) uses this sign.
+export const CURRENCY = '৳';
 
-const numberFormat = new Intl.NumberFormat('en-US');
-const moneyFormat = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// 'en-IN' groups digits the way Bangladesh does: 1,00,000 (one lakh), 1,00,00,000 (one crore)
+const LOCALE = 'en-IN';
+const numberFormat = new Intl.NumberFormat(LOCALE);
+const moneyFormat = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-/** 1537 -> "KES 1,537.00" */
+/** 1537 -> "৳1,537.00"    308896.4 -> "৳3,08,896.40" */
 export function formatMoney(value) {
   const number = Number(value) || 0;
-  return `${CURRENCY} ${moneyFormat.format(number)}`;
+  return `${CURRENCY}${moneyFormat.format(number)}`;
 }
 
-/** 48230 -> "48,230" */
+/** 48230 -> "48,230"    150000 -> "1,50,000" */
 export function formatNumber(value) {
   return numberFormat.format(Number(value) || 0);
 }
 
-/** Compact money for stat cards: 265350 -> "KES 265.4K" */
+/** Compact money for stat cards, in lakh and crore: 265350 -> "৳2.65 lakh", 12500000 -> "৳1.25 crore" */
 export function formatMoneyShort(value) {
   const number = Number(value) || 0;
-  if (Math.abs(number) >= 1_000_000) return `${CURRENCY} ${(number / 1_000_000).toFixed(1)}M`;
-  if (Math.abs(number) >= 10_000) return `${CURRENCY} ${(number / 1000).toFixed(1)}K`;
+  if (Math.abs(number) >= 1_00_00_000) return `${CURRENCY}${(number / 1_00_00_000).toFixed(2)} crore`;
+  if (Math.abs(number) >= 1_00_000) return `${CURRENCY}${(number / 1_00_000).toFixed(2)} lakh`;
   return formatMoney(number);
 }
 
@@ -73,7 +74,14 @@ export function addDaysISO(days) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-/** "John Kamau" -> "JK" */
+/** "Rahim Uddin" -> "RU" */
+/** "Md. Rafiqul Islam" -> "Rafiqul" (skips titles like Md., Mst., Mr., Mrs., Dr.) for greetings. */
+export function firstName(fullName) {
+  const words = String(fullName || '').trim().split(/\s+/);
+  const titles = ['md', 'md.', 'mohammad', 'mohammed', 'muhammad', 'mst', 'mst.', 'mr', 'mr.', 'mrs', 'mrs.', 'ms', 'ms.', 'dr', 'dr.'];
+  return words.find((word) => !titles.includes(word.toLowerCase())) || words[0] || '';
+}
+
 export function initials(name) {
   return String(name || '?')
     .split(/\s+/)

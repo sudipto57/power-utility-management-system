@@ -118,10 +118,10 @@ export default function CustomerForm() {
         <Card className="animate-fade-up" title="Customer profile" style={{ animationDelay: '60ms' }}>
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Full name" required className="sm:col-span-2">
-              <Input value={form.full_name} onChange={set('full_name')} placeholder="e.g. John Kamau" maxLength={100} />
+              <Input value={form.full_name} onChange={set('full_name')} placeholder="e.g. Rahim Uddin" maxLength={100} />
             </Field>
             <Field label="Phone" required>
-              <Input value={form.phone} onChange={set('phone')} placeholder="+254 712 345 678" maxLength={20} />
+              <Input value={form.phone} onChange={set('phone')} placeholder="01712345678" maxLength={20} />
             </Field>
             <Field label="Email" required={form.create_login || hasLogin} hint={hasLogin ? 'Also used to log in.' : undefined}>
               <Input type="email" value={form.email} onChange={set('email')} placeholder="name@email.com" />
@@ -159,7 +159,7 @@ export default function CustomerForm() {
             {form.create_login && (
               <div className="mt-5 grid animate-fade-up gap-5 sm:grid-cols-2">
                 <Field label="Username" required hint="Letters, numbers, dot, dash or underscore">
-                  <Input value={form.username} onChange={set('username')} placeholder="john.kamau" autoComplete="off" />
+                  <Input value={form.username} onChange={set('username')} placeholder="rahim.uddin" autoComplete="off" />
                 </Field>
                 <Field label="Password" required hint="At least 6 characters">
                   <Input type="password" value={form.password} onChange={set('password')} autoComplete="new-password" />

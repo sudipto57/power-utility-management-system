@@ -45,3 +45,63 @@ BEGIN
     RAISE NOTICE 'Supabase security applied: RLS on, public API access removed.';
 END
 $$;
+
+-- =====================================================================
+-- MORE SUPABASE PROTECTION (17 Nov 2026). Safe to run more than once.
+-- =====================================================================
+DO $$
+DECLARE
+    f   TEXT;
+    r   TEXT;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+        RAISE NOTICE 'Not a Supabase database - nothing to do.';
+        RETURN;
+    END IF;
+
+    -- S1. Nobody outside the backend may call our functions through the public Data API.
+    --     (check_overdue_bills() changes data; the others are only for our triggers and API.)
+    FOREACH f IN ARRAY ARRAY[
+        'public.update_updated_at_column()', 'public.check_reading_sequence()', 'public.update_bill_status()',
+        'public.check_overdue_bills()', 'public.calculate_bill_amount(varchar, varchar, integer)'
+    ]
+    LOOP
+        EXECUTE format('REVOKE EXECUTE ON FUNCTION %s FROM PUBLIC, anon, authenticated', f);
+    END LOOP;
+
+    -- S2. Supabase's own "auto enable RLS" helper is SECURITY DEFINER; signed-out and
+    --     signed-in API users must not be able to call it (Security Advisor warning).
+    IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'rls_auto_enable' AND pronamespace = 'public'::regnamespace) THEN
+        REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM PUBLIC, anon, authenticated;
+    END IF;
+
+    -- S3. New functions made later are not callable by the Data API by default.
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM anon, authenticated;
+
+    -- S4. Extra login roles do not belong on Supabase (05_roles_and_grants.sql is for a LOCAL
+    --     PostgreSQL only; the pums_* roles use the old project short name). The backend logs in
+    --     as "postgres", so nothing uses them. They could log in with the sample passwords from
+    --     05 and read or delete every table, so they are removed.
+    FOREACH r IN ARRAY ARRAY['power_app', 'power_readonly', 'power_admin', 'pums_app', 'pums_readonly', 'pums_admin']
+    LOOP
+        CONTINUE WHEN NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r);
+        EXECUTE format('REVOKE ALL ON ALL TABLES IN SCHEMA public FROM %I', r);
+        EXECUTE format('REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM %I', r);
+        EXECUTE format('REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM %I', r);
+        EXECUTE format('REVOKE ALL ON SCHEMA public FROM %I', r);
+        EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON TABLES FROM %I', r);
+        EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON SEQUENCES FROM %I', r);
+        EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON FUNCTIONS FROM %I', r);
+        BEGIN
+            EXECUTE format('DROP ROLE %I', r);
+            RAISE NOTICE 'Removed login role %', r;
+        EXCEPTION WHEN OTHERS THEN
+            -- could not drop it (something else still uses it): at least stop it from logging in
+            EXECUTE format('ALTER ROLE %I NOLOGIN', r);
+            RAISE NOTICE 'Role % kept but can no longer log in (%)', r, SQLERRM;
+        END;
+    END LOOP;
+
+    RAISE NOTICE 'Extra Supabase protection applied.';
+END
+$$;

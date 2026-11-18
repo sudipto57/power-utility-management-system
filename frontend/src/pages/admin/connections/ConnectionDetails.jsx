@@ -8,6 +8,7 @@ import Button from '../../../components/common/Button';
 import Icon from '../../../components/common/Icon';
 import InfoRow from '../../../components/common/InfoRow';
 import StatusBadge from '../../../components/common/StatusBadge';
+import MeterDigits from '../../../components/common/MeterDigits';
 import DataTable from '../../../components/common/DataTable';
 import ErrorState from '../../../components/common/ErrorState';
 import EmptyState from '../../../components/common/EmptyState';
@@ -114,20 +115,9 @@ export default function ConnectionDetails() {
             </div>
             <p className="mt-3 font-mono text-3xl font-extrabold tracking-wider text-amber-300">{co.meter_number}</p>
             {/* Odometer-style last reading */}
-            <div className="mt-5 flex gap-1">
-              {String(co.last_reading ?? 0)
-                .padStart(6, '0')
-                .split('')
-                .map((digit, i) => (
-                  <span
-                    key={i}
-                    className="flex h-10 w-8 animate-fade-up items-center justify-center rounded-md bg-white/10 font-mono text-lg font-bold ring-1 ring-white/10"
-                    style={{ animationDelay: `${i * 60}ms` }}
-                  >
-                    {digit}
-                  </span>
-                ))}
-              <span className="ml-2 self-end text-xs text-slate-400">kWh</span>
+            <div className="mt-5 flex items-end gap-2">
+              <MeterDigits value={co.last_reading} />
+              <span className="text-xs text-slate-400">kWh</span>
             </div>
             <p className="mt-2 text-xs text-slate-400">
               {co.last_reading_date ? `Last read on ${formatDate(co.last_reading_date)}` : 'No reading yet'}

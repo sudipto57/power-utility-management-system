@@ -1,7 +1,7 @@
 name: Local
 values:
   - key: baseUrl
-    value: ''
+    value: 'http://localhost:5000/api'
   - key: token
     value: ''
 color: 120

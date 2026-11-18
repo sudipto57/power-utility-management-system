@@ -1,5 +1,6 @@
 // Feature 1 (Login System) + Feature 2 (Roles) + Customer Sign Up
-// + email confirmation and forgot password (6-digit codes sent by email)
+// + email confirmation, forgot password and a login code for customers
+//   (8-digit codes sent by email, like GitHub's "Please verify your identity" emails)
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -52,28 +53,28 @@ function makeToken(user) {
 }
 
 // ---------------------------------------------------------------------
-// 6-digit codes (stored only as a SHA-256 hash, like a password)
+// 8-digit codes (stored only as a SHA-256 hash, like a password)
 // ---------------------------------------------------------------------
 function hashCode(userId, code) {
   return crypto.createHash('sha256').update(`${userId}:${code}`).digest('hex');
 }
 
-/** Makes a new code for the user (old unused codes for the same purpose stop working). */
+/** Makes a new 8-digit code for the user (old unused codes for the same purpose stop working). */
 async function createCode(db, userId, purpose) {
-  const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+  const code = String(crypto.randomInt(0, 100000000)).padStart(8, '0');
   await db.query('DELETE FROM account_codes WHERE user_id = $1 AND purpose = $2 AND used_at IS NULL', [userId, purpose]);
-  await db.query(
+  const { rows } = await db.query(
     `INSERT INTO account_codes (user_id, purpose, code_hash, expires_at)
-     VALUES ($1, $2, $3, NOW() + make_interval(mins => $4))`,
+     VALUES ($1, $2, $3, NOW() + make_interval(mins => $4)) RETURNING expires_at`,
     [userId, purpose, hashCode(userId, code), CODE_MINUTES]
   );
-  return code;
+  return { code, expiresAt: rows[0].expires_at };
 }
 
 /** Throws a clear 400 error unless the code is right, then marks it as used. */
 async function useCode(userId, purpose, typedCode) {
   const code = String(typedCode ?? '').trim();
-  if (!/^\d{6}$/.test(code)) throw new ApiError(400, 'Please enter the 6-digit code from the email');
+  if (!/^\d{8}$/.test(code)) throw new ApiError(400, 'Please enter the 8-digit code from the email');
 
   const { rows } = await query(
     `SELECT id, code_hash, attempts, expires_at < NOW() AS expired FROM account_codes
@@ -115,8 +116,38 @@ async function sentRecently(userId, purpose) {
 }
 
 async function emailCode(user, purpose, code) {
-  const { subject, html } = codeEmail(user.full_name, code, purpose);
+  const { subject, html } = codeEmail(user.username, code, purpose);
   return sendEmail({ to: user.email, name: user.full_name, subject, html });
+}
+
+/** "sudipto@example.com" -> "s*****o@gmail.com" (shown on the website, like GitHub does) */
+function maskEmail(email) {
+  const [name, domain] = String(email).split('@');
+  if (!domain) return email;
+  return name.length <= 2 ? `${name[0]}*@${domain}` : `${name[0]}${'*'.repeat(Math.min(name.length - 2, 6))}${name.at(-1)}@${domain}`;
+}
+
+/**
+ * Customers: after the right password, email an 8-digit login code.
+ * - Logging in again while the last code still works does NOT send another email
+ *   (no email flood); that same code is still the right one.
+ * - "Send a new code" (resend = true) makes a new code, at most once a minute.
+ */
+async function sendLoginCode(user, resend) {
+  const { rows } = await query(
+    `SELECT expires_at, created_at > NOW() - make_interval(secs => $2) AS just_sent FROM account_codes
+     WHERE user_id = $1 AND purpose = 'login' AND used_at IS NULL AND expires_at > NOW() AND attempts < $3
+     ORDER BY created_at DESC LIMIT 1`,
+    [user.id, RESEND_SECONDS, MAX_TRIES]
+  );
+  const current = rows[0];
+  if (current && (!resend || current.just_sent)) {
+    return { emailSent: true, expiresAt: current.expires_at, alreadySent: true };
+  }
+
+  const { code, expiresAt } = await createCode({ query }, user.id, 'login');
+  const emailSent = await emailCode(user, 'login', code);
+  return { emailSent, expiresAt, alreadySent: false };
 }
 
 /**
@@ -146,8 +177,10 @@ async function findCustomerLogin(login) {
 // ---------------------------------------------------------------------
 
 // POST /api/auth/login
-// body: { login: "email or username", password: "...", role: "admin" | "customer" }
+// body: { login: "email or username", password: "...", role: "admin" | "customer", resend: true (optional: new code) }
 // role comes from the Customer / Admin switch on the login page (optional, so Postman still works without it)
+// Admin: answer { token, user }.  Customer: answer { needs_code: true, email, expires_at } and an 8-digit
+// code is emailed; POST /api/auth/verify-login with that code gives the token.
 export async function login(req, res) {
   const loginName = requireText(req.body?.login ?? req.body?.email ?? req.body?.username, 'Email or username');
   const password = requireText(req.body?.password, 'Password');
@@ -178,9 +211,18 @@ export async function login(req, res) {
     throw new ApiError(403, 'This login is not linked to a customer profile yet');
   }
   if (user.role === 'customer' && (await needsEmailConfirmation(user.id))) {
-    throw new ApiError(403, `Please confirm your email first. Enter the 6-digit code we sent to ${user.email}.`, 'EMAIL_NOT_CONFIRMED');
+    throw new ApiError(403, `Please confirm your email first. Enter the 8-digit code we sent to ${user.email}.`, 'EMAIL_NOT_CONFIRMED');
   }
 
+  // Customers: the password is right, now prove it is really you with the code from your email
+  if (user.role === 'customer') {
+    const { emailSent, expiresAt, alreadySent } = await sendLoginCode(user, req.body?.resend === true);
+    return res.json({
+      data: { needs_code: true, email: maskEmail(user.email), expires_at: expiresAt, email_sent: emailSent, already_sent: alreadySent },
+    });
+  }
+
+  // Admins: logged in straight away
   await query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id]);
 
   res.json({ data: { token: makeToken(user), user: publicUser(user) } });
@@ -188,7 +230,7 @@ export async function login(req, res) {
 
 // POST /api/auth/signup   (CUSTOMERS ONLY - admin accounts are never created here)
 // body: { full_name, phone, email, address, customer_type, username, password }
-// The account works after the customer types the 6-digit code from the email (confirm-email).
+// The account works after the customer types the 8-digit code from the email (confirm-email).
 export async function signup(req, res) {
   const body = req.body || {};
   const fullName = requireText(body.full_name, 'Full name', 100);
@@ -210,7 +252,7 @@ export async function signup(req, res) {
 
     const userResult = await client.query(
       `INSERT INTO users (username, email, full_name, role, status, password_hash)
-       VALUES ($1, $2, $3, 'customer', 'Active', $4) RETURNING id, email, full_name`,
+       VALUES ($1, $2, $3, 'customer', 'Active', $4) RETURNING id, username, email, full_name`,
       [username, email, fullName, passwordHash]
     );
     const newUser = userResult.rows[0];
@@ -222,14 +264,17 @@ export async function signup(req, res) {
     );
     await client.query('UPDATE users SET customer_id = $1 WHERE id = $2', [customerResult.rows[0].id, newUser.id]);
 
-    return { user: newUser, code: await createCode(client, newUser.id, 'confirm_email') };
+    const { code: newCode } = await createCode(client, newUser.id, 'confirm_email');
+    return { user: { ...newUser, customer_number: customerNumber }, code: newCode };
   });
 
   const emailSent = await emailCode(user, 'confirm_email', code);
-  res.status(201).json({ data: { needs_confirmation: true, email: user.email, email_sent: emailSent } });
+  res.status(201).json({
+    data: { needs_confirmation: true, email: user.email, email_sent: emailSent, customer_number: user.customer_number },
+  });
 }
 
-// POST /api/auth/confirm-email   body: { login: "email or username", code: "123456" }
+// POST /api/auth/confirm-email   body: { login: "email or username", code: "12345678" }
 // Right code -> the email is confirmed and the customer is logged in.
 export async function confirmEmail(req, res) {
   const loginName = requireText(req.body?.login, 'Email or username');
@@ -253,7 +298,7 @@ export async function resendCode(req, res) {
     if (await sentRecently(user.id, 'confirm_email')) {
       throw new ApiError(429, 'Please wait a minute before asking for another code');
     }
-    const code = await createCode({ query }, user.id, 'confirm_email');
+    const { code } = await createCode({ query }, user.id, 'confirm_email');
     await emailCode(user, 'confirm_email', code);
   }
   // Same answer every time, so nobody can test which emails have an account
@@ -270,10 +315,10 @@ export async function forgotPassword(req, res) {
     if (await sentRecently(user.id, 'reset_password')) {
       throw new ApiError(429, 'Please wait a minute before asking for another code');
     }
-    const code = await createCode({ query }, user.id, 'reset_password');
+    const { code } = await createCode({ query }, user.id, 'reset_password');
     await emailCode(user, 'reset_password', code);
   }
-  res.json({ data: { message: 'If an account matches, we sent a 6-digit code to the email address saved on it.' } });
+  res.json({ data: { message: 'If an account matches, we sent an 8-digit code to the email address saved on it.' } });
 }
 
 // POST /api/auth/reset-password   body: { login, code, password }
@@ -291,6 +336,18 @@ export async function resetPassword(req, res) {
   await query("UPDATE account_codes SET used_at = NOW() WHERE user_id = $1 AND purpose = 'confirm_email' AND used_at IS NULL", [user.id]);
 
   res.json({ data: { message: 'Your password was changed. You can log in now.' } });
+}
+
+// POST /api/auth/verify-login   body: { login: "email or username", code: "12345678" }
+// Step 2 of a customer login: the right code from the email -> logged in.
+export async function verifyLogin(req, res) {
+  const loginName = requireText(req.body?.login, 'Email or username');
+  const user = await findCustomerLogin(loginName);
+  if (!user) throw new ApiError(400, 'Wrong or old code. Please log in again');
+
+  await useCode(user.id, 'login', req.body?.code);
+  await query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id]);
+  res.json({ data: { token: makeToken(user), user: publicUser(user) } });
 }
 
 // GET /api/auth/me   (used by the frontend after a page refresh)

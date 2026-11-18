@@ -1,4 +1,4 @@
-// Sends the project's emails: confirmation codes, password reset codes, new bills
+// Sends the project's emails: login codes, confirmation codes, password reset codes, new bills
 // and the answer to a profile change request.
 //
 // We use Brevo's free email API (300 emails a day) over HTTPS. Normal Gmail sending (SMTP)
@@ -49,17 +49,41 @@ export async function sendEmail({ to, name, subject, html }) {
 // The emails themselves (simple HTML that looks fine in Gmail and on phones)
 // ---------------------------------------------------------------------
 
-/** 6-digit code for 'confirm_email' or 'reset_password' */
-export function codeEmail(fullName, code, purpose) {
-  const isReset = purpose === 'reset_password';
+// The three kinds of code email (written like GitHub's "Please verify your identity" email)
+const CODE_EMAILS = {
+  login: {
+    subject: '[Power Utility] Sudo email verification code',
+    heading: 'Please verify your identity',
+    intro: 'Here is your Power Utility sudo authentication code:',
+    why: 'You are receiving this email because someone typed your password to log in to Power Utility. If this was not you, change your password now.',
+  },
+  confirm_email: {
+    subject: '[Power Utility] Email confirmation code',
+    heading: 'Please confirm your email',
+    intro: 'Here is your Power Utility email confirmation code:',
+    why: 'You are receiving this email because this address was used to create a Power Utility account. If this was not you, you can ignore it.',
+  },
+  reset_password: {
+    subject: '[Power Utility] Password reset code',
+    heading: 'Reset your password',
+    intro: 'Here is your Power Utility password reset code:',
+    why: 'You are receiving this email because a password reset was asked for your Power Utility account. If this was not you, ignore it: your password stays the same.',
+  },
+};
+
+/** 8-digit code email. purpose = 'login' | 'confirm_email' | 'reset_password' */
+export function codeEmail(username, code, purpose) {
+  const text = CODE_EMAILS[purpose];
   return {
-    subject: isReset ? `${code} is your password reset code` : `${code} is your confirmation code`,
+    subject: text.subject,
     html: layout(
-      isReset ? 'Reset your password' : 'Confirm your email',
-      `<p>Hello ${escapeHtml(fullName)},</p>
-       <p>${isReset ? 'Use this code to set a new password:' : 'Welcome! Use this code to confirm your email and finish signing up:'}</p>
-       <p style="font-size:32px;font-weight:800;letter-spacing:8px;margin:20px 0;color:#0f172a">${code}</p>
-       <p>The code works for 15 minutes. If you did not ask for it, you can ignore this email${isReset ? ' - your password stays the same' : ''}.</p>`
+      `${text.heading}, ${escapeHtml(username)}`,
+      `<p>${text.intro}</p>
+       <p style="font-family:Consolas,'Courier New',monospace;font-size:34px;font-weight:800;letter-spacing:6px;margin:18px 0;color:#0f172a">${code}</p>
+       <p>This code is valid for 15 minutes and can only be used once.</p>
+       <p><b>Please don't share this code with anyone:</b> we'll never ask for it on the phone or via email.</p>
+       <p>Thanks,<br />The Power Utility Team</p>
+       <p style="margin-top:20px;color:#94a3b8;font-size:12px">${text.why}</p>`
     ),
   };
 }

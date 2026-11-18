@@ -26,15 +26,16 @@ Base URL: `http://localhost:5000/api`
 
 | Method | URL | Who | Body / query | Answer |
 | --- | --- | --- | --- | --- |
-| POST | `/auth/login` | everyone | `{ "login": "PUMSadmin", "password": "PUMS@dmin578", "role": "admin" }` (email or username; `role` = `admin` or `customer`, optional) | `{ token, user }`; **403 `EMAIL_NOT_CONFIRMED`** for a customer who has not typed the email code yet |
-| POST | `/auth/signup` | everyone (creates **customers only**) | `{ "full_name", "email", "phone", "address", "customer_type": "Residential", "username", "password" }` (password: 8+ characters with a letter and a number) | `{ needs_confirmation: true, email, email_sent }` - a 6-digit code is emailed, no login yet |
-| POST | `/auth/confirm-email` | everyone | `{ "login": "email or username", "code": "123456" }` | `{ token, user }` (email confirmed, logged in) |
+| POST | `/auth/login` | everyone | `{ "login": "PUMSadmin", "password": "PUMS@dmin578", "role": "admin" }` (email or username; `role` = `admin` or `customer`, optional) | **Admin:** `{ token, user }`. **Customer:** `{ needs_code: true, email: "s*****8@gmail.com", expires_at, email_sent }` and an 8-digit code is emailed (like GitHub). **403 `EMAIL_NOT_CONFIRMED`** for a customer who has not confirmed the sign up email yet |
+| POST | `/auth/verify-login` | customers | `{ "login": "email or username", "code": "12345678" }` | `{ token, user }` (step 2 of a customer login) |
+| POST | `/auth/signup` | everyone (creates **customers only**) | `{ "full_name", "email", "phone", "address", "customer_type": "Residential", "username", "password" }` (password: 8+ characters with a letter and a number) | `{ needs_confirmation: true, email, email_sent }` - an 8-digit code is emailed, no login yet |
+| POST | `/auth/confirm-email` | everyone | `{ "login": "email or username", "code": "12345678" }` | `{ token, user }` (email confirmed, logged in) |
 | POST | `/auth/resend-code` | everyone | `{ "login" }` | always the same message (429 if asked again within a minute) |
 | POST | `/auth/forgot-password` | everyone (customers) | `{ "login": "email, username or phone" }` | always the same message; the code goes to the account's email |
 | POST | `/auth/reset-password` | everyone (customers) | `{ "login", "code", "password" }` | new password saved; every old login token stops working |
 | GET | `/auth/me` | logged in | | the current user |
 
-**Codes:** 6 digits, work for 15 minutes, 5 wrong tries, stored only as a SHA-256 hash (table `account_codes`).
+**Codes:** 8 digits, work for 15 minutes, used once, 5 wrong tries, stored only as a SHA-256 hash (table `account_codes`, purpose `login` / `confirm_email` / `reset_password`). Logging in again within a minute does not send a second email; the same code still works.
 **Limits per visitor (IP):** login 20 / 15 min, sign up 10 / hour, typing a code 15 / 15 min, asking for an email 5 / 15 min → `429 "Too many tries"`.
 
 **Role Based Login:** when `role` is sent, the account must have that role, otherwise the answer is `403` ("This is an admin account. Switch to the Admin tab to log in."). Sign up always creates a `customer` login + customer profile; admin accounts are never created here.
@@ -61,6 +62,8 @@ Base URL: `http://localhost:5000/api`
 | POST | `/customers` | `full_name, phone, email, address, customer_type, status` + optional `create_login: true, username, password` | number CUST-### is generated |
 | PUT | `/customers/:id` | any of the fields above | send only what changes; the linked login is kept in sync |
 | DELETE | `/customers/:id` | | **409 `HAS_BILLS`** if the customer has bills → set status Inactive instead |
+| GET | `/customers/sql-file` | | website sign-ups vs. `database/04_sample_data.sql`: `customers_in_database`, `customers_in_file`, `last_saved`, `found`, `auto_save` |
+| POST | `/customers/sql-file` | | **Save now**: copies every customer after CUST-200 (with login and meters) into `04_sample_data.sql`; **409** if the file is not on this server |
 
 ## Connections & meters (features 6, 7, 14) - admin
 

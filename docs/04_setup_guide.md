@@ -45,7 +45,7 @@ You already connected Supabase to pgAdmin. We run the SQL files there.
 
 ✅ **Check:** run `SELECT * FROM calculate_bill_amount('Residential', 'Single Phase', 250);`. The total should be **2095.80**.
 
-**Already set up before 18 Nov 2026?** Just run **`09_account_security.sql`** once (it adds the tables for email codes and profile change requests). The backend will not start without it.
+**Already set up before?** Run **`09_account_security.sql`** again (it adds the tables for email codes and profile change requests, and the customer login codes). It is safe to run more than once. The backend will not start without it.
 
 > "relation already exists" error? You skipped 00. Run `00_reset.sql`, then 01 → 07 again.
 
@@ -147,8 +147,10 @@ cd frontend && npm run dev
 | `'npm' is not recognized` | Node.js not installed, or terminal opened before installing | Install Node LTS, close and reopen VS Code |
 | `npm.ps1 cannot be loaded because running scripts is disabled` | PowerShell security setting | Run once: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, or switch the terminal to **Command Prompt** (the ˅ next to +) |
 | `Vite requires Node.js version 20.19+ or 22.12+` | Node too old | Install the current Node LTS |
+| Sign-ups are not in `database/04_sample_data.sql` | The backend runs on Render (no project folder there) or `SAVE_CUSTOMERS_TO_SQL_FILE=false` | On your computer: `cd backend && npm run db:save-customers` (copies them from Supabase into the file) |
 | `[setup] These settings are missing: DB_HOST ...` | Step 2 not done / file named `.env.txt` | Create `backend/.env` (turn on "File name extensions" in Explorer to see `.txt`). On Render: add the settings on the Environment page |
 | `[database] ... tables for email codes and change requests are missing` | `09_account_security.sql` not run yet | Run it once in pgAdmin / Supabase SQL Editor |
+| `[database] The database is missing the newest change for customer login codes` | An older copy of `09_account_security.sql` was run | Run the newest `09_account_security.sql` again |
 | No email arrives | `BREVO_API_KEY` / `EMAIL_FROM` empty or the sender not verified in Brevo | Without a key the email is printed in the backend terminal. With a key, check Brevo → Transactional → Logs |
 | `[setup] backend/.env still has the example values` | Example values left in `.env` | Put your real DB_USER / DB_PASSWORD |
 | `password authentication failed` | Wrong user/password | Copy them from pgAdmin; pooler user is `postgres.<project-ref>` |

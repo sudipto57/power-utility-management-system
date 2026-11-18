@@ -17,7 +17,7 @@ An academic DBMS project: a web app where an electricity company manages custome
    - Frontend: React 19 + Vite + Tailwind CSS v4 + Chart.js + React Router. Plain JavaScript (no TypeScript). `fetch` for API calls. No Redux, no UI kit, no icon library.
    - Backend: Node.js + Express 5, plain SQL through `pg`. No ORM.
    - Database: PostgreSQL on Supabase (also runs on local PostgreSQL), managed with pgAdmin 4.
-4. **Do not change the tables.** `database/01_create_tables.sql` and `database/02_billing_tables.sql` are the team's schema. Never add, remove or rename a table or column unless the team asks for exactly that. New logic goes in functions, triggers, views or the API. The team asked for email codes and profile change requests, so `database/09_account_security.sql` **adds** two new tables (`account_codes`, `profile_change_requests`); the original tables are unchanged.
+4. **Do not change the tables.** `database/01_create_tables.sql` and `database/02_billing_tables.sql` are the team's schema. Never add, remove or rename a table or column unless the team asks for exactly that. New logic goes in functions, triggers, views or the API. The team asked for email codes (sign-up confirmation, forgot password, an 8-digit code at every customer login like GitHub) and profile change requests, so `database/09_account_security.sql` **adds** two new tables (`account_codes`, `profile_change_requests`); the original tables are unchanged.
 5. **Build only what was asked.** The scope is the 15 features (plus customer sign-up and role-based login). `bill_adjustments`, `bill_installments` and `meter_reading_schedules` exist in the database but have no API or UI on purpose.
 6. **Secrets stay out of git.** Never print, copy or commit `backend/.env`. Only `.env.example` files (with fake values) are committed. `.gitignore` blocks every `.env*` file except `.env.example`.
 
@@ -32,6 +32,7 @@ cd frontend && npm install && npm run dev
 ```
 
 Demo logins (from `database/04_sample_data.sql`): `PUMSadmin` / `PUMS@dmin578`, `sumaiya.khanam` / `customer123` (Bangladesh sample data: 200 customers CUST-001 … CUST-200, emails end in `@example.com` so test emails never reach real people).
+Website sign-ups (and customers added by an admin) are saved in the database and then copied by the backend into the marked "WEBSITE CUSTOMERS" part at the end of `database/04_sample_data.sql` (`backend/src/utils/saveCustomersToSql.js`; by hand: `npm run db:save-customers`). Never edit that part by hand.
 Database setup order: `00_reset` → `01` → `02` → `03` → `04` → `07` (Supabase only) → `09`. `05` is local-only, `06` is practice queries. Full steps: `docs/04_setup_guide.md`.
 
 ## Check your work (before saying something is done)

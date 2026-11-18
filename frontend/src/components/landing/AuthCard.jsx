@@ -4,7 +4,7 @@ import useAuth from '../../hooks/useAuth';
 import Icon from '../common/Icon';
 import FormError from '../common/FormError';
 import { Field, Input, PasswordInput, Select } from '../common/FormField';
-import { ConfirmEmailForm, ForgotPasswordForm, FormNotice, SubmitButton } from './AccountCodeForms';
+import { ConfirmEmailForm, ForgotPasswordForm, FormNotice, LoginCodeForm, SubmitButton } from './AccountCodeForms';
 import { homePathFor } from '../../utils/routes';
 
 // Colours for each role: the whole card changes colour when you switch
@@ -38,7 +38,8 @@ const isStrongPassword = (password) => password.length >= 8 && /[A-Za-z]/.test(p
 /**
  * Login + Sign up card with the Customer / Admin slide switch.
  * role: 'customer' | 'admin'      mode: 'login' | 'signup' (sign up is for customers only)
- * step (customers only): 'confirm' = type the code from the sign up email, 'forgot' = forgot password
+ * step (customers only): 'login_code' = type the code from the login email (every login),
+ *   'confirm' = type the code from the sign up email, 'forgot' = forgot password
  */
 export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
   const { login, signup } = useAuth();
@@ -50,7 +51,8 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState(''); // green message (e.g. "password changed")
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(null); // null | 'confirm' | 'forgot'
+  const [step, setStep] = useState(null); // null | 'login_code' | 'confirm' | 'forgot'
+  const [loginResult, setLoginResult] = useState(null); // backend answer when a login code was emailed
   const [codeLogin, setCodeLogin] = useState(''); // email/username waiting for its confirmation code
 
   const theme = THEME[role];
@@ -90,7 +92,15 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
     }
     setLoading(true);
     try {
-      goHome(await login(loginForm.login.trim(), loginForm.password, role));
+      const result = await login(loginForm.login.trim(), loginForm.password, role);
+      if (result.needs_code) {
+        // Customer: right password, now the 8-digit code from the email
+        setLoginResult(result);
+        setStep('login_code');
+        setLoading(false);
+      } else {
+        goHome(result);
+      }
     } catch (err) {
       if (err.code === 'EMAIL_NOT_CONFIRMED') {
         // Right password, but the email is not confirmed yet: show the code box
@@ -127,10 +137,11 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
       const result = await signup(data);
       // Account created: now the customer types the code we emailed
       setCodeLogin(result.email);
+      const number = result.customer_number ? ` Your customer number is ${result.customer_number}.` : '';
       setNotice(
         result.email_sent
-          ? `Account created! We sent a 6-digit code to ${result.email}. Type it here to finish.`
-          : 'Account created, but the email could not be sent just now. Press "Send a new code" in a minute.'
+          ? `Account created!${number} We sent an 8-digit code to ${result.email}. Type it here to finish.`
+          : `Account created!${number} The email could not be sent just now. Press "Send a new code" in a minute.`
       );
       setSignupForm(EMPTY_SIGNUP);
       setStep('confirm');
@@ -181,12 +192,22 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
             className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${theme.soft}`}
           >
             <Icon name={role === 'admin' ? 'shield' : 'bolt'} className="h-3.5 w-3.5" />
-            {role === 'admin' ? 'Staff area' : isSignup ? 'New customer' : step ? 'Account help' : 'Customer area'}
+            {role === 'admin'
+              ? 'Staff area'
+              : isSignup
+                ? 'New customer'
+                : step === 'login_code'
+                  ? 'Email verification'
+                  : step
+                    ? 'Account help'
+                    : 'Customer area'}
           </span>
           <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900">
             {role === 'admin'
               ? 'Admin sign in'
-              : step === 'confirm'
+              : step === 'login_code'
+                ? 'Verify your identity'
+                : step === 'confirm'
                 ? 'Confirm your email'
                 : step === 'forgot'
                   ? 'Reset your password'
@@ -197,8 +218,10 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
           <p className="mt-1 text-sm text-slate-500">
             {role === 'admin'
               ? 'Manage customers, meters, bills and requests.'
-              : step === 'confirm'
-                ? 'One last step: type the 6-digit code from your email.'
+              : step === 'login_code'
+                ? 'For your security, every login needs the code we email to you.'
+                : step === 'confirm'
+                ? 'One last step: type the 8-digit code from your email.'
                 : step === 'forgot'
                   ? 'Use your email or phone number to get a reset code.'
                   : isSignup
@@ -208,7 +231,16 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
         </div>
 
         {/* ---------- Confirm email / forgot password (customers only) ---------- */}
-        {role === 'customer' && step === 'confirm' ? (
+        {role === 'customer' && step === 'login_code' ? (
+          <LoginCodeForm
+            loginName={loginForm.login.trim()}
+            password={loginForm.password}
+            role={role}
+            loginResult={loginResult}
+            gradient={theme.gradient}
+            onDone={goHome}
+          />
+        ) : role === 'customer' && step === 'confirm' ? (
           <ConfirmEmailForm loginName={codeLogin} firstNotice={notice} gradient={theme.gradient} onDone={goHome} />
         ) : role === 'customer' && step === 'forgot' ? (
           <ForgotPasswordForm gradient={theme.gradient} onDone={backToLogin} />
@@ -335,7 +367,7 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
             </p>
           ) : step ? (
             <p>
-              Remembered it?{' '}
+              {step === 'login_code' ? 'Wrong account?' : 'Remembered it?'}{' '}
               <button type="button" onClick={() => backToLogin()} className="font-bold text-orange-600 hover:underline">
                 Back to log in
               </button>

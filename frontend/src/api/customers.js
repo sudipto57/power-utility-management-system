@@ -5,3 +5,7 @@ export const getCustomer = (id) => apiRequest(`/customers/${id}`);
 export const createCustomer = (data) => apiRequest('/customers', { method: 'POST', body: data });
 export const updateCustomer = (id, data) => apiRequest(`/customers/${id}`, { method: 'PUT', body: data });
 export const deleteCustomer = (id) => apiRequest(`/customers/${id}`, { method: 'DELETE' });
+
+// Website sign-ups copied into database/04_sample_data.sql
+export const getSqlFileStatus = () => apiRequest('/customers/sql-file');
+export const saveSqlFileNow = () => apiRequest('/customers/sql-file', { method: 'POST' });

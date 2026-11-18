@@ -32,14 +32,24 @@ export default function AuthProvider({ children }) {
     return () => window.removeEventListener('auth:expired', onExpired);
   }, []);
 
+  // Admins are logged in straight away. Customers get { needs_code: true, ... } back:
+  // an 8-digit code was emailed and verifyLogin() finishes the login.
   const login = useCallback(async (loginName, password, role) => {
     const result = await authApi.login(loginName, password, role);
+    if (result.needs_code) return result;
     tokenStore.set(result.token);
     setUser(result.user);
     return result.user;
   }, []);
 
-  // Customer sign up: the account is created and a 6-digit code is emailed (no login yet)
+  const verifyLogin = useCallback(async (loginName, code) => {
+    const result = await authApi.verifyLogin(loginName, code);
+    tokenStore.set(result.token);
+    setUser(result.user);
+    return result.user;
+  }, []);
+
+  // Customer sign up: the account is created and an 8-digit code is emailed (no login yet)
   const signup = useCallback((data) => authApi.signup(data), []);
 
   // The right code from the email confirms the account and logs the customer in
@@ -61,8 +71,8 @@ export default function AuthProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, checking, login, signup, confirmEmail, refreshUser, logout }),
-    [user, checking, login, signup, confirmEmail, refreshUser, logout]
+    () => ({ user, checking, login, verifyLogin, signup, confirmEmail, refreshUser, logout }),
+    [user, checking, login, verifyLogin, signup, confirmEmail, refreshUser, logout]
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

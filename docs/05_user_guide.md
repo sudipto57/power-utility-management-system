@@ -10,8 +10,9 @@ Open http://localhost:5173. The first page has the login card on the right.
 2. Type your **email or username** and password (demo logins: `PUMSadmin` / `PUMS@dmin578` on the Admin tab, `sumaiya.khanam` / `customer123` on the Customer tab). The eye button shows or hides the password.
 3. New customers can press **Create an account** (or **Sign up** in the top bar). Sign up is for customers only; admin accounts are made by the system administrator.
    The password needs **8+ characters with a letter and a number** (both password boxes have an eye button).
-4. After signing up, a **6-digit code** arrives by email. Type it in the box to confirm the email; you are then logged in. No email? Check spam, or press **Send a new code** (once a minute). The code works for 15 minutes.
-5. **Forgot password?** (under the password box, Customer tab): type your **email or phone number** → a 6-digit code goes to the email saved on your account → type the code and a new password. Anyone still logged in with the old password is logged out.
+   **Customers: every login has a second step, like GitHub.** After the right password, the card shows **Verify your identity**: an **8-digit code** is emailed to you (subject *[Power Utility] Sudo email verification code*), valid for 15 minutes and usable once. Type it and press **Verify**. No email? Check spam, or press **Send a new code** (once a minute). Admins log in with the password only.
+4. After signing up, an **8-digit code** arrives by email. Type it in the box to confirm the email; you are then logged in. No email? Check spam, or press **Send a new code** (once a minute). The code works for 15 minutes.
+5. **Forgot password?** (under the password box, Customer tab): type your **email or phone number** → an 8-digit code goes to the email saved on your account → type the code and a new password. Anyone still logged in with the old password is logged out.
 
 Admins land on the **Admin panel**; customers land on the **Customer portal**. Each role only sees its own menu.
 Scroll down the first page for the Vision, the Overview (search box + category buttons), the **Bill estimator**, How it works, the FAQ and contact details.
@@ -47,6 +48,9 @@ On every page (Admin and Customer):
 - **Add customer** → fill the form. Tick *Create a login for this customer* to give them portal access.
 - Click a row to open the **profile**: contact details, connections (meters), bills and requests.
 - ✏️ edits, 🗑️ deletes. A customer **with bills cannot be deleted** (that would erase billing history), so the app offers **Set as Inactive** instead.
+- The newest customers are at the top; people who joined in the last 7 days have a green **New** label.
+- The green strip above the list says how many customers joined after the 200 sample customers. They are saved live in the database **and** copied into `database/04_sample_data.sql`. If it turns amber, press **Save now**.
+- After a customer signs up, the sign-up card shows their new customer number (e.g. *CUST-201*).
 
 ![Customers](images/03_customers.png)
 

@@ -9,6 +9,7 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "db:test": "node scripts/testConnection.js",
+    "db:save-customers": "node scripts/saveCustomers.js",
     "hash": "node scripts/hashPassword.js"
   },
   "engines": {

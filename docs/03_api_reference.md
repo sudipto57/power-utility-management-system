@@ -26,7 +26,7 @@ Base URL: `http://localhost:5000/api`
 
 | Method | URL | Who | Body / query | Answer |
 | --- | --- | --- | --- | --- |
-| POST | `/auth/login` | everyone | `{ "login": "PUMSadmin", "password": "PUMS@dmin578", "role": "admin" }` (email or username; `role` = `admin` or `customer`, optional) | **Admin:** `{ token, user }`. **Customer:** `{ needs_code: true, email: "s*****8@gmail.com", expires_at, email_sent }` and an 8-digit code is emailed (like GitHub). **403 `EMAIL_NOT_CONFIRMED`** for a customer who has not confirmed the sign up email yet |
+| POST | `/auth/login` | everyone | `{ "login": "PUMSadmin", "password": "<staff password>", "role": "admin" }` (email or username; `role` = `admin` or `customer`, optional) | **Admin:** `{ token, user }`. **Customer:** `{ needs_code: true, email: "s*****8@gmail.com", expires_at, email_sent }` and an 8-digit code is emailed (like GitHub). **403 `EMAIL_NOT_CONFIRMED`** for a customer who has not confirmed the sign up email yet |
 | POST | `/auth/verify-login` | customers | `{ "login": "email or username", "code": "12345678" }` | `{ token, user }` (step 2 of a customer login) |
 | POST | `/auth/signup` | everyone (creates **customers only**) | `{ "full_name", "email", "phone", "address", "customer_type": "Residential", "username", "password" }` (password: 8+ characters with a letter and a number) | `{ needs_confirmation: true, email, email_sent }` - an 8-digit code is emailed, no login yet |
 | POST | `/auth/confirm-email` | everyone | `{ "login": "email or username", "code": "12345678" }` | `{ token, user }` (email confirmed, logged in) |

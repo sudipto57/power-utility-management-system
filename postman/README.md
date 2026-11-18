@@ -10,7 +10,7 @@
 1. Start the backend (`cd backend` → `npm run dev`).
 2. Postman → **Import** → choose both files.
 3. Top-right environment dropdown → choose **Power Utility - Local**.
-4. Open **1. Auth → Login as Admin** (`PUMSadmin` / `PUMS@dmin578`) → **Send**. The token is saved automatically (`adminToken`).
+4. Open **1. Auth → Login as Admin** (`PUMSadmin`; first type the staff password into the **adminPassword** value of the **Local** environment. Ask the team for it: it is never saved in GitHub) → **Send**. The token is saved automatically (`adminToken`).
    Customers log in in two steps, like on GitHub: send **Login as Customer (step 1)**, copy the 8-digit code from the email (or the backend terminal) into the environment variable **`loginCode`**, then send **step 2** (saves `customerToken`) within 15 minutes.
 5. Send any other request. Admin requests use `{{adminToken}}` automatically (collection Authorization tab).
 
@@ -27,4 +27,4 @@ Running it creates a few test records ("Test Customer", "Temporary Customer"). R
 
 ## Postman desktop (local files)
 
-The `collections/` and `environments/` folders are the files the Postman desktop app keeps for this project. Their **Login** request also uses `PUMSadmin` / `PUMS@dmin578`, and the **Local** environment's `baseUrl` is `http://localhost:5000/api`. If Postman shows an older copy, re-import both files above.
+The `collections/` and `environments/` folders are the files the Postman desktop app keeps for this project. Their **Login** request also uses `PUMSadmin` and the `{{adminPassword}}` environment value, and the **Local** environment's `baseUrl` is `http://localhost:5000/api`. If Postman shows an older copy, re-import both files above.

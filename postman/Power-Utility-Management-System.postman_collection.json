@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Power Utility Management System API",
-    "description": "All endpoints of the Power Utility Management System backend.\n\nHOW TO USE\n1. Import this collection and Local.postman_environment.json\n2. Pick the \"Power Utility - Local\" environment (top-right)\n3. Start the backend (npm run dev in the backend folder)\n4. Run \"Login as Admin\" (saves adminToken). Customers log in like on GitHub: run \"Login as Customer (step 1)\", copy the 8-digit code from the email (or the backend terminal) into the environment variable loginCode, then run \"step 2\" (saves customerToken)\n5. Or press \"Run collection\" to test everything in order.\n\nDemo logins: PUMSadmin / PUMS@dmin578   and   sumaiya.khanam / customer123",
+    "description": "All endpoints of the Power Utility Management System backend.\n\nHOW TO USE\n1. Import this collection and Local.postman_environment.json\n2. Pick the \"Power Utility - Local\" environment (top-right)\n3. Start the backend (npm run dev in the backend folder)\n4. Run \"Login as Admin\" (saves adminToken). Customers log in like on GitHub: run \"Login as Customer (step 1)\", copy the 8-digit code from the email (or the backend terminal) into the environment variable loginCode, then run \"step 2\" (saves customerToken)\n5. Or press \"Run collection\" to test everything in order.\n\nDemo logins: PUMSadmin / {{adminPassword}}   and   sumaiya.khanam / customer123",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -92,7 +92,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"login\": \"PUMSadmin\",\n  \"password\": \"PUMS@dmin578\"\n}",
+              "raw": "{\n  \"login\": \"PUMSadmin\",\n  \"password\": \"{{adminPassword}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

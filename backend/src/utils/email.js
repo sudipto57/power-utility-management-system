@@ -12,7 +12,7 @@ import env from '../config/env.js';
  * Never throws: an email problem must not break signing up or generating a bill.
  * Returns true when the email was sent (or printed in the terminal on your computer), false if it failed.
  */
-export async function sendEmail({ to, name, subject, html }) {
+export async function sendEmail({ to, name, subject, html, replyTo }) {
   if (!to) return false;
 
   if (!env.email.brevoApiKey || !env.email.from) {
@@ -33,6 +33,8 @@ export async function sendEmail({ to, name, subject, html }) {
         to: [{ email: to, ...(name ? { name } : {}) }],
         subject,
         htmlContent: html,
+        // Feedback: pressing "Reply" in the inbox answers the visitor directly
+        ...(replyTo ? { replyTo: { email: replyTo } } : {}),
       }),
       signal: AbortSignal.timeout(10000), // give up after 10 seconds
     });
@@ -134,6 +136,21 @@ export function changeDecisionEmail(fullName, fieldLabel, newValue, approved, no
        }</p>
        ${note ? `<p>Note from the office: ${escapeHtml(note)}</p>` : ''}`,
       { label: 'Open my profile', url: `${env.appUrl}/my/profile` }
+    ),
+  };
+}
+
+/** A message from the website's feedback form, sent to the team */
+export function feedbackEmail({ rating, topic, message, name, email }) {
+  const stars = '&#9733;'.repeat(rating) + '&#9734;'.repeat(5 - rating);
+  return {
+    subject: `[Power Utility feedback] ${rating}/5 - ${topic}`,
+    html: layout(
+      'New website feedback',
+      `<p style="font-size:22px;color:#f59e0b;margin:0 0 8px">${stars}</p>
+       <p><b>Topic:</b> ${escapeHtml(topic)}</p>
+       <p style="white-space:pre-wrap;background:#f8fafc;border-radius:10px;padding:12px">${escapeHtml(message)}</p>
+       <p><b>From:</b> ${escapeHtml(name || 'Not given')} (${escapeHtml(email || 'no email')})</p>`
     ),
   };
 }

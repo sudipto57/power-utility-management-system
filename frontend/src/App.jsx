@@ -32,6 +32,7 @@ import MyBillDetails from './pages/customer/MyBillDetails';
 import MyRequests from './pages/customer/MyRequests';
 import MyRequestDetails from './pages/customer/MyRequestDetails';
 import NewRequest from './pages/customer/NewRequest';
+import MyFeedback from './pages/customer/MyFeedback';
 
 /** "/" sends people to the right place. */
 function HomeRedirect() {
@@ -80,6 +81,7 @@ export default function App() {
           <Route path="requests" element={<MyRequests />} />
           <Route path="requests/new" element={<NewRequest />} />
           <Route path="requests/:id" element={<MyRequestDetails />} />
+          <Route path="feedback" element={<MyFeedback />} />
         </Route>
       </Route>
 

@@ -45,6 +45,7 @@ Base URL: `http://localhost:5000/api`
 | Method | URL | Query | Answer |
 | --- | --- | --- | --- |
 | GET | `/tariffs/estimate` | `customer_type` (Residential / Commercial), `connection_type` (Single Phase / Three Phase), `units` (0 - 100000) | `{ units, slabs: [{ slab_order, start_unit, end_unit, rate_per_unit, units, amount }], fixed_charge, variable_charge, tax_amount, total_amount }` — totals from `calculate_bill_amount()` |
+| POST | `/feedback` | `{ "rating": 1-5, "topic": "Website design" / "Bills and payments" / "Login and account" / "Service requests" / "New idea" / "Other", "message": "10-2000 chars", "name"?, "email"? }` (public, 5 per hour per visitor) | `201 { message }`; the message is emailed to `FEEDBACK_EMAIL` (or `EMAIL_FROM`), nothing is saved in the database. `503` if email is not set up |
 
 ## Dashboard (feature 3) - admin
 

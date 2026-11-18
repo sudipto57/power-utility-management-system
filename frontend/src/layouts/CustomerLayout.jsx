@@ -5,6 +5,7 @@ const CUSTOMER_MENU = [
   { to: '/my/bills', label: 'My Bills', icon: 'receipt' },
   { to: '/my/requests', label: 'My Requests', icon: 'complaint' },
   { to: '/my/profile', label: 'My Profile', icon: 'user' },
+  { to: '/my/feedback', label: 'Give Feedback', icon: 'send' },
 ];
 
 export default function CustomerLayout() {

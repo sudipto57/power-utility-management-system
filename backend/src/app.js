@@ -17,6 +17,7 @@ import myRoutes from './routes/my.routes.js';
 import tariffRoutes from './routes/tariffs.routes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import changeRequestRoutes from './routes/changeRequests.routes.js';
+import feedbackRoutes from './routes/feedback.routes.js';
 import { saveAfterChanges } from './utils/saveCustomersToSql.js';
 
 const app = express();
@@ -78,6 +79,7 @@ app.use('/api/change-requests', changeRequestRoutes); // profile change requests
 app.use('/api/reports', reportRoutes);
 app.use('/api/my', myRoutes);
 app.use('/api/tariffs', tariffRoutes); // public bill estimator
+app.use('/api/feedback', feedbackRoutes); // public feedback form (emailed to the team)
 
 app.use(notFound);
 app.use(errorHandler);

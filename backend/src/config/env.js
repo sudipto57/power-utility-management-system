@@ -64,6 +64,9 @@ const env = {
     from: (process.env.EMAIL_FROM || '').trim(),
     fromName: (process.env.EMAIL_FROM_NAME || 'Power Utility Management System').trim(),
   },
+  // Copy website sign-ups into database/04_sample_data.sql (see utils/saveCustomersToSql.js).
+  // On your computer leave it on. On Render set SAVE_CUSTOMERS_TO_SQL_FILE=false (there is no project folder there).
+  saveCustomersToSqlFile: (process.env.SAVE_CUSTOMERS_TO_SQL_FILE || 'true').trim().toLowerCase() !== 'false',
   // The website address used in email links (the first CLIENT_URL if APP_URL is not set)
   appUrl: (process.env.APP_URL || (process.env.CLIENT_URL || 'http://localhost:5173').split(',')[0]).trim().replace(/\/$/, ''),
 };

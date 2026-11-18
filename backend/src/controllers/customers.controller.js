@@ -4,6 +4,7 @@ import { query, withTransaction } from '../config/db.js';
 import ApiError from '../utils/ApiError.js';
 import { generateNumber } from '../utils/generateNumber.js';
 import { CUSTOMER_STATUSES, CUSTOMER_TYPES } from '../utils/constants.js';
+import { readSqlFileStatus, saveCustomersToSqlFile } from '../utils/saveCustomersToSql.js';
 import { clean, optionalEmail, optionalOneOf, requireEmail, requireOneOf, requireText, requireUuid } from '../utils/validate.js';
 
 // Shared by the list and the single-customer endpoints
@@ -26,7 +27,7 @@ async function findCustomer(id) {
   return rows[0];
 }
 
-// GET /api/customers?search=&status=&type=
+// GET /api/customers?search=&status=&type=   (newest customers first)
 export async function listCustomers(req, res) {
   const search = clean(req.query.search);
   const status = optionalOneOf(req.query.status, CUSTOMER_STATUSES, 'status');
@@ -38,10 +39,26 @@ export async function listCustomers(req, res) {
             OR c.phone ILIKE $1 OR c.email ILIKE $1 OR c.address ILIKE $1)
        AND ($2::text IS NULL OR c.status = $2)
        AND ($3::text IS NULL OR c.customer_type = $3)
-     ORDER BY c.customer_number`,
+     -- newest first: the number at the end of CUST-201 is compared as a number, so new sign-ups are on top
+     ORDER BY COALESCE(substring(c.customer_number FROM '[0-9]+$')::int, 0) DESC`,
     [search ? `%${search}%` : null, status, type]
   );
   res.json({ data: rows });
+}
+
+// GET /api/customers/sql-file  -> is database/04_sample_data.sql up to date with the website sign-ups?
+export async function getSqlFileStatus(req, res) {
+  res.json({ data: await readSqlFileStatus() });
+}
+
+// POST /api/customers/sql-file  -> "Save now": copy the website customers into the file right away
+export async function saveSqlFileNow(req, res) {
+  try {
+    await saveCustomersToSqlFile();
+  } catch (err) {
+    throw new ApiError(409, `Could not save the file: ${err.message}`);
+  }
+  res.json({ data: await readSqlFileStatus() });
 }
 
 // GET /api/customers/:id  -> profile + connections + bills + service requests

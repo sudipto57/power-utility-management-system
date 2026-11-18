@@ -3,7 +3,7 @@
 PostgreSQL scripts for the Power Utility Management System. They work on **Supabase** and on a **local PostgreSQL** (pgAdmin 4).
 
 **The original tables are exactly the team's schema.** No table or column was added, removed or renamed in them. Only functions, views, rules (constraints), indexes and sample data were fixed.
-For the account features the team asked for (email confirmation, forgot password, profile change requests), `09_account_security.sql` **adds two new tables**: `account_codes` and `profile_change_requests`.
+For the account features the team asked for (email confirmation, forgot password, the customer login code, profile change requests), `09_account_security.sql` **adds two new tables**: `account_codes` and `profile_change_requests`.
 
 ## Run order (pgAdmin → right-click your database → Query Tool → open file → ▶ Execute)
 
@@ -23,7 +23,8 @@ For the account features the team asked for (email confirmation, forgot password
 Run each file once, top to bottom. If anything fails halfway, run `00_reset.sql` and start again from `01`.
 
 **Already have the old database?** Run `08_update_existing_database.sql`, then `04_sample_data.sql`. (Our Supabase project was updated this way on 17 Nov 2026.)
-**Then run `09_account_security.sql` once** (Supabase → SQL Editor → paste → Run). The backend will not start without its two tables.
+**Then run `09_account_security.sql`** (Supabase → SQL Editor → paste → Run). The backend will not start without it.
+**Ran it before 18 Nov 2026, 5 PM? Run it once more:** the newer copy lets `account_codes` store the customer **login codes**. Running it again is safe: it never undoes a password you changed yourself.
 
 ## The 8 fixes
 
@@ -80,6 +81,27 @@ Source: BERC retail tariff order, June 2026. Real irrigation (Tk 6.04) and indus
 | sumaiya.khanam (CUST-011, has an Overdue bill), nayeem.sheikh, khadija.yasmin (prepaid), rafiqul.islam (shop), sohag.howlader (farm), sadia.sultana (factory), tapas.saha | customer123 | customer |
 
 The 200 sample customers are made-up people built from the electricity survey (see `docs/data-collection/Survey_Sample_Data_200.xlsx`). No real respondent's name, phone, email or meter number is used.
+
+## Website sign-ups are copied into 04 (18 Nov 2026)
+
+Everybody who signs up on the website (and every customer an admin adds) is saved **in the live database first**, like before. The backend then copies them into a marked part at the **end of `04_sample_data.sql`**:
+
+```sql
+-- >>> WEBSITE CUSTOMERS START (written by the backend, do not edit by hand) >>>
+-- 11. Customers who joined after the sample data ...
+INSERT INTO customers (...) VALUES ('CUST-201', ...);
+INSERT INTO users (...) VALUES (...);      -- the login, password only as a bcrypt hash
+INSERT INTO connections (...) ...;         -- their meters, if an admin added any
+-- <<< WEBSITE CUSTOMERS END <<<
+```
+
+- It happens about one second after a sign-up, an email confirmation, or any change to customers, meters or profiles, and once when the backend starts. Only that marked part is rewritten; the rest of the file is never touched.
+- A login is added after the customer confirms the email code (before that, only the customer row is there).
+- So running `04_sample_data.sql` again brings the sample data **and** the real sign-ups back.
+- Readings, bills and payments of new customers stay only in the database (they are not copied).
+- Admin → **Customers** shows a strip with "N new customers · also copied into database/04_sample_data.sql" and a **Save now** button.
+- The live website (Render) has no copy of your project folder. There, set `SAVE_CUSTOMERS_TO_SQL_FILE=false` and, on your computer, run `cd backend && npm run db:save-customers` to pull the sign-ups from Supabase into the file.
+- The code is in `backend/src/utils/saveCustomersToSql.js`.
 
 ## Old files
 

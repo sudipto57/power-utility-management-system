@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Power Utility Management System API",
-    "description": "All endpoints of the Power Utility Management System backend.\n\nHOW TO USE\n1. Import this collection and Local.postman_environment.json\n2. Pick the \"Power Utility - Local\" environment (top-right)\n3. Start the backend (npm run dev in the backend folder)\n4. Run \"Login as Admin\" and \"Login as Customer\" first - they save the tokens automatically\n5. Or press \"Run collection\" to test everything in order.\n\nDemo logins: PUMSadmin / PUMS@dmin578   and   sumaiya.khanam / customer123",
+    "description": "All endpoints of the Power Utility Management System backend.\n\nHOW TO USE\n1. Import this collection and Local.postman_environment.json\n2. Pick the \"Power Utility - Local\" environment (top-right)\n3. Start the backend (npm run dev in the backend folder)\n4. Run \"Login as Admin\" (saves adminToken). Customers log in like on GitHub: run \"Login as Customer (step 1)\", copy the 8-digit code from the email (or the backend terminal) into the environment variable loginCode, then run \"step 2\" (saves customerToken)\n5. Or press \"Run collection\" to test everything in order.\n\nDemo logins: PUMSadmin / PUMS@dmin578   and   sumaiya.khanam / customer123",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -119,7 +119,7 @@
           ]
         },
         {
-          "name": "Login as Customer",
+          "name": "Login as Customer (step 1: a code is emailed)",
           "request": {
             "method": "POST",
             "header": [
@@ -142,6 +142,56 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"login\": \"sumaiya_khanam1988@example.com\",\n  \"password\": \"customer123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Asks for the email code (like GitHub)\", () => pm.expect(body.data.needs_code).to.eql(true));",
+                  "pm.test(\"No token yet\", () => pm.expect(body.data.token).to.eql(undefined));",
+                  "pm.test(\"Email is hidden (s****@...)\", () => pm.expect(body.data.email).to.include(\"*\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as Customer (step 2: type the code)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-login"
+              ]
+            },
+            "description": "Put the 8-digit code from the email (or the backend terminal) into the environment variable loginCode first.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"sumaiya_khanam1988@example.com\",\n  \"code\": \"{{loginCode}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -602,6 +652,68 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Website sign-ups in 04_sample_data.sql (status)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customers/sql-file",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "sql-file"
+              ]
+            },
+            "description": "How many customers joined after the 200 sample customers, and how many of them are already copied into database/04_sample_data.sql."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data;",
+                  "pm.test(\"Counts the new customers\", () => pm.expect(d.customers_in_database).to.be.a(\"number\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Save website sign-ups into 04_sample_data.sql now",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customers/sql-file",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "sql-file"
+              ]
+            },
+            "description": "Copies every customer who joined after the sample data (with their login and meters) into database/04_sample_data.sql. Answers 409 when the backend runs on a server without the project folder (Render)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data;",
+                  "pm.test(\"File is up to date\", () => pm.expect(d.customers_in_file).to.eql(d.customers_in_database));"
                 ]
               }
             }
@@ -2429,6 +2541,99 @@
     {
       "name": "13. Account security & profile changes",
       "item": [
+        {
+          "name": "Login code with 6 digits (expect 400: codes have 8)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"sumaiya.khanam\",\n  \"code\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Asks for 8 digits\", () => pm.expect(pm.response.json().message).to.include(\"8-digit\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin cannot use the login code route (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"PUMSadmin\",\n  \"code\": \"12345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
         {
           "name": "Sign up (a code is emailed, no login yet)",
           "request": {

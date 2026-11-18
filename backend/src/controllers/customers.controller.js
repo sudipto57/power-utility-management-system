@@ -5,7 +5,16 @@ import ApiError from '../utils/ApiError.js';
 import { generateNumber } from '../utils/generateNumber.js';
 import { CUSTOMER_STATUSES, CUSTOMER_TYPES } from '../utils/constants.js';
 import { readSqlFileStatus, saveCustomersToSqlFile } from '../utils/saveCustomersToSql.js';
-import { clean, optionalEmail, optionalOneOf, requireEmail, requireOneOf, requireText, requireUuid } from '../utils/validate.js';
+import {
+  clean,
+  optionalEmail,
+  optionalOneOf,
+  requireEmail,
+  requireOneOf,
+  requirePassword,
+  requireText,
+  requireUuid,
+} from '../utils/validate.js';
 
 // Shared by the list and the single-customer endpoints
 const CUSTOMER_SELECT = `
@@ -119,8 +128,8 @@ export async function createCustomer(req, res) {
     if (!/^[a-z0-9._-]{3,50}$/.test(username)) {
       throw new ApiError(400, 'Username must be 3-50 characters: letters, numbers, dot, dash or underscore');
     }
-    const password = requireText(body.password, 'Password', 100);
-    if (password.length < 6) throw new ApiError(400, 'Password must be at least 6 characters');
+    // Same strong-password rule as the website sign up (8+ characters, a letter and a number)
+    const password = requirePassword(body.password);
     passwordHash = await bcrypt.hash(password, 10);
   }
 

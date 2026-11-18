@@ -63,8 +63,12 @@ export async function apiRequest(path, { method = 'GET', body, params } = {}) {
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
+    // On your computer the usual cause is a stopped backend. On the live website the
+    // server may be waking up (free hosting sleeps when nobody uses it), so just try again.
     throw new ApiRequestError(
-      'Cannot reach the server. Make sure the backend is running (npm run dev in the backend folder).',
+      import.meta.env.DEV
+        ? 'Cannot reach the server. Make sure the backend is running (npm run dev in the backend folder).'
+        : 'Cannot reach the server right now. Please check your internet and try again in a minute.',
       0
     );
   }

@@ -143,7 +143,7 @@ export const HELP_LINKS = [
 
 // Footer contact details - change these to your team's real details
 export const CONTACT = {
-  email: 'support@pumsadmin.com',
+  email: 'pums.admins@gmail.com', // the team's real inbox (chosen by the team, 18 Nov 2026)
   phone: '+880 1303-437131',
   address: 'Dhaka, Bangladesh',
 };

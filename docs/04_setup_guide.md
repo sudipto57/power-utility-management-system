@@ -162,7 +162,7 @@ cd frontend && npm run dev
 | `Connected, but the project tables/functions are missing` | SQL files not run on this database | Do Step 1 (on the `postgres` database) |
 | `Port 5000 is already in use` | The backend is already running in another terminal | Close the other terminal (Ctrl + C) or change `PORT` |
 | Website says **"Cannot reach the server"** | Backend not running | Start it (Step 3) |
-| Login says **"Wrong email/username or password"** | Sample data not loaded, or typo | Run `04_sample_data.sql`; demo password is `admin123` / `customer123` |
+| Login says **"Wrong email/username or password"** | Sample data not loaded, or typo | Run `04_sample_data.sql`; demo logins are `PUMSadmin` / `PUMS@dmin578` (Admin tab) and `sumaiya.khanam` / `customer123` (Customer tab) |
 | Website blank / errors after changing `.env` | Vite reads `.env` only at start | Stop (Ctrl + C) and `npm run dev` again |
 | Opened `http://127.0.0.1:5173` and requests fail | The API only allows `localhost:5173` | Use **http://localhost:5173** or add it to `CLIENT_URL` |
 

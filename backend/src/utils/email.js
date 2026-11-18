@@ -10,7 +10,7 @@ import env from '../config/env.js';
 /**
  * sendEmail({ to, name, subject, html })
  * Never throws: an email problem must not break signing up or generating a bill.
- * Returns true when the email was sent (or printed in the terminal), false if it failed.
+ * Returns true when the email was sent (or printed in the terminal on your computer), false if it failed.
  */
 export async function sendEmail({ to, name, subject, html }) {
   if (!to) return false;
@@ -19,7 +19,9 @@ export async function sendEmail({ to, name, subject, html }) {
     console.log(`\n[email] Not sent (no BREVO_API_KEY / EMAIL_FROM in .env). It would go to ${to}:`);
     console.log(`        Subject: ${subject}`);
     console.log(`        ${htmlToText(html)}\n`);
-    return true;
+    // On your computer, printing counts as "sent" (you read the code in the terminal).
+    // On the live website nobody reads the terminal, so tell the page the email did not go out.
+    return !env.isProduction;
   }
 
   try {

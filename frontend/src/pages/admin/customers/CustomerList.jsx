@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import useFetch from '../../../hooks/useFetch';
 import useDebounce from '../../../hooks/useDebounce';
 import useToast from '../../../hooks/useToast';
-import { deleteCustomer, getCustomers, updateCustomer } from '../../../api/customers';
+import { deleteCustomer, getCustomers, getSqlFileStatus, saveSqlFileNow, updateCustomer } from '../../../api/customers';
 import PageHeader from '../../../components/common/PageHeader';
 import Card from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
@@ -16,6 +16,10 @@ import ErrorState from '../../../components/common/ErrorState';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
 import { CUSTOMER_STATUSES, CUSTOMER_TYPES } from '../../../utils/options';
 import { formatMoney, initials } from '../../../utils/format';
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+// Joined in the last 7 days (shows a small "New" label in the list)
+const isNew = (customer) => Date.now() - new Date(customer.created_at).getTime() < WEEK_MS;
 
 export default function CustomerList() {
   const navigate = useNavigate();
@@ -78,7 +82,14 @@ export default function CustomerList() {
             {initials(c.full_name)}
           </span>
           <div className="min-w-0">
-            <p className="truncate font-semibold text-slate-900">{c.full_name}</p>
+            <p className="flex items-center gap-2 truncate font-semibold text-slate-900">
+              {c.full_name}
+              {isNew(c) && (
+                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-100">
+                  New
+                </span>
+              )}
+            </p>
             <p className="truncate text-xs text-slate-500">
               {c.customer_number} · {c.email || 'no email'}
             </p>
@@ -139,6 +150,8 @@ export default function CustomerList() {
         }
       />
 
+      <SqlFileStrip />
+
       <Card bodyClassName="p-0" className="animate-fade-up" style={{ animationDelay: '80ms' }}>
         <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 p-4">
           <SearchBar
@@ -194,6 +207,66 @@ export default function CustomerList() {
         onConfirm={confirmDeactivate}
         onCancel={() => setToDeactivate(null)}
       />
+    </div>
+  );
+}
+
+/**
+ * Small strip above the list: website sign-ups are saved in the live database AND copied
+ * into database/04_sample_data.sql by the backend. "Save now" copies them straight away.
+ */
+function SqlFileStrip() {
+  const toast = useToast();
+  const { data, error, reload } = useFetch(getSqlFileStatus, []);
+  const [saving, setSaving] = useState(false);
+
+  const saveNow = async () => {
+    setSaving(true);
+    try {
+      await saveSqlFileNow();
+      toast.success('database/04_sample_data.sql is up to date');
+      reload();
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (error || !data) return null; // the list below still works; this strip is only extra information
+
+  const upToDate = data.found && data.customers_in_file === data.customers_in_database;
+  return (
+    <div
+      className={`mb-4 flex animate-fade-up flex-wrap items-center gap-3 rounded-2xl px-4 py-3 ring-1 ${
+        upToDate ? 'bg-emerald-50 ring-emerald-100' : 'bg-amber-50 ring-amber-100'
+      }`}
+    >
+      <span
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+          upToDate ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'
+        }`}
+      >
+        <Icon name={upToDate ? 'check' : 'file'} className="h-5 w-5" />
+      </span>
+      <div className="min-w-0 flex-1 text-sm">
+        <p className="font-bold text-slate-900">
+          {data.customers_in_database} new {data.customers_in_database === 1 ? 'customer' : 'customers'} since the sample data
+          <span className="font-semibold text-slate-500"> · saved live in the database</span>
+        </p>
+        <p className="text-xs text-slate-600">
+          {!data.found
+            ? `${data.file} is not on this server, so only the database has them. Run "npm run db:save-customers" on your computer.`
+            : upToDate
+              ? `Also copied into ${data.file}${data.last_saved ? ` (last saved ${data.last_saved})` : ''}.`
+              : `${data.file} has ${data.customers_in_file} of them. Press "Save now" to copy the rest.`}
+        </p>
+      </div>
+      {data.found && (
+        <Button variant="secondary" size="sm" icon="refresh" loading={saving} onClick={saveNow}>
+          Save now
+        </Button>
+      )}
     </div>
   );
 }

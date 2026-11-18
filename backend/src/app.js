@@ -17,6 +17,7 @@ import myRoutes from './routes/my.routes.js';
 import tariffRoutes from './routes/tariffs.routes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import changeRequestRoutes from './routes/changeRequests.routes.js';
+import { saveAfterChanges } from './utils/saveCustomersToSql.js';
 
 const app = express();
 
@@ -49,6 +50,21 @@ app.get('/api/health', async (req, res) => {
   const { rows } = await query('SELECT NOW() AS database_time');
   res.json({ data: { status: 'ok', app: 'Power Utility Management System API', database_time: rows[0].database_time } });
 });
+
+// After a sign-up, or any change to customers, logins or meters, copy the new customers
+// into database/04_sample_data.sql (see utils/saveCustomersToSql.js)
+app.use(
+  [
+    '/api/auth/signup',
+    '/api/auth/confirm-email',
+    '/api/auth/reset-password',
+    '/api/customers',
+    '/api/connections',
+    '/api/change-requests',
+    '/api/my/profile',
+  ],
+  saveAfterChanges
+);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);

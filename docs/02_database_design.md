@@ -127,7 +127,7 @@ erDiagram
 | `service_request_comments` | Conversation on a request | |
 | `tariffs`, `tariff_slabs` | Prices used by the bill calculator | |
 | `bill_adjustments`, `bill_installments`, `meter_reading_schedules` | On the "Later" list (no UI yet) | |
-| `account_codes` *(new, file 09)* | 6-digit email codes for **confirming the email** after sign up and for **forgot password** | only a SHA-256 hash of the code is stored; `purpose` CHECK; works 15 minutes; 5 wrong tries. A customer with an unused `confirm_email` code cannot log in yet |
+| `account_codes` *(new, file 09)* | 8-digit email codes for the **customer login** (every login, like GitHub), **confirming the email** after sign up and **forgot password** | only a SHA-256 hash of the code is stored; `purpose` CHECK; works 15 minutes; 5 wrong tries. A customer with an unused `confirm_email` code cannot log in yet |
 | `profile_change_requests` *(new, file 09)* | A customer asks to change their email, phone, customer type or a meter's connection type; an admin approves or rejects | `field` and `status` CHECK; `connection_id` only for `connection_type` (CHECK); **one waiting request per thing** (partial UNIQUE index `change_requests_one_pending`) |
 
 ## Database logic (the DBMS part)

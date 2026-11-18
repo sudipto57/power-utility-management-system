@@ -5,6 +5,7 @@
 import env from './config/env.js';
 import pool, { explainDbError } from './config/db.js';
 import app from './app.js';
+import { scheduleSave } from './utils/saveCustomersToSql.js';
 
 async function checkDatabase() {
   try {
@@ -36,6 +37,15 @@ async function checkDatabase() {
     console.error('           Run database/09_account_security.sql once (pgAdmin or the Supabase SQL Editor).\n');
     return false;
   }
+  // 18 Nov 2026: account_codes must also accept login codes (the newer 09 file adds them)
+  const loginCodes = await pool.query(
+    "SELECT 1 FROM pg_constraint WHERE conname = 'account_codes_purpose_check' AND pg_get_constraintdef(oid) LIKE '%login%'"
+  );
+  if (!loginCodes.rows[0]) {
+    console.error('\n[database] The database is missing the newest change for customer login codes.');
+    console.error('           Run database/09_account_security.sql again (it is safe to run more than once).\n');
+    return false;
+  }
   return true;
 }
 
@@ -55,6 +65,8 @@ const server = app.listen(env.port, () => {
       ? `  Emails       sent from ${env.email.from} (Brevo)\n`
       : '  Emails       NOT sent: printed here instead (add BREVO_API_KEY and EMAIL_FROM to send real emails)\n'
   );
+  // Catch up: copy any sign-ups made while the backend was off into database/04_sample_data.sql
+  scheduleSave();
 });
 
 server.on('error', (err) => {

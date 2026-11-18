@@ -1,0 +1,261 @@
+// Keeps database/04_sample_data.sql up to date with the REAL customers.
+//
+// 04_sample_data.sql loads the 200 sample customers (CUST-001 ... CUST-200).
+// Everybody who joins later (a sign-up on the website, or a customer an admin adds)
+// is saved in the live database first. This file then copies those customers,
+// their logins and their meters into one marked part at the END of
+// 04_sample_data.sql, so running that file again brings them back.
+//
+// When does it run?
+//   * automatically, a moment after a sign-up or any change to customers, logins or meters
+//     (see saveAfterChanges below, used in app.js)
+//   * from the admin Customers page ("Save now" button)
+//   * from a terminal:  cd backend && npm run db:save-customers
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { query } from '../config/db.js';
+import env from '../config/env.js';
+
+const SAMPLE_CUSTOMERS = 200; // CUST-001 ... CUST-200 come from the survey sample
+const FILE_NAME = '04_sample_data.sql';
+export const SQL_FILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'database', FILE_NAME);
+
+// The part of the file that this code owns (everything between these two lines is rewritten)
+const START = '-- >>> WEBSITE CUSTOMERS START (written by the backend, do not edit by hand) >>>';
+const END = '-- <<< WEBSITE CUSTOMERS END <<<';
+
+// ---------------------------------------------------------------------
+// Small helpers that turn JavaScript values into safe SQL text
+// ---------------------------------------------------------------------
+function sqlValue(value) {
+  if (value === null || value === undefined) return 'NULL';
+  if (value instanceof Date) return `'${value.toISOString()}'`;
+  if (typeof value === 'number') return String(value);
+  return `'${String(value).replace(/'/g, "''")}'`; // ' becomes '' inside SQL text
+}
+
+const row = (values) => `(${values.map(sqlValue).join(', ')})`;
+
+function dhakaTime(date) {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Dhaka',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+}
+
+// ---------------------------------------------------------------------
+// 1. Read the new customers from the database
+// ---------------------------------------------------------------------
+async function readWebsiteCustomers() {
+  // account_codes comes from 09_account_security.sql. A login whose email is not
+  // confirmed yet is left out until the customer types the code.
+  const { rows: check } = await query("SELECT to_regclass('public.account_codes') IS NOT NULL AS has_codes");
+  const confirmedSql = check[0].has_codes
+    ? `NOT EXISTS (SELECT 1 FROM account_codes a
+                   WHERE a.user_id = u.id AND a.purpose = 'confirm_email' AND a.used_at IS NULL)`
+    : 'TRUE';
+
+  const { rows: customers } = await query(
+    `SELECT c.customer_number, c.full_name, c.phone, c.email, c.address, c.customer_type, c.status,
+            c.created_at, c.updated_at,
+            u.username, u.email AS login_email, u.full_name AS login_name, u.status AS login_status,
+            u.password_hash, u.created_at AS login_created_at,
+            (${confirmedSql}) AS email_confirmed
+     FROM customers c
+     LEFT JOIN users u ON u.id = c.user_id
+     WHERE COALESCE(substring(c.customer_number FROM '[0-9]+$')::int, 0) > $1
+     ORDER BY c.created_at, c.customer_number`,
+    [SAMPLE_CUSTOMERS]
+  );
+
+  const { rows: meters } = await query(
+    `SELECT c.customer_number, co.meter_number, co.connection_type, co.installation_date, co.status, co.notes, co.created_at
+     FROM connections co
+     JOIN customers c ON c.id = co.customer_id
+     WHERE c.customer_number = ANY($1)
+     ORDER BY c.customer_number, co.created_at`,
+    [customers.map((c) => c.customer_number)]
+  );
+
+  return { customers, meters };
+}
+
+// ---------------------------------------------------------------------
+// 2. Write the SQL text for the marked part of the file
+// ---------------------------------------------------------------------
+function buildSection({ customers, meters }, savedAt) {
+  const logins = customers.filter((c) => c.username && c.email_confirmed);
+  const waiting = customers.filter((c) => c.username && !c.email_confirmed);
+
+  const lines = [
+    START,
+    '-- =====================================================================',
+    `-- 11. Customers who joined after the sample data (website sign-ups and customers added by an admin)`,
+    '--     The backend rewrites this part after every sign-up or customer change,',
+    '--     so running this file again brings these customers back.',
+    `-- Last saved: ${dhakaTime(savedAt)} (Dhaka time)`,
+    `-- Customers: ${customers.length} | Logins: ${logins.length} | Meters: ${meters.length}`,
+    '-- =====================================================================',
+  ];
+
+  if (customers.length === 0) {
+    lines.push('-- Nobody has signed up yet.', END);
+    return lines.join('\n');
+  }
+
+  lines.push(
+    '',
+    'INSERT INTO customers (customer_number, full_name, phone, email, address, customer_type, status, created_at, updated_at) VALUES',
+    customers
+      .map((c) =>
+        row([c.customer_number, c.full_name, c.phone, c.email, c.address, c.customer_type, c.status, c.created_at, c.updated_at])
+      )
+      .join(',\n') + ';'
+  );
+
+  if (logins.length > 0) {
+    lines.push(
+      '',
+      '-- Their logins (the password is stored only as a bcrypt hash, never as plain text)',
+      'INSERT INTO users (username, email, full_name, role, status, password_hash, created_at) VALUES',
+      logins
+        .map((c) => row([c.username, c.login_email, c.login_name, 'customer', c.login_status, c.password_hash, c.login_created_at]))
+        .join(',\n') + ';',
+      '',
+      '-- Link each login to its customer profile (both directions)',
+      'UPDATE customers c SET user_id = u.id',
+      `FROM (VALUES\n${logins.map((c) => row([c.customer_number, c.username])).join(',\n')}\n) AS v(customer_number, username)`,
+      'JOIN users u ON u.username = v.username',
+      'WHERE c.customer_number = v.customer_number;',
+      'UPDATE users u SET customer_id = c.id FROM customers c',
+      "WHERE c.user_id = u.id AND u.role = 'customer' AND u.customer_id IS NULL;"
+    );
+  }
+  for (const c of waiting) {
+    lines.push(`-- ${c.customer_number}: login "${c.username}" is saved after the customer confirms the email code`);
+  }
+
+  if (meters.length > 0) {
+    lines.push(
+      '',
+      '-- Their meters (connections)',
+      'INSERT INTO connections (customer_id, meter_number, connection_type, installation_date, status, notes, created_at)',
+      'SELECT c.id, v.meter_number, v.connection_type, v.installation_date::date, v.status, v.notes, v.created_at::timestamptz',
+      'FROM (VALUES',
+      meters
+        .map((m) => row([m.customer_number, m.meter_number, m.connection_type, m.installation_date, m.status, m.notes, m.created_at]))
+        .join(',\n'),
+      ') AS v(customer_number, meter_number, connection_type, installation_date, status, notes, created_at)',
+      'JOIN customers c ON c.customer_number = v.customer_number;'
+    );
+  }
+
+  lines.push(END);
+  return lines.join('\n');
+}
+
+// The "Last saved" line changes every time, so it is ignored when we check for real changes
+const withoutTime = (text) => text.replace(/^-- Last saved: .*$/m, '');
+
+/** Finds the marked part in the file text: { start, end } character positions, or null. */
+function findSection(text) {
+  const start = text.indexOf(START);
+  const endMark = text.indexOf(END);
+  if (start === -1 || endMark === -1 || endMark < start) return null;
+  return { start, end: endMark + END.length };
+}
+
+// ---------------------------------------------------------------------
+// 3. Save: read the database, rewrite the marked part, write the file
+// ---------------------------------------------------------------------
+/** Returns { saved, changed, customers, logins, meters, file } or throws a clear error. */
+export async function saveCustomersToSqlFile() {
+  let fileText;
+  try {
+    fileText = await fs.readFile(SQL_FILE, 'utf8');
+  } catch {
+    throw new Error(`database/${FILE_NAME} was not found next to the backend folder (normal on a hosting site like Render)`);
+  }
+
+  const data = await readWebsiteCustomers();
+  const newline = fileText.includes('\r\n') ? '\r\n' : '\n'; // keep Windows line endings if the file has them
+  const section = buildSection(data, new Date()).replace(/\n/g, newline);
+
+  const place = findSection(fileText);
+  const oldSection = place ? fileText.slice(place.start, place.end) : '';
+  const result = {
+    file: `database/${FILE_NAME}`,
+    customers: data.customers.length,
+    logins: data.customers.filter((c) => c.username && c.email_confirmed).length,
+    meters: data.meters.length,
+  };
+
+  if (place && withoutTime(oldSection) === withoutTime(section)) {
+    return { ...result, saved: true, changed: false }; // nothing new: leave the file alone
+  }
+
+  const newText = place
+    ? fileText.slice(0, place.start) + section + fileText.slice(place.end)
+    : fileText.replace(/\s*$/, '') + newline + newline + section + newline;
+  await fs.writeFile(SQL_FILE, newText, 'utf8');
+  return { ...result, saved: true, changed: true };
+}
+
+/** What the admin page shows: is the file there, and what does its marked part say? */
+export async function readSqlFileStatus() {
+  const status = { file: `database/${FILE_NAME}`, auto_save: env.saveCustomersToSqlFile, found: false };
+  try {
+    const text = await fs.readFile(SQL_FILE, 'utf8');
+    status.found = true;
+    const place = findSection(text);
+    const section = place ? text.slice(place.start, place.end) : '';
+    status.last_saved = section.match(/^-- Last saved: (.*) \(Dhaka time\)/m)?.[1] ?? null;
+    status.customers_in_file = Number(section.match(/^-- Customers: (\d+)/m)?.[1] ?? 0);
+  } catch {
+    // file not found: found stays false
+  }
+  const { rows } = await query(
+    "SELECT COUNT(*) AS total FROM customers WHERE COALESCE(substring(customer_number FROM '[0-9]+$')::int, 0) > $1",
+    [SAMPLE_CUSTOMERS]
+  );
+  status.customers_in_database = rows[0].total;
+  return status;
+}
+
+// ---------------------------------------------------------------------
+// 4. Automatic saving after changes
+// ---------------------------------------------------------------------
+let timer = null;
+let queue = Promise.resolve(); // one save at a time, never two writes at once
+
+/** Saves a moment later; many changes close together become one save. */
+export function scheduleSave() {
+  if (!env.saveCustomersToSqlFile) return;
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    queue = queue
+      .then(saveCustomersToSqlFile)
+      .then((r) => {
+        if (r.changed) console.log(`[sql file] ${r.file} updated: ${r.customers} website customer(s), ${r.logins} login(s)`);
+      })
+      .catch((err) => console.error(`[sql file] Not saved: ${err.message}`));
+  }, 1000);
+}
+
+/**
+ * Express middleware: after a change (not a GET) that worked (status below 400),
+ * save the customers into the SQL file. Used in app.js for sign-up, customers, meters and profiles.
+ */
+export function saveAfterChanges(req, res, next) {
+  if (req.method !== 'GET') {
+    res.on('finish', () => {
+      if (res.statusCode < 400) scheduleSave();
+    });
+  }
+  next();
+}

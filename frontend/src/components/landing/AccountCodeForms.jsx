@@ -7,7 +7,8 @@ import Spinner from '../common/Spinner';
 import FormError from '../common/FormError';
 import { Field, Input, PasswordInput } from '../common/FormField';
 
-// The two small forms that use a 6-digit code from an email:
+// The small forms that use an 8-digit code from an email (like GitHub's email codes):
+//   LoginCodeForm      - every customer login: password, then "Verify your identity"
 //   ConfirmEmailForm   - after signing up (the account works once the email is confirmed)
 //   ForgotPasswordForm - email or phone number -> code -> new password
 
@@ -24,16 +25,16 @@ export function FormNotice({ message }) {
   );
 }
 
-/** Big box for the 6 digits (numbers only). */
+/** Big box for the 8 digits (numbers only). */
 function CodeInput({ value, onChange }) {
   return (
     <Input
       value={value}
-      onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+      onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 8))}
       inputMode="numeric"
       autoComplete="one-time-code"
-      placeholder="••••••"
-      className="text-center font-mono text-2xl font-extrabold tracking-[0.5em]"
+      placeholder="••••••••"
+      className="text-center font-mono text-2xl font-extrabold tracking-[0.35em]"
     />
   );
 }
@@ -69,6 +70,74 @@ export function SubmitButton({ loading, gradient, label, busyLabel }) {
   );
 }
 
+// "We just sent your authentication code via email to s****8@gmail.com. The code will expire at 5:07 PM."
+function loginCodeMessage(result) {
+  if (!result.email_sent) {
+    return 'We could not send the email just now. Press "Send a new code" in a minute.';
+  }
+  const time = new Date(result.expires_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  if (result.already_sent) {
+    return `We already emailed your authentication code to ${result.email}. It still works until ${time}.`;
+  }
+  return `We just sent your authentication code via email to ${result.email}. The code will expire at ${time}.`;
+}
+
+/**
+ * Every customer login (like GitHub): the password was right, now type the 8-digit code
+ * from the email. loginResult = what the backend answered: { email, expires_at, email_sent }.
+ */
+export function LoginCodeForm({ loginName, password, role, loginResult, gradient, onDone }) {
+  const { verifyLogin } = useAuth();
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState(() => loginCodeMessage(loginResult));
+  const [loading, setLoading] = useState(false);
+  const [sentAt, setSentAt] = useState(() => Date.now());
+
+  const handleVerify = async (event) => {
+    event.preventDefault();
+    setError('');
+    if (code.length !== 8) {
+      setError('Please enter the 8-digit code from the email.');
+      return;
+    }
+    setLoading(true);
+    try {
+      onDone(await verifyLogin(loginName, code));
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  // A new code = log in again with the same email/username and password, asking for a new code
+  const handleResend = async () => {
+    setError('');
+    try {
+      const result = await authApi.login(loginName, password, role, true);
+      setNotice(loginCodeMessage(result));
+      setSentAt(Date.now());
+      setCode('');
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  return (
+    <form onSubmit={handleVerify} className="mt-6 space-y-5" noValidate>
+      <FormNotice message={notice} />
+      <Field label="Email code" hint="Didn't get it? Check your spam folder.">
+        <CodeInput value={code} onChange={setCode} />
+      </Field>
+      <FormError message={error} />
+      <SubmitButton loading={loading} gradient={gradient} label="Verify" busyLabel="Verifying..." />
+      <p className="text-center">
+        <ResendLink onResend={handleResend} sentAt={sentAt} />
+      </p>
+    </form>
+  );
+}
+
 /**
  * Confirm email (after sign up, or when an unconfirmed customer tries to log in).
  * loginName = the email or username of the new account.
@@ -84,8 +153,8 @@ export function ConfirmEmailForm({ loginName, firstNotice, gradient, onDone }) {
   const handleConfirm = async (event) => {
     event.preventDefault();
     setError('');
-    if (code.length !== 6) {
-      setError('Please enter the 6-digit code from the email.');
+    if (code.length !== 8) {
+      setError('Please enter the 8-digit code from the email.');
       return;
     }
     setLoading(true);
@@ -111,7 +180,7 @@ export function ConfirmEmailForm({ loginName, firstNotice, gradient, onDone }) {
   return (
     <form onSubmit={handleConfirm} className="mt-6 space-y-5" noValidate>
       <FormNotice message={notice} />
-      <Field label="6-digit code" hint="The code works for 15 minutes.">
+      <Field label="8-digit code" hint="The code works for 15 minutes.">
         <CodeInput value={code} onChange={setCode} />
       </Field>
       <FormError message={error} />
@@ -162,8 +231,8 @@ export function ForgotPasswordForm({ gradient, onDone }) {
   const handleReset = async (event) => {
     event.preventDefault();
     setError('');
-    if (form.code.length !== 6) {
-      setError('Please enter the 6-digit code from the email.');
+    if (form.code.length !== 8) {
+      setError('Please enter the 8-digit code from the email.');
       return;
     }
     if (form.password.length < 8 || !/[A-Za-z]/.test(form.password) || !/[0-9]/.test(form.password)) {
@@ -196,7 +265,7 @@ export function ForgotPasswordForm({ gradient, onDone }) {
   if (stage === 'ask') {
     return (
       <form onSubmit={handleAsk} className="mt-6 space-y-5" noValidate>
-        <Field label="Email or phone number" hint="We send a 6-digit code to the email saved on your account.">
+        <Field label="Email or phone number" hint="We send an 8-digit code to the email saved on your account.">
           <Input
             value={loginName}
             onChange={(e) => setLoginName(e.target.value)}
@@ -213,7 +282,7 @@ export function ForgotPasswordForm({ gradient, onDone }) {
   return (
     <form onSubmit={handleReset} className="mt-6 space-y-4" noValidate>
       <FormNotice message={notice} />
-      <Field label="6-digit code">
+      <Field label="8-digit code">
         <CodeInput value={form.code} onChange={(code) => setForm({ ...form, code })} />
       </Field>
       <div className="grid grid-cols-2 gap-3">

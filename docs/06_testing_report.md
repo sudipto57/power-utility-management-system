@@ -40,6 +40,7 @@ Run the API tests yourself: Postman → collection → **Run collection** (see `
 | 15 | Reports | Open Reports | Totals, 5 charts, top customers, latest payments | ☐ |
 | - | Delete guard | Delete Md. Rafiqul Islam (CUST-001) | "Can't delete. Deactivate instead?" | ☐ |
 | - | Print | Open a bill → Print | Only the bill is printed | ☐ |
+| - | Customer login code | Log in as `sumaiya.khanam` / `customer123`; type a wrong code, then the code from the email (or the backend terminal) | "Verify your identity" step, then "Wrong code. 4 tries left", then the Customer portal | ☐ |
 | - | Sign up + email code | Create a customer account (password with letters and numbers); type a wrong code, then the right one (from the email, or the backend terminal without Brevo) | "Wrong code. 4 tries left"; then logged in to the Customer portal | ☐ |
 | - | Forgot password | Customer tab → Forgot password? → type the phone number → code + new password; log in | Old password refused, new one works | ☐ |
 | - | Profile edit | My Profile → Edit my details → change the address | Saved straight away | ☐ |

@@ -4,6 +4,7 @@ import cors from 'cors';
 import env from './config/env.js';
 import { query } from './config/db.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
+import { securityHeaders } from './middleware/security.js';
 import authRoutes from './routes/auth.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import customerRoutes from './routes/customers.routes.js';
@@ -13,9 +14,17 @@ import billRoutes from './routes/bills.routes.js';
 import requestRoutes from './routes/requests.routes.js';
 import reportRoutes from './routes/reports.routes.js';
 import myRoutes from './routes/my.routes.js';
+import tariffRoutes from './routes/tariffs.routes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import changeRequestRoutes from './routes/changeRequests.routes.js';
 
 const app = express();
+
+// Render (and most hosts) put one proxy in front of the server.
+// This lets req.ip be the visitor's real address (used by the rate limits).
+app.set('trust proxy', 1);
+app.disable('x-powered-by'); // don't tell attackers we use Express
+app.use(securityHeaders);
 
 // Allow the React app (and tools like Postman, which send no Origin) to call the API
 app.use(
@@ -49,8 +58,10 @@ app.use('/api/connections', connectionRoutes);
 app.use('/api/readings', readingRoutes);
 app.use('/api/bills', billRoutes);
 app.use('/api/requests', requestRoutes);
+app.use('/api/change-requests', changeRequestRoutes); // profile change requests (admin)
 app.use('/api/reports', reportRoutes);
 app.use('/api/my', myRoutes);
+app.use('/api/tariffs', tariffRoutes); // public bill estimator
 
 app.use(notFound);
 app.use(errorHandler);

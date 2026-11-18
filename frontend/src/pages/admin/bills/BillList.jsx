@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import useFetch from '../../../hooks/useFetch';
 import useDebounce from '../../../hooks/useDebounce';
@@ -13,6 +13,7 @@ import StatusBadge from '../../../components/common/StatusBadge';
 import ErrorState from '../../../components/common/ErrorState';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
 import MarkPaidModal from '../../../components/bills/MarkPaidModal';
+import PaidCelebration from '../../../components/bills/PaidCelebration';
 import { BILL_STATUSES } from '../../../utils/options';
 import { formatDate, formatMoney, formatNumber } from '../../../utils/format';
 
@@ -23,6 +24,8 @@ export default function BillList() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState(searchParams.get('status') || '');
   const debouncedSearch = useDebounce(search);
+  const [celebrate, setCelebrate] = useState(null); // bill number to celebrate after "Mark paid"
+  const closeCelebration = useCallback(() => setCelebrate(null), []);
   const { data, loading, error, reload } = useFetch(
     () => getBills({ search: debouncedSearch, status }),
     [debouncedSearch, status]
@@ -140,7 +143,7 @@ export default function BillList() {
                 type="button"
                 onClick={() => setStatus(s)}
                 className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                  status === s ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  status === s ? 'bg-slate-900 text-white shadow dark:bg-orange-500' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
                 {s || 'All'}
@@ -185,10 +188,12 @@ export default function BillList() {
           onPaid={(updated) => {
             toast.success(`${updated.bill_number} marked as Paid`);
             setPayBill(null);
+            setCelebrate(updated.bill_number);
             reload();
           }}
         />
       )}
+      {celebrate && <PaidCelebration billNumber={celebrate} onDone={closeCelebration} />}
       <ConfirmDialog
         open={Boolean(unpayBill)}
         title="Mark as unpaid?"

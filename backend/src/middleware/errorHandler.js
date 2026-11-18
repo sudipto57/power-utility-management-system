@@ -10,6 +10,18 @@ const UNIQUE_MESSAGES = {
   bills_bill_number_key: 'That bill number already exists, please try again',
   payments_payment_number_key: 'That payment number already exists, please try again',
   service_requests_request_number_key: 'That request number already exists, please try again',
+  meter_readings_one_per_day: 'This meter already has a reading on that date',
+  bills_one_per_period: 'This reading is already billed',
+  tariff_slabs_order_unique: 'That slab number is already used in this tariff',
+  change_requests_one_pending: 'You already have a waiting request for this. Please wait for the office to answer it',
+};
+
+const CHECK_MESSAGES = {
+  valid_reading: 'Current reading cannot be lower than the previous reading',
+  bills_valid_dates: 'The due date must be on or after the end of the billing period',
+  bills_amounts_not_negative: 'Bill amounts cannot be negative',
+  tariffs_valid_amounts: 'Fixed charge cannot be negative and VAT must be between 0 and 100 %',
+  tariff_slabs_valid_range: 'Slab start, end and rate must be valid (end after start, no negatives)',
 };
 
 // Express knows this is an error handler because it has FOUR parameters,
@@ -33,10 +45,7 @@ export function errorHandler(err, req, res, next) {
     case '23503': // foreign_key_violation
       return res.status(409).json({ message: 'This record is linked to other data and cannot be changed this way' });
     case '23514': // check_violation
-      if (err.constraint === 'valid_reading') {
-        return res.status(400).json({ message: 'Current reading cannot be lower than the previous reading' });
-      }
-      return res.status(400).json({ message: 'A value is not allowed by the database rules' });
+      return res.status(400).json({ message: CHECK_MESSAGES[err.constraint] || 'A value is not allowed by the database rules' });
     case '23502': // not_null_violation
       return res.status(400).json({ message: `${err.column || 'A required field'} is required` });
     case '22P02': // invalid_text_representation (e.g. bad UUID)

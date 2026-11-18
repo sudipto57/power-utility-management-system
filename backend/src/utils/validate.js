@@ -71,6 +71,29 @@ export function optionalEmail(value, label = 'Email') {
   return clean(value) ? requireEmail(value, label) : null;
 }
 
+/**
+ * A strong password: 8+ characters with at least one letter and one number.
+ * (Used for new passwords: sign up and forgot password.)
+ */
+export function requirePassword(value, label = 'Password') {
+  const text = value === undefined || value === null ? '' : String(value);
+  if (!text) throw new ApiError(400, `${label} is required`);
+  if (text.length < 8 || text.length > 100 || !/[A-Za-z]/.test(text) || !/[0-9]/.test(text)) {
+    throw new ApiError(400, `${label} must be 8-100 characters with at least one letter and one number`);
+  }
+  return text;
+}
+
+/** A phone number like 01712345678 or +8801712345678 (10-15 digits; spaces and dashes are fine). */
+export function requirePhone(value, label = 'Phone') {
+  const text = requireText(value, label, 20);
+  const digits = text.replace(/\D/g, '');
+  if (!/^\+?[0-9 -]+$/.test(text) || digits.length < 10 || digits.length > 15) {
+    throw new ApiError(400, `${label} must be a phone number like 01712345678`);
+  }
+  return text;
+}
+
 export function requireWholeNumber(value, label, { min = 0 } = {}) {
   const num = Number(value);
   if (value === '' || value === null || value === undefined || !Number.isInteger(num) || num < min) {

@@ -5,7 +5,10 @@
    Use them like:  font-sans, animate-fade-up, animate-shimmer ...
 ---------------------------------------------------------------- */
 @theme {
-  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* 'Noto Sans Bengali' only draws the Taka sign (৳); every other letter comes from the first font */
+  --font-sans: 'Plus Jakarta Sans', 'Noto Sans Bengali', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Bold, techy font for the big project title (font-display) */
+  --font-display: 'Sora', 'Plus Jakarta Sans', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
 
   --animate-fade-up: fade-up 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   --animate-fade-in: fade-in 0.35s ease-out both;
@@ -16,6 +19,57 @@
   --animate-flow: flow 2.2s linear infinite;
   --animate-glow: glow 2.4s ease-in-out infinite;
   --animate-grow: grow 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-gradient: gradient-move 6s ease-in-out infinite;
+  --animate-draw: draw 0.7s ease-out 0.25s both; /* a line that draws itself (the "paid" tick) */
+  --animate-confetti: confetti 1.6s ease-out both; /* one confetti piece flying out */
+  --animate-marquee: marquee 30s linear infinite; /* the scrolling announcement strip */
+  --animate-twinkle: twinkle 2.6s ease-in-out infinite; /* stars at night */
+
+  @keyframes draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  /* Each piece gets its own --x, --y and --r (set in the component) */
+  @keyframes confetti {
+    from {
+      opacity: 1;
+      transform: translate(0, 0) rotate(0deg);
+    }
+    to {
+      opacity: 0;
+      transform: translate(var(--x), var(--y)) rotate(var(--r));
+    }
+  }
+  /* The text is written twice, so moving by half its width loops without a jump */
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Moving colours inside the gradient title */
+  @keyframes gradient-move {
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
 
   @keyframes fade-up {
     from {
@@ -103,16 +157,67 @@
 ---------------------------------------------------------------- */
 html {
   -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth; /* menu links glide down the first page */
 }
 
+/* Every text is a little bolder (medium) for a strong, clean look */
 body {
-  @apply bg-slate-50 font-sans text-slate-800;
+  @apply bg-slate-50 font-sans font-medium text-slate-800;
+}
+
+/* Every page title, card title and section title uses the bold Sora font */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 
 /* Soft dotted "grid" behind the app pages */
 .app-backdrop {
   background-image: radial-gradient(rgb(15 23 42 / 0.06) 1px, transparent 1px);
   background-size: 22px 22px;
+}
+
+/* Inside the app: the dotted grid + soft colour glows (orange, pink, blue) that stay in place */
+.app-colorful {
+  background-image:
+    radial-gradient(rgb(15 23 42 / 0.05) 1px, transparent 1px),
+    radial-gradient(40rem 26rem at 100% 0%, rgb(251 146 60 / 0.12), transparent 70%),
+    radial-gradient(36rem 26rem at 0% 30%, rgb(232 121 249 / 0.1), transparent 70%),
+    radial-gradient(40rem 30rem at 60% 100%, rgb(56 189 248 / 0.1), transparent 70%);
+  background-size:
+    22px 22px,
+    100% 100%,
+    100% 100%,
+    100% 100%;
+  background-attachment: fixed;
+}
+
+/* Text filled with the brand gradient (orange -> pink) */
+.text-brand {
+  @apply bg-gradient-to-r from-amber-500 via-orange-500 to-fuchsia-600 bg-clip-text text-transparent;
+}
+
+/* "Shine on hover": a soft light sweeps across stat cards and buttons.
+   It sits in the components layer, so Tailwind classes like "absolute" still win. */
+@layer components {
+  .shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .shine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.45) 50%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+  }
+  .shine:hover::after {
+    transform: translateX(120%);
+  }
 }
 
 /* Skeleton loading bars */
@@ -126,6 +231,155 @@ body {
 * {
   scrollbar-width: thin;
   scrollbar-color: rgb(203 213 225) transparent;
+}
+
+/* ---------------------------------------------------------------
+   Dark mode (#18)
+   ThemeProvider puts class="dark" on <html> when the sun/moon switch is on.
+   Instead of changing every page, the colour VALUES are swapped here:
+   Tailwind classes like bg-white or text-slate-900 read these values,
+   so every page, card, table, form and pop-up turns dark together.
+   Only on screen: a printed bill always stays light.
+---------------------------------------------------------------- */
+/* Lets you also write dark:... classes that follow the switch */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@media screen {
+  .dark {
+    color-scheme: dark; /* dark scrollbars, date pickers and dropdown lists */
+
+    /* "White" surfaces (cards, inputs, pop-ups) become dark navy */
+    --color-white: #0f172a;
+
+    /* The grey scale is turned around: light greys become dark, dark text becomes light */
+    --color-slate-50: #0b1120; /* page background */
+    --color-slate-100: #1e293b;
+    --color-slate-200: #334155;
+    --color-slate-300: #475569;
+    --color-slate-400: #64748b;
+    --color-slate-500: #94a3b8;
+    --color-slate-600: #cbd5e1;
+    --color-slate-700: #e2e8f0;
+    --color-slate-800: #f1f5f9;
+    --color-slate-900: #f8fafc;
+    --color-slate-950: #ffffff;
+
+    /* Pale colour boxes (bg-orange-50, ring-emerald-200 ...) become see-through tints,
+       and the coloured text on them (text-emerald-700 ...) becomes lighter */
+    --color-amber-50: rgb(245 158 11 / 0.1);
+    --color-amber-100: rgb(245 158 11 / 0.16);
+    --color-amber-200: rgb(245 158 11 / 0.28);
+    --color-amber-700: #fcd34d;
+    --color-amber-800: #fde68a;
+    --color-orange-50: rgb(249 115 22 / 0.1);
+    --color-orange-100: rgb(249 115 22 / 0.16);
+    --color-orange-200: rgb(249 115 22 / 0.28);
+    --color-orange-700: #fdba74;
+    --color-orange-800: #fed7aa;
+    --color-rose-50: rgb(244 63 94 / 0.1);
+    --color-rose-100: rgb(244 63 94 / 0.16);
+    --color-rose-200: rgb(244 63 94 / 0.28);
+    --color-rose-700: #fda4af;
+    --color-rose-800: #fecdd3;
+    --color-emerald-50: rgb(16 185 129 / 0.1);
+    --color-emerald-100: rgb(16 185 129 / 0.16);
+    --color-emerald-200: rgb(16 185 129 / 0.28);
+    --color-emerald-700: #6ee7b7;
+    --color-emerald-800: #a7f3d0;
+    --color-sky-50: rgb(14 165 233 / 0.1);
+    --color-sky-100: rgb(14 165 233 / 0.16);
+    --color-sky-200: rgb(14 165 233 / 0.28);
+    --color-sky-700: #7dd3fc;
+    --color-sky-800: #bae6fd;
+    --color-violet-50: rgb(139 92 246 / 0.1);
+    --color-violet-100: rgb(139 92 246 / 0.16);
+    --color-violet-200: rgb(139 92 246 / 0.28);
+    --color-violet-700: #c4b5fd;
+    --color-violet-800: #ddd6fe;
+    --color-indigo-50: rgb(99 102 241 / 0.1);
+    --color-indigo-100: rgb(99 102 241 / 0.16);
+    --color-indigo-200: rgb(99 102 241 / 0.28);
+    --color-indigo-700: #a5b4fc;
+    --color-indigo-800: #c7d2fe;
+    --color-fuchsia-50: rgb(217 70 239 / 0.1);
+    --color-fuchsia-100: rgb(217 70 239 / 0.16);
+    --color-fuchsia-200: rgb(217 70 239 / 0.28);
+    --color-fuchsia-700: #f0abfc;
+    --color-fuchsia-800: #f5d0fe;
+    --color-blue-50: rgb(59 130 246 / 0.1);
+    --color-blue-100: rgb(59 130 246 / 0.16);
+    --color-blue-200: rgb(59 130 246 / 0.28);
+    --color-blue-700: #93c5fd;
+    --color-blue-800: #bfdbfe;
+    --color-teal-50: rgb(20 184 166 / 0.1);
+    --color-teal-100: rgb(20 184 166 / 0.16);
+    --color-teal-200: rgb(20 184 166 / 0.28);
+    --color-teal-700: #5eead4;
+    --color-teal-800: #99f6e4;
+    --color-pink-50: rgb(236 72 153 / 0.1);
+    --color-pink-100: rgb(236 72 153 / 0.16);
+    --color-pink-200: rgb(236 72 153 / 0.28);
+    --color-pink-700: #f9a8d4;
+    --color-pink-800: #fbcfe8;
+    --color-purple-50: rgb(168 85 247 / 0.1);
+    --color-purple-100: rgb(168 85 247 / 0.16);
+    --color-purple-200: rgb(168 85 247 / 0.28);
+    --color-purple-700: #d8b4fe;
+    --color-purple-800: #e9d5ff;
+    --color-green-50: rgb(34 197 94 / 0.1);
+    --color-green-100: rgb(34 197 94 / 0.16);
+    --color-green-200: rgb(34 197 94 / 0.28);
+    --color-green-700: #86efac;
+    --color-green-800: #bbf7d0;
+  }
+
+  /* White text stays white */
+  .dark .text-white {
+    color: #ffffff;
+  }
+
+  /* Parts that are already dark in light mode keep their normal colours:
+     the sidebar, meter cards, dark buttons and chips, toasts, the "Units used" box ...
+     (any element whose own background is bg-slate-900 / 950 or a from-slate-800 / 900 / 950 gradient,
+     or that has the class "keep-dark") */
+  .dark .keep-dark,
+  .dark [class^='bg-slate-9'],
+  .dark [class*=' bg-slate-9'],
+  .dark [class^='from-slate-8'],
+  .dark [class*=' from-slate-8'],
+  .dark [class^='from-slate-9'],
+  .dark [class*=' from-slate-9'] {
+    --color-white: #ffffff;
+    --color-slate-50: #f8fafc;
+    --color-slate-100: #f1f5f9;
+    --color-slate-200: #e2e8f0;
+    --color-slate-300: #cbd5e1;
+    --color-slate-400: #94a3b8;
+    --color-slate-500: #64748b;
+    --color-slate-600: #475569;
+    --color-slate-700: #334155;
+    --color-slate-800: #1e293b;
+    --color-slate-900: #0f172a;
+    --color-slate-950: #020617;
+  }
+
+  /* Background patterns and loading bars in dark colours */
+  .dark .app-backdrop {
+    background-image: radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px);
+  }
+  .dark .app-colorful {
+    background-image:
+      radial-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
+      radial-gradient(40rem 26rem at 100% 0%, rgb(251 146 60 / 0.1), transparent 70%),
+      radial-gradient(36rem 26rem at 0% 30%, rgb(232 121 249 / 0.08), transparent 70%),
+      radial-gradient(40rem 30rem at 60% 100%, rgb(56 189 248 / 0.08), transparent 70%);
+  }
+  .dark .skeleton {
+    background-image: linear-gradient(90deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+  }
+  .dark * {
+    scrollbar-color: #334155 transparent;
+  }
 }
 
 /* Respect people who prefer less motion */
@@ -147,5 +401,12 @@ body {
   .print-area {
     box-shadow: none !important;
     border: none !important;
+  }
+  /* Browsers skip background colours when printing. Keep them on the bill,
+     so the logo, the coloured strip and the dark "Units used" box still show. */
+  .print-area,
+  .print-area * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

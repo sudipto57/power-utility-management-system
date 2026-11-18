@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import ChartCanvas from './ChartCanvas';
+import { formatNumber } from '../../utils/format';
 
 /** Smooth line with a soft filled area. series: [{ label, data, color }] */
 export default function LineChart({ labels, series, height = 280 }) {
@@ -33,8 +34,7 @@ export default function LineChart({ labels, series, height = 280 }) {
         y: {
           beginAtZero: true,
           border: { display: false },
-          grid: { color: '#f1f5f9' },
-          ticks: { callback: (value) => Number(value).toLocaleString('en-US') },
+          ticks: { callback: (value) => formatNumber(value) }, // same digit grouping as the rest of the site
         },
       },
     }),

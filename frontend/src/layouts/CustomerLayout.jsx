@@ -8,5 +8,5 @@ const CUSTOMER_MENU = [
 ];
 
 export default function CustomerLayout() {
-  return <AppLayout menu={CUSTOMER_MENU} roleLabel="Customer portal" />;
+  return <AppLayout menu={CUSTOMER_MENU} roleLabel="Customer portal" role="customer" />;
 }

@@ -3,7 +3,7 @@
 PostgreSQL scripts for the Power Utility Management System. They work on **Supabase** and on a **local PostgreSQL** (pgAdmin 4).
 
 **The original tables are exactly the team's schema.** No table or column was added, removed or renamed in them. Only functions, views, rules (constraints), indexes and sample data were fixed.
-For the account features the team asked for (email confirmation, forgot password, the customer login code, profile change requests), `09_account_security.sql` **adds two new tables**: `account_codes` and `profile_change_requests`.
+For the account features the team asked for (email confirmation, forgot password, the customer login code, profile change requests), `09_account_security.sql` **adds two new tables**: `account_codes` and `profile_change_requests`. For the automatic copy of website sign-ups into `04`, `10_auto_save.sql` adds `sql_file_saves`.
 
 ## Run order (pgAdmin → right-click your database → Query Tool → open file → ▶ Execute)
 
@@ -18,12 +18,16 @@ For the account features the team asked for (email confirmation, forgot password
 | 06 | `06_report_queries.sql` | SELECT-only practice queries behind the Dashboard and Reports | Both (optional) |
 | 07 | `07_supabase_security.sql` | Turns on Row Level Security, blocks the public API from our tables **and functions**, removes unused login roles | **Supabase only** |
 | 08 | `08_update_existing_database.sql` | Only for a database built **before 17 Nov 2026**: adds the fixes from 03 and 07 without rebuilding. Then run `04`. | Both (old databases only) |
-| 09 | `09_account_security.sql` | **New (18 Nov 2026).** Adds `account_codes` (email codes, stored as hashes) and `profile_change_requests`, protects them on Supabase, and on an existing database changes the admin login to `PUMSadmin` and the sample customers' emails to `@example.com` | Both (**every** database, last) |
+| 09 | `09_account_security.sql` | **New (18 Nov 2026).** Adds `account_codes` (email codes, stored as hashes) and `profile_change_requests`, protects them on Supabase, and on an existing database changes the admin login to `PUMSadmin` and the sample customers' emails to `@example.com` | Both (**every** database) |
+| 10 | `10_auto_save.sql` | **New (20 Nov 2026).** Adds `sql_file_saves` (when the laptop last copied sign-ups into `04`), the view `customers_in_order`, and writes all phone numbers as `+880…` | Both (**every** database, last) |
 
 Run each file once, top to bottom. If anything fails halfway, run `00_reset.sql` and start again from `01`.
 
 **Already have the old database?** Run `08_update_existing_database.sql`, then `04_sample_data.sql`. (Our Supabase project was updated this way on 17 Nov 2026.)
 **Then run `09_account_security.sql`** (Supabase → SQL Editor → paste → Run). The backend will not start without it.
+**Then run `10_auto_save.sql`** (safe to run more than once).
+
+**See the customers in order:** `SELECT * FROM customers` has **no fixed order** in PostgreSQL. A row that was changed (for example when a login was linked to it) is stored again at the end of the table, so CUST-005 can appear after CUST-201. Nothing is missing. Use `SELECT * FROM customers_in_order;` or add `ORDER BY customer_number`.
 **Ran it before 18 Nov 2026, 5 PM? Run it once more:** the newer copy lets `account_codes` store the customer **login codes**. Running it again is safe: it never undoes a password you changed yourself.
 
 ## The 8 fixes
@@ -100,8 +104,22 @@ INSERT INTO connections (...) ...;         -- their meters, if an admin added an
 - So running `04_sample_data.sql` again brings the sample data **and** the real sign-ups back.
 - Readings, bills and payments of new customers stay only in the database (they are not copied).
 - Admin → **Customers** shows a strip with "N new customers · also copied into database/04_sample_data.sql" and a **Save now** button.
-- The live website (Render) has no copy of your project folder. There, set `SAVE_CUSTOMERS_TO_SQL_FILE=false` and, on your computer, run `cd backend && npm run db:save-customers` to pull the sign-ups from Supabase into the file.
 - The code is in `backend/src/utils/saveCustomersToSql.js`.
+
+### When the laptop is switched off (20 Nov 2026)
+
+The live website (Render) has no copy of your laptop's folder, so it cannot write the file (`SAVE_CUSTOMERS_TO_SQL_FILE=false` there).
+
+1. Someone signs up on the live website → the backend on Render saves them in **Supabase** (the cloud database). Nothing is lost while the laptop is off.
+2. The laptop runs a small background job (turned on once with `cd backend && npm run auto-save:on`). Windows starts it every time you log in. It copies the new sign-ups from Supabase into `04_sample_data.sql` straight away, then again every 10 minutes.
+3. Each copy is noted in the `sql_file_saves` table, so Admin → **Customers** on the live website shows "N waiting … copied automatically when the laptop is on" or "all of them are also in database/04_sample_data.sql on <laptop name>".
+
+| Command (in `backend`) | What it does |
+| --- | --- |
+| `npm run auto-save:on` | start now + start with Windows every time |
+| `npm run auto-save:status` | is it on, and its last messages (also in `backend/auto-save.log`) |
+| `npm run auto-save:off` | stop it |
+| `npm run db:save-customers` | copy once, by hand |
 
 ## Old files
 

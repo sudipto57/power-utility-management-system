@@ -10,6 +10,9 @@
     "start": "node src/server.js",
     "db:test": "node scripts/testConnection.js",
     "db:save-customers": "node scripts/saveCustomers.js",
+    "auto-save:on": "node scripts/autoSave.js on",
+    "auto-save:off": "node scripts/autoSave.js off",
+    "auto-save:status": "node scripts/autoSave.js status",
     "hash": "node scripts/hashPassword.js"
   },
   "engines": {

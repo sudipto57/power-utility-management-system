@@ -129,6 +129,7 @@ erDiagram
 | `bill_adjustments`, `bill_installments`, `meter_reading_schedules` | On the "Later" list (no UI yet) | |
 | `account_codes` *(new, file 09)* | 8-digit email codes for the **customer login** (every login, like GitHub), **confirming the email** after sign up and **forgot password** | only a SHA-256 hash of the code is stored; `purpose` CHECK; works 15 minutes; 5 wrong tries. A customer with an unused `confirm_email` code cannot log in yet |
 | `profile_change_requests` *(new, file 09)* | A customer asks to change their email, phone, customer type or a meter's connection type; an admin approves or rejects | `field` and `status` CHECK; `connection_id` only for `connection_type` (CHECK); **one waiting request per thing** (partial UNIQUE index `change_requests_one_pending`) |
+| `sql_file_saves` *(new, file 10)* | One row each time a computer copies the website sign-ups into `database/04_sample_data.sql`: time, computer name, how many customers / logins / meters | the live website reads the newest row to show how many sign-ups are still waiting for the laptop. View `customers_in_order` lists customers by number (a plain `SELECT` has no fixed order) |
 
 ## Database logic (the DBMS part)
 

@@ -5,6 +5,7 @@ import ApiError from '../utils/ApiError.js';
 import { generateNumber } from '../utils/generateNumber.js';
 import { CUSTOMER_STATUSES, CUSTOMER_TYPES } from '../utils/constants.js';
 import { readSqlFileStatus, saveCustomersToSqlFile } from '../utils/saveCustomersToSql.js';
+import env from '../config/env.js';
 import {
   clean,
   optionalEmail,
@@ -12,6 +13,7 @@ import {
   requireEmail,
   requireOneOf,
   requirePassword,
+  requirePhone,
   requireText,
   requireUuid,
 } from '../utils/validate.js';
@@ -62,6 +64,9 @@ export async function getSqlFileStatus(req, res) {
 
 // POST /api/customers/sql-file  -> "Save now": copy the website customers into the file right away
 export async function saveSqlFileNow(req, res) {
+  if (!env.saveCustomersToSqlFile) {
+    throw new ApiError(409, 'This server does not keep the SQL file. The laptop copies new sign-ups automatically when it is on.');
+  }
   try {
     await saveCustomersToSqlFile();
   } catch (err) {
@@ -113,7 +118,7 @@ export async function getCustomer(req, res) {
 export async function createCustomer(req, res) {
   const body = req.body || {};
   const fullName = requireText(body.full_name, 'Full name', 100);
-  const phone = requireText(body.phone, 'Phone', 20);
+  const phone = requirePhone(body.phone);
   const address = requireText(body.address, 'Address', 500);
   const customerType = requireOneOf(body.customer_type, CUSTOMER_TYPES, 'Customer type');
   const status = optionalOneOf(body.status, CUSTOMER_STATUSES, 'Status') || 'Active';
@@ -170,7 +175,7 @@ export async function updateCustomer(req, res) {
 
   const changes = {};
   if ('full_name' in body) changes.full_name = requireText(body.full_name, 'Full name', 100);
-  if ('phone' in body) changes.phone = requireText(body.phone, 'Phone', 20);
+  if ('phone' in body) changes.phone = requirePhone(body.phone);
   if ('email' in body) changes.email = existing.user_id ? requireEmail(body.email) : optionalEmail(body.email);
   if ('address' in body) changes.address = requireText(body.address, 'Address', 500);
   if ('customer_type' in body) changes.customer_type = requireOneOf(body.customer_type, CUSTOMER_TYPES, 'Customer type');

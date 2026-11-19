@@ -212,8 +212,9 @@ export default function CustomerList() {
 }
 
 /**
- * Small strip above the list: website sign-ups are saved in the live database AND copied
- * into database/04_sample_data.sql by the backend. "Save now" copies them straight away.
+ * Small strip above the list. New customers (website sign-ups) are saved live in the database
+ * at once. The laptop then copies them into database/04_sample_data.sql (straight away when the
+ * backend runs there, otherwise when the laptop is switched on). "Save now" only exists on the laptop.
  */
 function SqlFileStrip() {
   const toast = useToast();
@@ -235,7 +236,19 @@ function SqlFileStrip() {
 
   if (error || !data) return null; // the list below still works; this strip is only extra information
 
-  const upToDate = data.found && data.customers_in_file === data.customers_in_database;
+  const upToDate = data.waiting === 0;
+  const where = data.computer ? `on ${data.computer}` : 'on the laptop';
+  const when = data.last_saved ? ` (last copied ${data.last_saved})` : '';
+
+  let detail;
+  if (upToDate) {
+    detail = `All of them are also in ${data.file} ${where}${when}.`;
+  } else if (data.found) {
+    detail = `${data.waiting} not copied into ${data.file} yet. Press "Save now".`;
+  } else {
+    detail = `${data.waiting} waiting safely in the database. They are copied into ${data.file} automatically when the laptop is on${when}.`;
+  }
+
   return (
     <div
       className={`mb-4 flex animate-fade-up flex-wrap items-center gap-3 rounded-2xl px-4 py-3 ring-1 ${
@@ -243,24 +256,18 @@ function SqlFileStrip() {
       }`}
     >
       <span
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-          upToDate ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white ${
+          upToDate ? 'bg-emerald-500' : 'bg-amber-500'
         }`}
       >
-        <Icon name={upToDate ? 'check' : 'file'} className="h-5 w-5" />
+        <Icon name={upToDate ? 'check' : 'clock'} className="h-5 w-5" />
       </span>
       <div className="min-w-0 flex-1 text-sm">
         <p className="font-bold text-slate-900">
           {data.customers_in_database} new {data.customers_in_database === 1 ? 'customer' : 'customers'} since the sample data
           <span className="font-semibold text-slate-500"> · saved live in the database</span>
         </p>
-        <p className="text-xs text-slate-600">
-          {!data.found
-            ? `${data.file} is not on this server, so only the database has them. Run "npm run db:save-customers" on your computer.`
-            : upToDate
-              ? `Also copied into ${data.file}${data.last_saved ? ` (last saved ${data.last_saved})` : ''}.`
-              : `${data.file} has ${data.customers_in_file} of them. Press "Save now" to copy the rest.`}
-        </p>
+        <p className="text-xs text-slate-600">{detail}</p>
       </div>
       {data.found && (
         <Button variant="secondary" size="sm" icon="refresh" loading={saving} onClick={saveNow}>

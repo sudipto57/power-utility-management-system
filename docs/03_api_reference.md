@@ -63,8 +63,8 @@ Base URL: `http://localhost:5000/api`
 | POST | `/customers` | `full_name, phone, email, address, customer_type, status` + optional `create_login: true, username, password` | number CUST-### is generated |
 | PUT | `/customers/:id` | any of the fields above | send only what changes; the linked login is kept in sync |
 | DELETE | `/customers/:id` | | **409 `HAS_BILLS`** if the customer has bills → set status Inactive instead |
-| GET | `/customers/sql-file` | | website sign-ups vs. `database/04_sample_data.sql`: `customers_in_database`, `customers_in_file`, `last_saved`, `found`, `auto_save` |
-| POST | `/customers/sql-file` | | **Save now**: copies every customer after CUST-200 (with login and meters) into `04_sample_data.sql`; **409** if the file is not on this server |
+| GET | `/customers/sql-file` | | website sign-ups vs. `database/04_sample_data.sql`: `customers_in_database`, `customers_in_file`, `waiting`, `last_saved`, `computer`, `found` (file on this server), `auto_save`. On Render the numbers come from the last laptop copy (`sql_file_saves`) |
+| POST | `/customers/sql-file` | | **Save now** (laptop only): copies every customer after CUST-200 (with login and meters) into `04_sample_data.sql`; **409** on a server without the file (Render) |
 
 ## Connections & meters (features 6, 7, 14) - admin
 

@@ -41,6 +41,12 @@ async function checkDatabase() {
   const loginCodes = await pool.query(
     "SELECT 1 FROM pg_constraint WHERE conname = 'account_codes_purpose_check' AND pg_get_constraintdef(oid) LIKE '%login%'"
   );
+  // 20 Nov 2026: history of copies into 04_sample_data.sql (not required, the API still works without it)
+  const saves = await pool.query("SELECT to_regclass('public.sql_file_saves') AS saves_table");
+  if (!saves.rows[0].saves_table) {
+    console.warn('\n[database] Tip: run database/10_auto_save.sql once, so the website can show when the');
+    console.warn('           laptop last copied new sign-ups into database/04_sample_data.sql.\n');
+  }
   if (!loginCodes.rows[0]) {
     console.error('\n[database] The database is missing the newest change for customer login codes.');
     console.error('           Run database/09_account_security.sql again (it is safe to run more than once).\n');

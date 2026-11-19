@@ -49,7 +49,7 @@ On every page (Admin and Customer):
 - Click a row to open the **profile**: contact details, connections (meters), bills and requests.
 - ✏️ edits, 🗑️ deletes. A customer **with bills cannot be deleted** (that would erase billing history), so the app offers **Set as Inactive** instead.
 - The newest customers are at the top; people who joined in the last 7 days have a green **New** label.
-- The green strip above the list says how many customers joined after the 200 sample customers. They are saved live in the database **and** copied into `database/04_sample_data.sql`. If it turns amber, press **Save now**.
+- The green strip above the list says how many customers joined after the 200 sample customers. They are saved live in the database **and** copied into `database/04_sample_data.sql` on the laptop. On the live website an amber strip means some sign-ups are waiting for the laptop to be switched on (they are copied automatically). On the laptop you can also press **Save now**.
 - After a customer signs up, the sign-up card shows their new customer number (e.g. *CUST-201*).
 
 ![Customers](images/03_customers.png)

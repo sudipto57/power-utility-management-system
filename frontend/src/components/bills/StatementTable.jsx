@@ -33,12 +33,17 @@ export default function StatementTable({ statement, billLink }) {
       key: 'reference',
       header: 'Reference',
       render: (l) => (
-        <Link to={billLink(l.bill_id)} className="font-mono font-bold text-sky-600 hover:underline">
+        <Link to={billLink(l.bill_id)} className="font-bold text-sky-600 hover:underline">
           {l.reference}
         </Link>
       ),
     },
-    { key: 'description', header: 'Details', render: (l) => <span className="text-slate-600">{l.description}</span> },
+    {
+      key: 'description',
+      header: 'Details',
+      // long details wrap onto a second line, so the Balance column always fits
+      render: (l) => <span className="block min-w-48 max-w-xs whitespace-normal text-slate-600">{l.description}</span>,
+    },
     {
       key: 'debit',
       header: 'Charge',

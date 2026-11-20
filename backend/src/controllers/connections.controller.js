@@ -18,7 +18,8 @@ const CONNECTION_SELECT = `
   SELECT co.id, co.customer_id, co.meter_number, co.connection_type, co.installation_date,
          co.status, co.notes, co.created_at, co.updated_at,
          c.customer_number, c.full_name AS customer_name, c.customer_type, c.phone AS customer_phone,
-         lr.current_reading AS last_reading, lr.reading_date AS last_reading_date,
+         -- after a meter replacement this is the new meter's start reading (function from file 11)
+         expected_previous_reading(co.id) AS last_reading, lr.reading_date AS last_reading_date,
          (SELECT COUNT(*) FROM meter_readings mr WHERE mr.connection_id = co.id) AS readings_count
   FROM connections co
   JOIN customers c ON c.id = co.customer_id

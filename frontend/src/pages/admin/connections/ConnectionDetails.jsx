@@ -42,6 +42,11 @@ export default function ConnectionDetails() {
   if (loading && !co) return <PageSkeleton />;
   if (error) return <ErrorState message={error} onRetry={reload} />;
 
+  // True when the newest meter replacement happened on or after the last reading (the new meter has no reading yet)
+  const lastReplacement = co.replacements?.[0];
+  const newMeterFitted =
+    Boolean(lastReplacement) && (!co.last_reading_date || lastReplacement.replaced_on >= co.last_reading_date);
+
   const readingColumns = [
     { key: 'reading_date', header: 'Date', render: (r) => formatDate(r.reading_date) },
     { key: 'previous_reading', header: 'Previous', className: 'text-right', render: (r) => formatNumber(r.previous_reading) },
@@ -156,7 +161,11 @@ export default function ConnectionDetails() {
               <span className="text-xs text-slate-400">kWh</span>
             </div>
             <p className="mt-2 text-xs text-slate-400">
-              {co.last_reading_date ? `Last read on ${formatDate(co.last_reading_date)}` : 'No reading yet'}
+              {newMeterFitted
+                ? `New meter fitted on ${formatDate(co.replacements[0].replaced_on)}`
+                : co.last_reading_date
+                  ? `Last read on ${formatDate(co.last_reading_date)}`
+                  : 'No reading yet'}
             </p>
           </div>
         </div>

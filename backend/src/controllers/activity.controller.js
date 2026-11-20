@@ -24,7 +24,7 @@ const LABEL_SQL = `
       WHEN 'bill_adjustments' THEN (SELECT x.adjustment_type || ' on ' || b.bill_number
                                     FROM bill_adjustments x JOIN bills b ON b.id = x.bill_id WHERE x.id = a.record_id)
       WHEN 'outage_notices' THEN (SELECT x.title FROM outage_notices x WHERE x.id = a.record_id)
-      WHEN 'meter_replacements' THEN (SELECT x.old_meter_number || ' -> ' || x.new_meter_number
+      WHEN 'meter_replacements' THEN (SELECT x.old_meter_number || ' → ' || x.new_meter_number
                                       FROM meter_replacements x WHERE x.id = a.record_id)
     END,
     saved.v ->> 'customer_number', saved.v ->> 'meter_number', saved.v ->> 'bill_number',

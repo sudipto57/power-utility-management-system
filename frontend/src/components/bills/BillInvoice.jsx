@@ -112,6 +112,19 @@ export default function BillInvoice({ bill }) {
                   <span className="hidden print:inline">{formatMoney(bill.total_amount)}</span>
                 </td>
               </tr>
+              {/* Late fee (added by the database when the bill became Overdue) and its waiver */}
+              {bill.late_fee > 0 && (
+                <tr>
+                  <td className="pt-2 text-slate-500">Late fee</td>
+                  <td className="pt-2 text-right font-semibold text-rose-600">+ {formatMoney(bill.late_fee)}</td>
+                </tr>
+              )}
+              {bill.waived > 0 && (
+                <tr>
+                  <td className="pt-1 text-slate-500">Late fee waived</td>
+                  <td className="pt-1 text-right font-semibold text-emerald-600">- {formatMoney(bill.waived)}</td>
+                </tr>
+              )}
               <tr>
                 <td className="pt-2 text-slate-500">Paid</td>
                 <td className="pt-2 text-right font-semibold text-emerald-600">{formatMoney(bill.paid_amount)}</td>

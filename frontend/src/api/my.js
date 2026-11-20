@@ -8,6 +8,7 @@ export const createMyChangeRequest = (data) => apiRequest('/my/change-requests',
 export const getMyDashboard = () => apiRequest('/my/dashboard');
 export const getMyBills = (params) => apiRequest('/my/bills', { params });
 export const getMyBill = (id) => apiRequest(`/my/bills/${id}`);
+export const getMyStatement = () => apiRequest('/my/statement');
 export const getMyRequests = () => apiRequest('/my/requests');
 export const getMyRequest = (id) => apiRequest(`/my/requests/${id}`);
 export const createMyRequest = (data) => apiRequest('/my/requests', { method: 'POST', body: data });

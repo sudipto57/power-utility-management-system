@@ -24,6 +24,10 @@ import BillDetails from './pages/admin/bills/BillDetails';
 import RequestList from './pages/admin/requests/RequestList';
 import RequestDetails from './pages/admin/requests/RequestDetails';
 import Reports from './pages/admin/reports/Reports';
+import CustomerStatement from './pages/admin/customers/CustomerStatement';
+import UsageAlerts from './pages/admin/readings/UsageAlerts';
+import ActivityLog from './pages/admin/activity/ActivityLog';
+import OutageNotices from './pages/admin/outages/OutageNotices';
 
 import MyDashboard from './pages/customer/MyDashboard';
 import MyProfile from './pages/customer/MyProfile';
@@ -33,6 +37,7 @@ import MyRequests from './pages/customer/MyRequests';
 import MyRequestDetails from './pages/customer/MyRequestDetails';
 import NewRequest from './pages/customer/NewRequest';
 import MyFeedback from './pages/customer/MyFeedback';
+import MyStatement from './pages/customer/MyStatement';
 
 /** "/" sends people to the right place. */
 function HomeRedirect() {
@@ -56,18 +61,22 @@ export default function App() {
           <Route path="customers/new" element={<CustomerForm />} />
           <Route path="customers/:id" element={<CustomerProfile />} />
           <Route path="customers/:id/edit" element={<CustomerForm />} />
+          <Route path="customers/:id/statement" element={<CustomerStatement />} />
           <Route path="connections" element={<ConnectionList />} />
           <Route path="connections/new" element={<ConnectionForm />} />
           <Route path="connections/:id" element={<ConnectionDetails />} />
           <Route path="connections/:id/edit" element={<ConnectionForm />} />
           <Route path="readings" element={<ReadingList />} />
           <Route path="readings/new" element={<ReadingEntry />} />
+          <Route path="readings/alerts" element={<UsageAlerts />} />
           <Route path="bills" element={<BillList />} />
           <Route path="bills/generate" element={<GenerateBill />} />
           <Route path="bills/:id" element={<BillDetails />} />
           <Route path="requests" element={<RequestList />} />
           <Route path="requests/:id" element={<RequestDetails />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="outages" element={<OutageNotices />} />
+          <Route path="activity" element={<ActivityLog />} />
         </Route>
       </Route>
 
@@ -78,6 +87,7 @@ export default function App() {
           <Route path="profile" element={<MyProfile />} />
           <Route path="bills" element={<MyBills />} />
           <Route path="bills/:id" element={<MyBillDetails />} />
+          <Route path="statement" element={<MyStatement />} />
           <Route path="requests" element={<MyRequests />} />
           <Route path="requests/new" element={<NewRequest />} />
           <Route path="requests/:id" element={<MyRequestDetails />} />

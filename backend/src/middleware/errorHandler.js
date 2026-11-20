@@ -14,6 +14,9 @@ const UNIQUE_MESSAGES = {
   bills_one_per_period: 'This reading is already billed',
   tariff_slabs_order_unique: 'That slab number is already used in this tariff',
   change_requests_one_pending: 'You already have a waiting request for this. Please wait for the office to answer it',
+  bill_adjustments_one_late_fee: 'This bill already has a late fee',
+  bill_adjustments_one_waiver: 'The late fee of this bill is already waived',
+  meter_replacements_one_per_day: 'This connection already had a meter replaced on that date',
 };
 
 const CHECK_MESSAGES = {
@@ -22,6 +25,9 @@ const CHECK_MESSAGES = {
   bills_amounts_not_negative: 'Bill amounts cannot be negative',
   tariffs_valid_amounts: 'Fixed charge cannot be negative and VAT must be between 0 and 100 %',
   tariff_slabs_valid_range: 'Slab start, end and rate must be valid (end after start, no negatives)',
+  bill_adjustments_sign: 'A late fee must be more than 0; a waiver or discount must be less than 0',
+  outage_notices_valid_times: 'The end must be after the start',
+  meter_replacements_different_meter: 'The new meter number must be different from the old one',
 };
 
 // Express knows this is an error handler because it has FOUR parameters,

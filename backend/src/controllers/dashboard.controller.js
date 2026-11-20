@@ -15,9 +15,9 @@ export async function getStats(req, res) {
          (SELECT COUNT(*) FROM connections WHERE status = 'Active')      AS active_connections,
          (SELECT COUNT(*) FROM bills WHERE status = ANY($1))             AS unpaid_bills,
          (SELECT COUNT(*) FROM bills WHERE status = 'Overdue')           AS overdue_bills,
-         (SELECT COALESCE(SUM(b.total_amount - COALESCE(
-                    (SELECT SUM(p.amount) FROM payments p WHERE p.bill_id = b.id AND p.status = 'Completed'), 0)), 0)
-            FROM bills b WHERE b.status = ANY($1))                       AS outstanding_amount,
+         (SELECT COALESCE(SUM(bb.balance), 0)
+            FROM bills b JOIN bill_balance bb ON bb.bill_id = b.id
+            WHERE b.status = ANY($1))                                     AS outstanding_amount,
          (SELECT COUNT(*) FROM service_requests WHERE status IN ('Pending', 'In Progress')) AS open_requests,
          (SELECT COUNT(*) FROM service_requests WHERE status = 'Pending')                   AS pending_requests,
          (SELECT COUNT(*) FROM profile_change_requests WHERE status = 'Pending')            AS pending_change_requests,

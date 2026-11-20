@@ -1,11 +1,14 @@
 // Feature 8 (Meter Reading Entry)
-import { query } from '../config/db.js';
+import { query, queryAs } from '../config/db.js';
 import ApiError from '../utils/ApiError.js';
 import { clean, optionalText, requireDate, requireUuid, requireWholeNumber } from '../utils/validate.js';
 
+// The last verified reading. Its current_reading is what the next reading starts from,
+// unless the meter was replaced since then: expected_previous_reading() (11_extra_features.sql)
+// then gives the new meter's start reading instead.
 async function getLastVerifiedReading(connectionId) {
   const { rows } = await query(
-    `SELECT id, current_reading, reading_date FROM meter_readings
+    `SELECT id, reading_date, expected_previous_reading($1) AS current_reading FROM meter_readings
      WHERE connection_id = $1 AND status = 'Verified'
      ORDER BY reading_date DESC, created_at DESC LIMIT 1`,
     [connectionId]
@@ -99,12 +102,35 @@ export async function createReading(req, res) {
     throw new ApiError(400, `Current reading (${currentReading}) cannot be lower than the previous reading (${previousReading})`);
   }
 
-  const { rows } = await query(
+  const { rows } = await queryAs(
+    req.user.id,
     `INSERT INTO meter_readings (connection_id, previous_reading, current_reading, reading_date, status, notes, recorded_by)
      VALUES ($1, $2, $3, $4, 'Verified', $5, $6) RETURNING id`,
     [connectionId, previousReading, currentReading, readingDate, notes, req.user.id]
   );
 
   const created = await query(`${READING_SELECT} WHERE mr.id = $1`, [rows[0].id]);
-  res.status(201).json({ data: created.rows[0] });
+  // Is the new reading unusual? (the view unusual_readings decides)
+  const unusual = await query('SELECT alert, times_usual FROM unusual_readings WHERE reading_id = $1', [rows[0].id]);
+  res.status(201).json({ data: { ...created.rows[0], unusual: unusual.rows[0] || null } });
+}
+
+// GET /api/readings/unusual?alert=Very high|Very low
+// Readings whose usage per day is far from that meter's usual usage (view unusual_readings)
+export async function listUnusualReadings(req, res) {
+  const alert = clean(req.query.alert);
+  if (alert && !['Very high', 'Very low'].includes(alert)) {
+    throw new ApiError(400, 'alert must be one of: Very high, Very low');
+  }
+  const { rows } = await query(
+    `SELECT ur.reading_id AS id, ur.connection_id, ur.meter_number, ur.customer_id, ur.customer_number,
+            ur.customer_name, ur.reading_date, ur.days, ur.consumption, ur.daily_usage, ur.usual_daily_usage,
+            ur.times_usual, ur.alert, b.id AS bill_id, b.bill_number
+     FROM unusual_readings ur
+     LEFT JOIN bills b ON b.connection_id = ur.connection_id AND b.billing_period_end = ur.reading_date - 1
+     WHERE ($1::text IS NULL OR ur.alert = $1)
+     ORDER BY ur.reading_date DESC, ur.times_usual DESC`,
+    [alert]
+  );
+  res.json({ data: rows });
 }

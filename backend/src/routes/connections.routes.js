@@ -1,6 +1,12 @@
 // /api/connections  (admin only)
 import { Router } from 'express';
-import { createConnection, getConnection, listConnections, updateConnection } from '../controllers/connections.controller.js';
+import {
+  createConnection,
+  getConnection,
+  listConnections,
+  replaceMeter,
+  updateConnection,
+} from '../controllers/connections.controller.js';
 import { getLastReading } from '../controllers/readings.controller.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireRole } from '../middleware/requireRole.js';
@@ -13,5 +19,6 @@ router.post('/', createConnection);
 router.get('/:id', getConnection);
 router.put('/:id', updateConnection);
 router.get('/:id/last-reading', getLastReading);
+router.post('/:id/replace-meter', replaceMeter);
 
 export default router;

@@ -35,12 +35,16 @@ export function query(text, params = []) {
 
 /**
  * Run several statements as ONE transaction (all succeed or all are undone).
- * Usage: await withTransaction(async (client) => { await client.query(...); });
+ * Usage: await withTransaction(async (client) => { await client.query(...); }, req.user.id);
+ *
+ * userId (optional) = who is logged in. It is saved for this transaction only, so the
+ * activity log (database/11_extra_features.sql) can write down who made each change.
  */
-export async function withTransaction(work) {
+export async function withTransaction(work, userId = null) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    if (userId) await setAuditUser(client, userId);
     const result = await work(client);
     await client.query('COMMIT');
     return result;
@@ -50,6 +54,20 @@ export async function withTransaction(work) {
   } finally {
     client.release();
   }
+}
+
+/**
+ * Tells the database who is making the changes in the current transaction.
+ * The activity-log trigger reads it with current_setting('app.user_id').
+ * (true = only for this transaction; the connection forgets it afterwards.)
+ */
+export function setAuditUser(client, userId) {
+  return client.query("SELECT set_config('app.user_id', $1, true)", [String(userId)]);
+}
+
+/** One change (INSERT / UPDATE / DELETE) that the activity log should credit to a user. */
+export function queryAs(userId, text, params = []) {
+  return withTransaction((client) => client.query(text, params), userId);
 }
 
 /** Turn low-level connection errors into advice a beginner can act on. */

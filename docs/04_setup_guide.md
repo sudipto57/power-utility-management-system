@@ -39,6 +39,7 @@ You already connected Supabase to pgAdmin. We run the SQL files there.
 | 6 | `database/07_supabase_security.sql` |
 | 7 | `database/09_account_security.sql` (email codes + profile change requests) |
 | 8 | `database/10_auto_save.sql` (history of the laptop's copies into `04`, `customers_in_order` view) |
+| 9 | `database/11_extra_features.sql` (activity log, statement, usage alerts, late fees, outage notices, meter replacement) |
 
 *(Skip `05_roles_and_grants.sql` on Supabase. `06_report_queries.sql` is optional practice.)*
 
@@ -46,7 +47,7 @@ You already connected Supabase to pgAdmin. We run the SQL files there.
 
 ✅ **Check:** run `SELECT * FROM calculate_bill_amount('Residential', 'Single Phase', 250);`. The total should be **2095.80**.
 
-**Already set up before?** Run **`10_auto_save.sql`** once, and **`09_account_security.sql`** again (it adds the tables for email codes and profile change requests, and the customer login codes). It is safe to run more than once. The backend will not start without it.
+**Already set up before?** Run **`11_extra_features.sql`** once (after 10). Also run **`10_auto_save.sql`** once, and **`09_account_security.sql`** again (it adds the tables for email codes and profile change requests, and the customer login codes). It is safe to run more than once. The backend will not start without it.
 
 > "relation already exists" error? You skipped 00. Run `00_reset.sql`, then 01 → 07 again.
 

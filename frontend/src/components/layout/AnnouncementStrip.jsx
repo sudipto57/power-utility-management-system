@@ -1,14 +1,32 @@
 import { useState } from 'react';
 import Icon from '../common/Icon';
+import useFetch from '../../hooks/useFetch';
+import { getCurrentOutages } from '../../api/outages';
+import { formatDateTime } from '../../utils/format';
 import { ANNOUNCEMENTS } from './announcements';
 
-/** Thin strip with scrolling announcements. Stops when you point at it; the X hides it for this visit. */
+/** One outage notice from the database as a strip message. */
+function outageMessage(outage) {
+  const when = outage.state === 'Happening now' ? 'Now' : formatDateTime(outage.starts_at);
+  return {
+    icon: '🔧',
+    text: `Power cut (${outage.state.toLowerCase()}): ${outage.title}, ${outage.area}. ${when} until ${formatDateTime(outage.ends_at)}.`,
+  };
+}
+
+/**
+ * Thin strip with scrolling announcements. Stops when you point at it; the X hides it for this visit.
+ * Planned power cuts come first (posted by the office on the "Outage notices" page), then the fixed messages.
+ */
 export default function AnnouncementStrip() {
   const [hidden, setHidden] = useState(false);
-  if (hidden || ANNOUNCEMENTS.length === 0) return null;
+  const { data: outages } = useFetch(() => getCurrentOutages().catch(() => []), []); // a problem here never breaks the page
+
+  const all = [...(outages || []).map(outageMessage), ...ANNOUNCEMENTS];
+  if (hidden || all.length === 0) return null;
 
   // The list is written twice so the scrolling can loop without a jump
-  const messages = [...ANNOUNCEMENTS, ...ANNOUNCEMENTS];
+  const messages = [...all, ...all];
 
   return (
     <div className="relative flex h-9 items-center overflow-hidden bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-950 text-xs font-bold text-white print:hidden">
@@ -19,7 +37,7 @@ export default function AnnouncementStrip() {
       <div className="group min-w-0 flex-1 overflow-hidden">
         <div className="flex w-max animate-marquee group-hover:[animation-play-state:paused]">
           {messages.map((message, index) => (
-            <span key={index} className="flex items-center gap-2 whitespace-nowrap px-8" aria-hidden={index >= ANNOUNCEMENTS.length}>
+            <span key={index} className="flex items-center gap-2 whitespace-nowrap px-8" aria-hidden={index >= all.length}>
               <span>{message.icon}</span>
               {message.text}
             </span>

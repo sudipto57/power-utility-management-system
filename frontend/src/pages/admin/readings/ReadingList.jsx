@@ -89,9 +89,14 @@ export default function ReadingList() {
         title="Meter readings"
         subtitle="Every reading entered, and which ones still need a bill."
         actions={
-          <Button variant="accent" icon="plus" to="/admin/readings/new">
-            Enter reading
-          </Button>
+          <>
+            <Button variant="secondary" icon="alert" to="/admin/readings/alerts">
+              Usage alerts
+            </Button>
+            <Button variant="accent" icon="plus" to="/admin/readings/new">
+              Enter reading
+            </Button>
+          </>
         }
       />
       <Card bodyClassName="p-0" className="animate-fade-up" style={{ animationDelay: '80ms' }}>

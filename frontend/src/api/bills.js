@@ -6,3 +6,4 @@ export const previewBill = (readingId) => apiRequest('/bills/preview', { method:
 export const generateBill = (data) => apiRequest('/bills/generate', { method: 'POST', body: data });
 export const markBillPaid = (id, data = {}) => apiRequest(`/bills/${id}/mark-paid`, { method: 'POST', body: data });
 export const markBillUnpaid = (id) => apiRequest(`/bills/${id}/mark-unpaid`, { method: 'POST', body: {} });
+export const waiveLateFee = (id, reason) => apiRequest(`/bills/${id}/waive-late-fee`, { method: 'POST', body: { reason } });

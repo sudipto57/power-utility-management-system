@@ -2,7 +2,7 @@
 
 | File | What it is |
 | --- | --- |
-| `Power-Utility-Management-System.postman_collection.json` | Every API endpoint (82 requests, 146 automatic checks) in 14 folders |
+| `Power-Utility-Management-System.postman_collection.json` | Every API endpoint (105 requests, 190 automatic checks) in 16 folders |
 | `Local.postman_environment.json` | Variables: `baseUrl`, tokens and saved ids |
 
 ## Use it
@@ -16,14 +16,14 @@
 
 ## Run everything at once
 
-Right-click the collection → **Run collection** → **Run**. Do step 4 first (so `loginCode` is filled), then run the collection within 15 minutes: all 146 checks should be green. (Logging in again does not send a new code while the last one still works.)
+Right-click the collection → **Run collection** → **Run**. Do step 4 first (so `loginCode` is filled), then run the collection within 15 minutes: all 190 checks should be green. (Logging in again does not send a new code while the last one still works.)
 Running it creates a few test records ("Test Customer", "Temporary Customer"). Run `database/00_reset.sql` … `04_sample_data.sql` again to start fresh.
 
 ## Folders
 
 0 Health · 1 Auth · 2 Dashboard · 3 Customers · 4 Connections & Meters · 5 Meter Readings · 6 Bills & Payments ·
 7 My (Customer portal) · 8 Complaint Management · 9 Reports · 10 Security checks · 11 Delete rules ·
-12 Bill estimator (public) · 13 Account security & profile changes
+12 Bill estimator (public) · 13 Account security & profile changes · 14 Feedback (public) · 15 Extra features (activity log, statement, usage alerts, late fees, outage notices, meter replacement)
 
 ## Postman desktop (local files)
 

@@ -17,8 +17,8 @@ An academic DBMS project: a web app where an electricity company manages custome
    - Frontend: React 19 + Vite + Tailwind CSS v4 + Chart.js + React Router. Plain JavaScript (no TypeScript). `fetch` for API calls. No Redux, no UI kit, no icon library.
    - Backend: Node.js + Express 5, plain SQL through `pg`. No ORM.
    - Database: PostgreSQL on Supabase (also runs on local PostgreSQL), managed with pgAdmin 4.
-4. **Do not change the tables.** `database/01_create_tables.sql` and `database/02_billing_tables.sql` are the team's schema. Never add, remove or rename a table or column unless the team asks for exactly that. New logic goes in functions, triggers, views or the API. The team asked for email codes (sign-up confirmation, forgot password, an 8-digit code at every customer login like GitHub) and profile change requests, so `database/09_account_security.sql` **adds** two new tables (`account_codes`, `profile_change_requests`); for the automatic copy of sign-ups the team asked for, `database/10_auto_save.sql` adds `sql_file_saves`. The original tables are unchanged.
-5. **Build only what was asked.** The scope is the 15 features (plus customer sign-up and role-based login). `bill_adjustments`, `bill_installments` and `meter_reading_schedules` exist in the database but have no API or UI on purpose.
+4. **Do not change the tables.** `database/01_create_tables.sql` and `database/02_billing_tables.sql` are the team's schema. Never add, remove or rename a table or column unless the team asks for exactly that. New logic goes in functions, triggers, views or the API. The team asked for email codes (sign-up confirmation, forgot password, an 8-digit code at every customer login like GitHub) and profile change requests, so `database/09_account_security.sql` **adds** two new tables (`account_codes`, `profile_change_requests`); for the automatic copy of sign-ups the team asked for, `database/10_auto_save.sql` adds `sql_file_saves`; for the extra features the team chose (20 Nov 2026), `database/11_extra_features.sql` adds `audit_log`, `outage_notices` and `meter_replacements`. The original tables are unchanged.
+5. **Build only what was asked.** The scope is the 15 features (plus customer sign-up and role-based login) and the six extra features of file 11 (activity log, account statement, usage alerts, late fees, outage notices, meter replacement). `bill_adjustments` is used only for late fees and their waivers; `bill_installments` and `meter_reading_schedules` exist in the database but have no API or UI on purpose.
 6. **Secrets stay out of git.** Never print, copy or commit `backend/.env`. Only `.env.example` files (with fake values) are committed. `.gitignore` blocks every `.env*` file except `.env.example`.
 
 ## Run it
@@ -34,13 +34,13 @@ cd frontend && npm install && npm run dev
 Demo logins (from `database/04_sample_data.sql`): `PUMSadmin` / staff password (ask the team: it is shared privately and never written in GitHub), `sumaiya.khanam` / `customer123` (Bangladesh sample data: 200 customers CUST-001 … CUST-200, emails end in `@example.com` so test emails never reach real people).
 Website sign-ups (and customers added by an admin) are saved in the database and then copied by the backend into the marked "WEBSITE CUSTOMERS" part at the end of `database/04_sample_data.sql` (`backend/src/utils/saveCustomersToSql.js`; by hand: `npm run db:save-customers`). Never edit that part by hand. When the laptop is off, sign-ups wait in Supabase; the laptop's background job (`npm run auto-save:on`, starts with Windows, runs every 10 minutes) copies them in. On Render `SAVE_CUSTOMERS_TO_SQL_FILE=false`.
 `SELECT * FROM customers` has no fixed order: use the view `customers_in_order` or `ORDER BY`.
-Database setup order: `00_reset` → `01` → `02` → `03` → `04` → `07` (Supabase only) → `09` → `10`. `05` is local-only, `06` is practice queries. Full steps: `docs/04_setup_guide.md`.
+Database setup order: `00_reset` → `01` → `02` → `03` → `04` → `07` (Supabase only) → `09` → `10` → `11`. `05` is local-only, `06` is practice queries. Full steps: `docs/04_setup_guide.md`.
 
 ## Check your work (before saying something is done)
 
 ```bash
 cd frontend && npm run lint && npm run build     # must show no errors
-cd backend  && npm run db:test                   # database reachable, 16 tables
+cd backend  && npm run db:test                   # database reachable, 19 tables
 ```
 
 API changes: run the Postman collection in `postman/` (or the matching request) against the running backend. UI changes: open the page in the browser as admin **and** as customer.
@@ -91,8 +91,9 @@ Work one feature end to end, in this order. Do not start the next step until the
 - **Always** pass values as SQL parameters: `query('SELECT ... WHERE id = $1', [id])`. Never build SQL from user input.
 - Validate input with the helpers in `utils/validate.js`; allowed values live in `utils/constants.js` and must match the database CHECK constraints.
 - Several writes that belong together go in `withTransaction()`.
+- Writes pass the logged-in user: `withTransaction(work, req.user.id)` or `queryAs(req.user.id, sql, params)`, so the activity log knows who made the change.
 - Admin routes: `router.use(requireAuth, requireRole('admin'))`. Customer routes live under `/api/my` and use the customer id from the token, never from the request.
-- Bill amounts are **never** typed or calculated in JavaScript: call `calculate_bill_amount()`. "Mark paid" inserts a payment row (the trigger sets the status); "Mark unpaid" deletes it.
+- Bill amounts are **never** typed or calculated in JavaScript: call `calculate_bill_amount()`. Balances come from the view `bill_balance` (total + late fee − waiver − payments). "Mark paid" inserts a payment row (the trigger sets the status); "Mark unpaid" deletes it.
 - A customer with bills is never deleted: answer 409 and offer "Inactive".
 
 ### Frontend conventions

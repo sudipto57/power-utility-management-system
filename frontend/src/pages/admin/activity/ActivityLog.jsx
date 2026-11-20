@@ -137,7 +137,11 @@ export default function ActivityLog() {
           />
           <FilterSelect value={table} onChange={setTable} options={Object.values(TABLE_LABELS)} allLabel="Everything" />
           <FilterSelect value={action} onChange={setAction} options={Object.keys(ACTION_BY_LABEL)} allLabel="All actions" />
-          {data && <span className="text-xs font-semibold text-slate-500">latest {data.length}</span>}
+          {data && (
+            <span className="text-xs font-semibold text-slate-500">
+              {data.length} change{data.length === 1 ? '' : 's'}
+            </span>
+          )}
         </div>
         {error ? (
           <div className="p-5">

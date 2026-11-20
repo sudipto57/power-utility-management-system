@@ -18,6 +18,10 @@
 --   * 7 demo customer logins (password customer123) - see the list at the end of this file
 -- =====================================================================
 
+-- The activity log (file 11) is switched off while the sample data loads, so it stays empty.
+-- (If file 11 has not been run yet, this setting does nothing.)
+SELECT set_config('app.skip_audit', 'on', false);
+
 -- ---------------------------------------------------------------------
 -- 1. Clear old data (children first). Tariffs are replaced in step 2.
 -- ---------------------------------------------------------------------
@@ -3250,3 +3254,6 @@ JOIN users u ON u.username = v.username;
 --     tapas.saha             CUST-016  Barishal    Prepaid  Home
 -- ---------------------------------------------------------------------
 
+
+-- Activity log on again (see the top of this file)
+SELECT set_config('app.skip_audit', 'off', false);

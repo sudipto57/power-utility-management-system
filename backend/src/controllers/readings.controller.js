@@ -20,7 +20,7 @@ const READING_SELECT = `
   SELECT mr.id, mr.connection_id, mr.previous_reading, mr.current_reading,
          (mr.current_reading - mr.previous_reading) AS consumption,
          mr.reading_date, mr.status, mr.notes, mr.created_at,
-         co.meter_number, co.connection_type, c.id AS customer_id, c.customer_number,
+         meter_number_on(co.id, mr.reading_date) AS meter_number, co.connection_type, c.id AS customer_id, c.customer_number,
          c.full_name AS customer_name, c.customer_type, u.full_name AS recorded_by_name,
          b.id AS bill_id, b.bill_number
   FROM meter_readings mr

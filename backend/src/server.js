@@ -55,11 +55,13 @@ async function checkDatabase() {
   // 20 Nov 2026: activity log, late fees, statement, usage alerts, outages, meter replacement
   const extras = await pool.query(
     `SELECT to_regclass('public.audit_log') AS audit_table, to_regclass('public.bill_balance') AS balance_view,
-            to_regprocedure('replace_meter(uuid, varchar, integer, integer, date, text, uuid)') AS replace_function`
+            to_regprocedure('replace_meter(uuid, varchar, integer, integer, date, text, uuid)') AS replace_function,
+            to_regprocedure('meter_number_on(uuid, date)') AS meter_function`
   );
-  if (!extras.rows[0].audit_table || !extras.rows[0].balance_view || !extras.rows[0].replace_function) {
+  const x = extras.rows[0];
+  if (!x.audit_table || !x.balance_view || !x.replace_function || !x.meter_function) {
     console.error('\n[database] Connected, but the tables and views for the extra features are missing.');
-    console.error('           Run database/11_extra_features.sql once (pgAdmin or the Supabase SQL Editor).\n');
+    console.error('           Run database/11_extra_features.sql (pgAdmin or the Supabase SQL Editor). It is safe to run again.\n');
     return false;
   }
   return true;

@@ -60,7 +60,7 @@ export async function getRecentActivity(req, res) {
        SELECT 'request', r.id, r.request_number || ' - ' || r.category, c.full_name, NULL::numeric, r.status::text, r.created_at
        FROM service_requests r JOIN customers c ON c.id = r.customer_id
        UNION ALL
-       SELECT 'reading', co.id, co.meter_number, c.full_name,
+       SELECT 'reading', co.id, meter_number_on(co.id, mr.reading_date), c.full_name,
               (mr.current_reading - mr.previous_reading)::numeric, mr.status::text, mr.created_at
        FROM meter_readings mr JOIN connections co ON co.id = mr.connection_id JOIN customers c ON c.id = co.customer_id
        UNION ALL

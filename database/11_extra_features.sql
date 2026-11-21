@@ -269,6 +269,29 @@ GROUP BY c.id, c.customer_number, c.full_name, c.customer_type;
 --    up to and including the current one, separately for each customer.
 --      SELECT * FROM customer_statement WHERE customer_number = 'CUST-011';
 -- =====================================================================
+-- Which meter a connection had on a date. After a meter replacement the connection shows the NEW
+-- number, so older readings and bills look up the old number in meter_replacements:
+-- the old number of the first replacement on or after that date, else the current number.
+-- (The old meter's final reading is dated the replacement day, so "on or after" is right.)
+--   SELECT meter_number_on(id, '2026-06-01') FROM connections LIMIT 1;
+CREATE OR REPLACE FUNCTION meter_number_on(p_connection_id UUID, p_date DATE)
+RETURNS VARCHAR AS $$
+DECLARE
+    v_meter VARCHAR;
+BEGIN
+    SELECT old_meter_number INTO v_meter
+    FROM meter_replacements
+    WHERE connection_id = p_connection_id AND replaced_on >= p_date
+    ORDER BY replaced_on
+    LIMIT 1;
+
+    IF v_meter IS NULL THEN
+        SELECT meter_number INTO v_meter FROM connections WHERE id = p_connection_id;
+    END IF;
+    RETURN v_meter;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
 CREATE OR REPLACE VIEW customer_statement
 WITH (security_invoker = true) AS
 WITH entries AS (
@@ -279,7 +302,8 @@ WITH entries AS (
            'Bill'::VARCHAR(30)                     AS entry_type,
            b.bill_number                           AS reference,
            b.id                                    AS bill_id,
-           'Electricity ' || TO_CHAR(b.billing_period_end, 'Mon YYYY') || ', meter ' || co.meter_number AS description,
+           'Electricity ' || TO_CHAR(b.billing_period_end, 'Mon YYYY') || ', meter '
+               || meter_number_on(co.id, b.billing_period_end) AS description,
            b.total_amount                          AS debit,
            0::DECIMAL(12,2)                        AS credit
     FROM bills b
@@ -361,7 +385,7 @@ WITH usage AS (
 )
 SELECT x.reading_id,
        x.connection_id,
-       co.meter_number,
+       meter_number_on(co.id, x.reading_date)::VARCHAR(20) AS meter_number,
        cu.id AS customer_id,
        cu.customer_number,
        cu.full_name AS customer_name,
@@ -678,6 +702,7 @@ ALTER FUNCTION update_bill_status() SET search_path = public, pg_temp;
 ALTER FUNCTION apply_late_fees(NUMERIC) SET search_path = public, pg_temp;
 ALTER FUNCTION check_overdue_bills() SET search_path = public, pg_temp;
 ALTER FUNCTION expected_previous_reading(UUID, UUID) SET search_path = public, pg_temp;
+ALTER FUNCTION meter_number_on(UUID, DATE) SET search_path = public, pg_temp;
 ALTER FUNCTION check_reading_sequence() SET search_path = public, pg_temp;
 ALTER FUNCTION replace_meter(UUID, VARCHAR, INTEGER, INTEGER, DATE, TEXT, UUID) SET search_path = public, pg_temp;
 ALTER FUNCTION calculate_bill_amount(VARCHAR, VARCHAR, INTEGER, DATE) SET search_path = public, pg_temp;
@@ -706,7 +731,7 @@ BEGIN
 
     FOREACH f IN ARRAY ARRAY[
         'public.log_change()', 'public.refresh_bill_status(uuid)', 'public.apply_late_fees(numeric)',
-        'public.expected_previous_reading(uuid, uuid)',
+        'public.expected_previous_reading(uuid, uuid)', 'public.meter_number_on(uuid, date)',
         'public.replace_meter(uuid, varchar, integer, integer, date, text, uuid)',
         'public.calculate_bill_amount(varchar, varchar, integer, date)',
         'public.calculate_bill_amount(varchar, varchar, integer)'

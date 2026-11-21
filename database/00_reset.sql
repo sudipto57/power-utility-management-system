@@ -49,4 +49,5 @@ DROP FUNCTION IF EXISTS log_change() CASCADE;                                   
 DROP FUNCTION IF EXISTS refresh_bill_status(UUID) CASCADE;                                -- from 11
 DROP FUNCTION IF EXISTS apply_late_fees(NUMERIC) CASCADE;                                 -- from 11
 DROP FUNCTION IF EXISTS expected_previous_reading(UUID, UUID) CASCADE;                    -- from 11
+DROP FUNCTION IF EXISTS meter_number_on(UUID, DATE) CASCADE;                              -- from 11
 DROP FUNCTION IF EXISTS replace_meter(UUID, VARCHAR, INTEGER, INTEGER, DATE, TEXT, UUID) CASCADE;  -- from 11

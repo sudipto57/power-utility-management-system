@@ -152,6 +152,7 @@ erDiagram
 | `bill_balance` *(file 11)* | view | Per bill: total, late fee, waived, amount due, paid, balance (used by the bill pages, dashboard and reports) |
 | `customer_statement` *(file 11)* | view | Account statement: bills, late fees, waivers and payments in date order with a **running balance** (`SUM() OVER`) |
 | `unusual_readings` *(file 11)* | view | Readings whose use per day is more than 2× or less than ⅓ of the average of the meter's previous 3 readings (window functions `LAG`, `AVG ... ROWS BETWEEN`) |
+| `meter_number_on(connection, date)` *(file 11)* | function | The meter a connection had on a date, so old readings and bills keep the old meter number after a replacement |
 | `expected_previous_reading(connection)` *(file 11)* | function | The previous reading a new reading must start from: the last verified reading, or a new meter's start reading after a replacement (used by `check_reading_sequence()`) |
 | `replace_meter(...)` *(file 11)* | function | Swaps a meter in one go: checks, saves the old meter's final reading, writes `meter_replacements`, changes `connections.meter_number` |
 | `calculate_bill_amount(customer_type, connection_type, units, on_date)` *(file 11)* | function | Same calculator, with the tariff that was in force **on that date** (the bill's period end). The 3-value version uses today |

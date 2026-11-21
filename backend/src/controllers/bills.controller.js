@@ -13,7 +13,7 @@ import { billEmail, sendEmail } from '../utils/email.js';
 export const BILL_SELECT = `
   SELECT b.id, b.bill_number, b.connection_id, b.billing_period_start, b.billing_period_end, b.due_date,
          b.fixed_charge, b.variable_charge, b.tax_amount, b.total_amount, b.status, b.notes, b.created_at,
-         co.meter_number, co.connection_type,
+         meter_number_on(co.id, b.billing_period_end) AS meter_number, co.connection_type,
          c.id AS customer_id, c.customer_number, c.full_name AS customer_name, c.customer_type,
          c.address AS customer_address, c.phone AS customer_phone, c.email AS customer_email,
          mr.id AS reading_id, mr.previous_reading, mr.current_reading,
@@ -54,7 +54,8 @@ async function calculateFromReading(db, readingId, { lock = false } = {}) {
   const readingResult = await db.query(
     `SELECT mr.id, mr.connection_id, mr.previous_reading, mr.current_reading, mr.reading_date, mr.status,
             (mr.current_reading - mr.previous_reading) AS consumption,
-            co.meter_number, co.connection_type, c.full_name AS customer_name, c.customer_number, c.customer_type
+            meter_number_on(co.id, mr.reading_date) AS meter_number, co.connection_type,
+            c.full_name AS customer_name, c.customer_number, c.customer_type
      FROM meter_readings mr
      JOIN connections co ON co.id = mr.connection_id
      JOIN customers c ON c.id = co.customer_id
@@ -194,6 +195,9 @@ export async function markBillPaid(req, res) {
   await withTransaction(async (client) => {
     const billResult = await client.query('SELECT id FROM bills WHERE id = $1 FOR UPDATE', [id]);
     if (!billResult.rows[0]) throw new ApiError(404, 'Bill not found');
+
+    // A bill that became late since anyone last opened it gets its late fee first
+    await client.query('SELECT check_overdue_bills()');
 
     // What is still owed (bill + late fee - waiver - payments) comes from the bill_balance view
     const balanceResult = await client.query('SELECT balance FROM bill_balance WHERE bill_id = $1', [id]);

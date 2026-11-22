@@ -41,9 +41,27 @@ async function checkDatabase() {
   const loginCodes = await pool.query(
     "SELECT 1 FROM pg_constraint WHERE conname = 'account_codes_purpose_check' AND pg_get_constraintdef(oid) LIKE '%login%'"
   );
+  // 20 Nov 2026: history of copies into 04_sample_data.sql (not required, the API still works without it)
+  const saves = await pool.query("SELECT to_regclass('public.sql_file_saves') AS saves_table");
+  if (!saves.rows[0].saves_table) {
+    console.warn('\n[database] Tip: run database/10_auto_save.sql once, so the website can show when the');
+    console.warn('           laptop last copied new sign-ups into database/04_sample_data.sql.\n');
+  }
   if (!loginCodes.rows[0]) {
     console.error('\n[database] The database is missing the newest change for customer login codes.');
     console.error('           Run database/09_account_security.sql again (it is safe to run more than once).\n');
+    return false;
+  }
+  // 20 Nov 2026: activity log, late fees, statement, usage alerts, outages, meter replacement
+  const extras = await pool.query(
+    `SELECT to_regclass('public.audit_log') AS audit_table, to_regclass('public.bill_balance') AS balance_view,
+            to_regprocedure('replace_meter(uuid, varchar, integer, integer, date, text, uuid)') AS replace_function,
+            to_regprocedure('meter_number_on(uuid, date)') AS meter_function`
+  );
+  const x = extras.rows[0];
+  if (!x.audit_table || !x.balance_view || !x.replace_function || !x.meter_function) {
+    console.error('\n[database] Connected, but the tables and views for the extra features are missing.');
+    console.error('           Run database/11_extra_features.sql (pgAdmin or the Supabase SQL Editor). It is safe to run again.\n');
     return false;
   }
   return true;

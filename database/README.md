@@ -3,7 +3,7 @@
 PostgreSQL scripts for the Power Utility Management System. They work on **Supabase** and on a **local PostgreSQL** (pgAdmin 4).
 
 **The original tables are exactly the team's schema.** No table or column was added, removed or renamed in them. Only functions, views, rules (constraints), indexes and sample data were fixed.
-For the account features the team asked for (email confirmation, forgot password, the customer login code, profile change requests), `09_account_security.sql` **adds two new tables**: `account_codes` and `profile_change_requests`.
+For the account features the team asked for (email confirmation, forgot password, the customer login code, profile change requests), `09_account_security.sql` **adds two new tables**: `account_codes` and `profile_change_requests`. For the automatic copy of website sign-ups into `04`, `10_auto_save.sql` adds `sql_file_saves`. For the extra features (activity log, outage notices, meter replacement history), `11_extra_features.sql` adds `audit_log`, `outage_notices` and `meter_replacements`.
 
 ## Run order (pgAdmin → right-click your database → Query Tool → open file → ▶ Execute)
 
@@ -18,12 +18,18 @@ For the account features the team asked for (email confirmation, forgot password
 | 06 | `06_report_queries.sql` | SELECT-only practice queries behind the Dashboard and Reports | Both (optional) |
 | 07 | `07_supabase_security.sql` | Turns on Row Level Security, blocks the public API from our tables **and functions**, removes unused login roles | **Supabase only** |
 | 08 | `08_update_existing_database.sql` | Only for a database built **before 17 Nov 2026**: adds the fixes from 03 and 07 without rebuilding. Then run `04`. | Both (old databases only) |
-| 09 | `09_account_security.sql` | **New (18 Nov 2026).** Adds `account_codes` (email codes, stored as hashes) and `profile_change_requests`, protects them on Supabase, and on an existing database changes the admin login to `PUMSadmin` and the sample customers' emails to `@example.com` | Both (**every** database, last) |
+| 09 | `09_account_security.sql` | **New (18 Nov 2026).** Adds `account_codes` (email codes, stored as hashes) and `profile_change_requests`, protects them on Supabase, and on an existing database changes the admin login to `PUMSadmin` and the sample customers' emails to `@example.com` | Both (**every** database) |
+| 10 | `10_auto_save.sql` | **New (20 Nov 2026).** Adds `sql_file_saves` (when the laptop last copied sign-ups into `04`), the view `customers_in_order`, and writes all phone numbers as `+880…` | Both (**every** database) |
+| 11 | `11_extra_features.sql` | **New (20 Nov 2026).** Extra features: activity log (`audit_log` + trigger), account statement (view with running balance), usage alerts (view), automatic 5 % late fees (`bill_adjustments`), outage notices, meter replacement history, and bills use the tariff of the billing date | Both (**every** database, last) |
 
 Run each file once, top to bottom. If anything fails halfway, run `00_reset.sql` and start again from `01`.
 
 **Already have the old database?** Run `08_update_existing_database.sql`, then `04_sample_data.sql`. (Our Supabase project was updated this way on 17 Nov 2026.)
 **Then run `09_account_security.sql`** (Supabase → SQL Editor → paste → Run). The backend will not start without it.
+**Then run `10_auto_save.sql`** (safe to run more than once).
+**Then run `11_extra_features.sql`** (safe to run more than once). The backend will not start without it.
+
+**See the customers in order:** `SELECT * FROM customers` has **no fixed order** in PostgreSQL. A row that was changed (for example when a login was linked to it) is stored again at the end of the table, so CUST-005 can appear after CUST-201. Nothing is missing. Use `SELECT * FROM customers_in_order;` or add `ORDER BY customer_number`.
 **Ran it before 18 Nov 2026, 5 PM? Run it once more:** the newer copy lets `account_codes` store the customer **login codes**. Running it again is safe: it never undoes a password you changed yourself.
 
 ## The 8 fixes
@@ -33,7 +39,7 @@ Run each file once, top to bottom. If anything fails halfway, run `00_reset.sql`
 | 1 | Sample bill amounts did not match the readings or the bill function | Bills in `04` are calculated with `calculate_bill_amount()` from the readings |
 | 2 | First slab "0-50" counted 51 units | Each slab now counts exactly its own units (0-75 = 75 units, 76-200 = 125 units ...) |
 | 3 | Rates picked by connection type only, hard-coded, no VAT | Function reads `tariffs` + `tariff_slabs` by customer type **and** connection type and adds VAT |
-| 4 | All demo users had the same password hash | Real bcrypt hashes: staff = `PUMS@dmin578` (was `admin123`, which was public), customers = `customer123` |
+| 4 | All demo users had the same password hash | Real bcrypt hashes: staff = `<staff password>` (was `admin123`, which was public), customers = `customer123` |
 | 5 | Users and customers point at each other twice | Kept both columns (schema unchanged); the backend keeps them in sync |
 | 6 | Deleting a customer erased their bills | The API refuses and offers "Deactivate" instead |
 | 7 | `check_overdue_bills()` was never called | The API calls it before showing bills and the dashboard |
@@ -77,7 +83,7 @@ Source: BERC retail tariff order, June 2026. Real irrigation (Tk 6.04) and indus
 
 | Username | Password | Role |
 | --- | --- | --- |
-| PUMSadmin, tech.john, billing.officer | PUMS@dmin578 | admin |
+| PUMSadmin, tech.john, billing.officer | <staff password> | admin |
 | sumaiya.khanam (CUST-011, has an Overdue bill), nayeem.sheikh, khadija.yasmin (prepaid), rafiqul.islam (shop), sohag.howlader (farm), sadia.sultana (factory), tapas.saha | customer123 | customer |
 
 The 200 sample customers are made-up people built from the electricity survey (see `docs/data-collection/Survey_Sample_Data_200.xlsx`). No real respondent's name, phone, email or meter number is used.
@@ -100,8 +106,36 @@ INSERT INTO connections (...) ...;         -- their meters, if an admin added an
 - So running `04_sample_data.sql` again brings the sample data **and** the real sign-ups back.
 - Readings, bills and payments of new customers stay only in the database (they are not copied).
 - Admin → **Customers** shows a strip with "N new customers · also copied into database/04_sample_data.sql" and a **Save now** button.
-- The live website (Render) has no copy of your project folder. There, set `SAVE_CUSTOMERS_TO_SQL_FILE=false` and, on your computer, run `cd backend && npm run db:save-customers` to pull the sign-ups from Supabase into the file.
 - The code is in `backend/src/utils/saveCustomersToSql.js`.
+
+### When the laptop is switched off (20 Nov 2026)
+
+The live website (Render) has no copy of your laptop's folder, so it cannot write the file (`SAVE_CUSTOMERS_TO_SQL_FILE=false` there).
+
+1. Someone signs up on the live website → the backend on Render saves them in **Supabase** (the cloud database). Nothing is lost while the laptop is off.
+2. The laptop runs a small background job (turned on once with `cd backend && npm run auto-save:on`). Windows starts it every time you log in. It copies the new sign-ups from Supabase into `04_sample_data.sql` straight away, then again every 10 minutes.
+3. Each copy is noted in the `sql_file_saves` table, so Admin → **Customers** on the live website shows "N waiting … copied automatically when the laptop is on" or "all of them are also in database/04_sample_data.sql on <laptop name>".
+
+| Command (in `backend`) | What it does |
+| --- | --- |
+| `npm run auto-save:on` | start now + start with Windows every time |
+| `npm run auto-save:status` | is it on, and its last messages (also in `backend/auto-save.log`) |
+| `npm run auto-save:off` | stop it |
+| `npm run db:save-customers` | copy once, by hand |
+
+## Extra features (file 11, 20 Nov 2026)
+
+| Feature | Database objects | Try it |
+| --- | --- | --- |
+| Activity log | table `audit_log`, trigger function `log_change()` on 9 tables | `SELECT * FROM audit_log ORDER BY id DESC LIMIT 20;` |
+| Account statement | view `customer_statement` (running balance with `SUM() OVER`) | `SELECT * FROM customer_statement WHERE customer_number = 'CUST-011';` |
+| Usage alerts | view `unusual_readings` (`LAG`, `AVG ... ROWS BETWEEN 3 PRECEDING AND 1 PRECEDING`) | Enter a very big reading for a meter, then `SELECT * FROM unusual_readings;` |
+| Late fees | `bill_balance` view, `apply_late_fees()`, `refresh_bill_status()`, trigger on `bill_adjustments` | `SELECT check_overdue_bills();` then `SELECT * FROM bill_adjustments;` |
+| Outage notices | table `outage_notices`, view `current_outage_notices` | add one on the website (Outage Notices) |
+| Meter replacement | table `meter_replacements`, `replace_meter()`, `expected_previous_reading()` | Replace meter on a connection page |
+| Tariff of the billing date | `calculate_bill_amount(type, connection, units, date)` | `SELECT * FROM calculate_bill_amount('Residential', 'Single Phase', 250, '2026-07-01');` |
+
+The activity log knows **who** made a change because the backend runs `SELECT set_config('app.user_id', <user id>, true)` in the same transaction. `04_sample_data.sql` turns the log off while it loads (`app.skip_audit`), so the sample data does not fill it.
 
 ## Old files
 

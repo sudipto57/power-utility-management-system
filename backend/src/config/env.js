@@ -63,6 +63,8 @@ const env = {
     brevoApiKey: (process.env.BREVO_API_KEY || '').trim(),
     from: (process.env.EMAIL_FROM || '').trim(),
     fromName: (process.env.EMAIL_FROM_NAME || 'Power Utility Management System').trim(),
+    // Where the website's feedback form sends messages (the sender inbox if empty)
+    feedbackTo: (process.env.FEEDBACK_EMAIL || process.env.EMAIL_FROM || '').trim(),
   },
   // Copy website sign-ups into database/04_sample_data.sql (see utils/saveCustomersToSql.js).
   // On your computer leave it on. On Render set SAVE_CUSTOMERS_TO_SQL_FILE=false (there is no project folder there).

@@ -122,7 +122,7 @@ export default function Reports() {
           format="money"
           icon="alert"
           tone="rose"
-          hint="Still to collect"
+          hint={b.total_late_fees > 0 ? `Still to collect, incl. ${formatMoney(b.total_late_fees)} late fees` : 'Still to collect'}
           delay={140}
         />
         <StatCard

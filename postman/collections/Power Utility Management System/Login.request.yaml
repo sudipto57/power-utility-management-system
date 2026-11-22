@@ -4,7 +4,7 @@ url: "{{baseUrl}}/auth/login"
 method: POST
 body:
   type: json
-  content: '{ "login": "PUMSadmin", "password": "PUMS@dmin578" }'
+  content: '{ "login": "PUMSadmin", "password": "<staff password>" }'
 scripts:
   - type: afterResponse
     code: "pm.environment.set('token', pm.response.json().data.token);"

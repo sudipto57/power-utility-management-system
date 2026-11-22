@@ -9,9 +9,15 @@
 // When does it run?
 //   * automatically, a moment after a sign-up or any change to customers, logins or meters
 //     (see saveAfterChanges below, used in app.js)
+//   * on the laptop, in the background: when the laptop starts and then every 10 minutes
+//     (npm run auto-save:on, see scripts/autoSave.js). This catches sign-ups made on the
+//     live website while the laptop was off: they wait safely in Supabase until then.
 //   * from the admin Customers page ("Save now" button)
 //   * from a terminal:  cd backend && npm run db:save-customers
+// Every copy is also noted in the sql_file_saves table (database/10_auto_save.sql),
+// so the live website can show when the laptop file was last updated.
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { query } from '../config/db.js';
@@ -170,6 +176,44 @@ function findSection(text) {
   return { start, end: endMark + END.length };
 }
 
+/** Writes the whole file at once (temp file, then rename), so two saves can never mix. */
+async function writeFileSafely(text) {
+  const temp = `${SQL_FILE}.saving`;
+  try {
+    await fs.writeFile(temp, text, 'utf8');
+    await fs.rename(temp, SQL_FILE);
+  } catch {
+    // e.g. OneDrive is busy with the file for a moment: write it directly instead
+    await fs.writeFile(SQL_FILE, text, 'utf8');
+    await fs.rm(temp, { force: true });
+  }
+}
+
+/** True when 10_auto_save.sql has been run (the history table exists). */
+async function hasSaveHistory() {
+  const { rows } = await query("SELECT to_regclass('public.sql_file_saves') IS NOT NULL AS ok");
+  return rows[0].ok;
+}
+
+/** Notes in the database that this computer updated the file (shown on the live website). */
+async function recordSave(result) {
+  if (!(await hasSaveHistory())) return;
+  await query(
+    `INSERT INTO sql_file_saves (computer, customers_in_file, logins_in_file, meters_in_file) VALUES ($1, $2, $3, $4)`,
+    [os.hostname().slice(0, 100), result.customers, result.logins, result.meters]
+  );
+}
+
+/** Does database/04_sample_data.sql exist next to this backend? (No on Render.) */
+export async function sqlFileExists() {
+  try {
+    await fs.access(SQL_FILE);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // ---------------------------------------------------------------------
 // 3. Save: read the database, rewrite the marked part, write the file
 // ---------------------------------------------------------------------
@@ -202,28 +246,44 @@ export async function saveCustomersToSqlFile() {
   const newText = place
     ? fileText.slice(0, place.start) + section + fileText.slice(place.end)
     : fileText.replace(/\s*$/, '') + newline + newline + section + newline;
-  await fs.writeFile(SQL_FILE, newText, 'utf8');
+  await writeFileSafely(newText);
+  await recordSave(result);
   return { ...result, saved: true, changed: true };
 }
 
-/** What the admin page shows: is the file there, and what does its marked part say? */
+/**
+ * What the admin page shows.
+ * On the laptop (the file is here) the numbers come from the file itself.
+ * On the live website (no file there) they come from the last copy noted in sql_file_saves.
+ * waiting = customers in the database that are not in the file yet (e.g. the laptop is off).
+ */
 export async function readSqlFileStatus() {
   const status = { file: `database/${FILE_NAME}`, auto_save: env.saveCustomersToSqlFile, found: false };
-  try {
-    const text = await fs.readFile(SQL_FILE, 'utf8');
-    status.found = true;
-    const place = findSection(text);
-    const section = place ? text.slice(place.start, place.end) : '';
-    status.last_saved = section.match(/^-- Last saved: (.*) \(Dhaka time\)/m)?.[1] ?? null;
-    status.customers_in_file = Number(section.match(/^-- Customers: (\d+)/m)?.[1] ?? 0);
-  } catch {
-    // file not found: found stays false
-  }
+
   const { rows } = await query(
     "SELECT COUNT(*) AS total FROM customers WHERE COALESCE(substring(customer_number FROM '[0-9]+$')::int, 0) > $1",
     [SAMPLE_CUSTOMERS]
   );
   status.customers_in_database = rows[0].total;
+
+  if (env.saveCustomersToSqlFile && (await sqlFileExists())) {
+    const text = await fs.readFile(SQL_FILE, 'utf8');
+    const place = findSection(text);
+    const section = place ? text.slice(place.start, place.end) : '';
+    status.found = true;
+    status.computer = os.hostname();
+    status.last_saved = section.match(/^-- Last saved: (.*) \(Dhaka time\)/m)?.[1] ?? null;
+    status.customers_in_file = Number(section.match(/^-- Customers: (\d+)/m)?.[1] ?? 0);
+  } else if (await hasSaveHistory()) {
+    const last = await query('SELECT saved_at, computer, customers_in_file FROM sql_file_saves ORDER BY saved_at DESC LIMIT 1');
+    const row = last.rows[0];
+    status.computer = row?.computer ?? null;
+    status.last_saved = row ? dhakaTime(row.saved_at) : null;
+    status.customers_in_file = row?.customers_in_file ?? 0;
+  } else {
+    status.customers_in_file = 0;
+  }
+  status.waiting = Math.max(status.customers_in_database - status.customers_in_file, 0);
   return status;
 }
 
@@ -239,7 +299,11 @@ export function scheduleSave() {
   clearTimeout(timer);
   timer = setTimeout(() => {
     queue = queue
-      .then(saveCustomersToSqlFile)
+      .then(async () => {
+        // No project folder here (e.g. Render): the laptop copies the sign-ups later, nothing to do
+        if (!(await sqlFileExists())) return { changed: false };
+        return saveCustomersToSqlFile();
+      })
       .then((r) => {
         if (r.changed) console.log(`[sql file] ${r.file} updated: ${r.customers} website customer(s), ${r.logins} login(s)`);
       })

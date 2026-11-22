@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import useFetch from '../../hooks/useFetch';
 import { getMyBills } from '../../api/my';
 import PageHeader from '../../components/common/PageHeader';
+import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import DataTable from '../../components/common/DataTable';
 import StatusBadge from '../../components/common/StatusBadge';
@@ -51,7 +52,15 @@ export default function MyBills() {
 
   return (
     <div>
-      <PageHeader title="My bills" subtitle="All your electricity bills and whether they are paid." />
+      <PageHeader
+        title="My bills"
+        subtitle="All your electricity bills and whether they are paid."
+        actions={
+          <Button variant="secondary" icon="wallet" to="/my/statement">
+            View statement
+          </Button>
+        }
+      />
       <Card bodyClassName="p-0" className="animate-fade-up" style={{ animationDelay: '80ms' }}>
         <div className="flex flex-wrap gap-1.5 border-b border-slate-100 p-4">
           {['', ...BILL_STATUSES].map((s) => (

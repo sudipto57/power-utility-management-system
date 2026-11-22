@@ -51,10 +51,21 @@ export function isUuid(value) {
 
 export function requireDate(value, label) {
   const text = clean(value);
-  if (!text || !DATE_RE.test(text) || Number.isNaN(Date.parse(text))) {
+  if (!text || !DATE_RE.test(text) || !isRealDate(text)) {
     throw new ApiError(400, `${label} must be a date like 2026-11-05`);
   }
   return text;
+}
+
+/**
+ * True only for a day that exists on the calendar.
+ * JavaScript quietly turns "2026-02-30" into 2 March, so we build the date and check
+ * that the year, month and day did not change. ("2026-02-30" -> false, "2028-02-29" -> true)
+ */
+function isRealDate(text) {
+  const [year, month, day] = text.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
 
 export function optionalDate(value, label) {
@@ -96,11 +107,15 @@ export function requirePhone(value, label = 'Phone') {
   return text;
 }
 
-export function requireWholeNumber(value, label, { min = 0 } = {}) {
+// The biggest number a PostgreSQL INTEGER column can hold (meter readings are INTEGER)
+const MAX_INTEGER = 2147483647;
+
+export function requireWholeNumber(value, label, { min = 0, max = MAX_INTEGER } = {}) {
   const num = Number(value);
   if (value === '' || value === null || value === undefined || !Number.isInteger(num) || num < min) {
     throw new ApiError(400, `${label} must be a whole number of at least ${min}`);
   }
+  if (num > max) throw new ApiError(400, `${label} must be at most ${max}`);
   return num;
 }
 

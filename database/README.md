@@ -3,7 +3,7 @@
 PostgreSQL scripts for the Power Utility Management System. They work on **Supabase** and on a **local PostgreSQL** (pgAdmin 4).
 
 **The original tables are exactly the team's schema.** No table or column was added, removed or renamed in them. Only functions, views, rules (constraints), indexes and sample data were fixed.
-For the account features the team asked for (email confirmation, forgot password, the customer login code, profile change requests), `09_account_security.sql` **adds two new tables**: `account_codes` and `profile_change_requests`. For the automatic copy of website sign-ups into `04`, `10_auto_save.sql` adds `sql_file_saves`.
+For the account features the team asked for (email confirmation, forgot password, the customer login code, profile change requests), `09_account_security.sql` **adds two new tables**: `account_codes` and `profile_change_requests`. For the automatic copy of website sign-ups into `04`, `10_auto_save.sql` adds `sql_file_saves`. For the extra features (activity log, outage notices, meter replacement history), `11_extra_features.sql` adds `audit_log`, `outage_notices` and `meter_replacements`. For the customer inbox, `12_customer_inbox.sql` adds `notifications`.
 
 ## Run order (pgAdmin → right-click your database → Query Tool → open file → ▶ Execute)
 
@@ -19,13 +19,17 @@ For the account features the team asked for (email confirmation, forgot password
 | 07 | `07_supabase_security.sql` | Turns on Row Level Security, blocks the public API from our tables **and functions**, removes unused login roles | **Supabase only** |
 | 08 | `08_update_existing_database.sql` | Only for a database built **before 17 Nov 2026**: adds the fixes from 03 and 07 without rebuilding. Then run `04`. | Both (old databases only) |
 | 09 | `09_account_security.sql` | **New (18 Nov 2026).** Adds `account_codes` (email codes, stored as hashes) and `profile_change_requests`, protects them on Supabase, and on an existing database changes the admin login to `PUMSadmin` and the sample customers' emails to `@example.com` | Both (**every** database) |
-| 10 | `10_auto_save.sql` | **New (20 Nov 2026).** Adds `sql_file_saves` (when the laptop last copied sign-ups into `04`), the view `customers_in_order`, and writes all phone numbers as `+880…` | Both (**every** database, last) |
+| 10 | `10_auto_save.sql` | **New (20 Nov 2026).** Adds `sql_file_saves` (when the laptop last copied sign-ups into `04`), the view `customers_in_order`, and writes all phone numbers as `+880…` | Both (**every** database) |
+| 11 | `11_extra_features.sql` | **New (20 Nov 2026).** Extra features: activity log (`audit_log` + trigger), account statement (view with running balance), usage alerts (view), automatic 5 % late fees (`bill_adjustments`), outage notices, meter replacement history, and bills use the tariff of the billing date | Both (**every** database) |
+| 12 | `12_customer_inbox.sql` | **New (21 Nov 2026).** Adds `notifications` (the customer inbox: new bill, payment confirmed / not received, reading accepted / rejected, office reply, outage notice, due reminder), protects it on Supabase | Both (**every** database, last) |
 
 Run each file once, top to bottom. If anything fails halfway, run `00_reset.sql` and start again from `01`.
 
 **Already have the old database?** Run `08_update_existing_database.sql`, then `04_sample_data.sql`. (Our Supabase project was updated this way on 17 Nov 2026.)
 **Then run `09_account_security.sql`** (Supabase → SQL Editor → paste → Run). The backend will not start without it.
 **Then run `10_auto_save.sql`** (safe to run more than once).
+**Then run `11_extra_features.sql`** (safe to run more than once). The backend will not start without it.
+**Then run `12_customer_inbox.sql`** (safe to run more than once). The backend will not start without it.
 
 **See the customers in order:** `SELECT * FROM customers` has **no fixed order** in PostgreSQL. A row that was changed (for example when a login was linked to it) is stored again at the end of the table, so CUST-005 can appear after CUST-201. Nothing is missing. Use `SELECT * FROM customers_in_order;` or add `ORDER BY customer_number`.
 **Ran it before 18 Nov 2026, 5 PM? Run it once more:** the newer copy lets `account_codes` store the customer **login codes**. Running it again is safe: it never undoes a password you changed yourself.
@@ -120,6 +124,20 @@ The live website (Render) has no copy of your laptop's folder, so it cannot writ
 | `npm run auto-save:status` | is it on, and its last messages (also in `backend/auto-save.log`) |
 | `npm run auto-save:off` | stop it |
 | `npm run db:save-customers` | copy once, by hand |
+
+## Extra features (file 11, 20 Nov 2026)
+
+| Feature | Database objects | Try it |
+| --- | --- | --- |
+| Activity log | table `audit_log`, trigger function `log_change()` on 9 tables | `SELECT * FROM audit_log ORDER BY id DESC LIMIT 20;` |
+| Account statement | view `customer_statement` (running balance with `SUM() OVER`) | `SELECT * FROM customer_statement WHERE customer_number = 'CUST-011';` |
+| Usage alerts | view `unusual_readings` (`LAG`, `AVG ... ROWS BETWEEN 3 PRECEDING AND 1 PRECEDING`) | Enter a very big reading for a meter, then `SELECT * FROM unusual_readings;` |
+| Late fees | `bill_balance` view, `apply_late_fees()`, `refresh_bill_status()`, trigger on `bill_adjustments` | `SELECT check_overdue_bills();` then `SELECT * FROM bill_adjustments;` |
+| Outage notices | table `outage_notices`, view `current_outage_notices` | add one on the website (Outage Notices) |
+| Meter replacement | table `meter_replacements`, `replace_meter()`, `expected_previous_reading()` | Replace meter on a connection page |
+| Tariff of the billing date | `calculate_bill_amount(type, connection, units, date)` | `SELECT * FROM calculate_bill_amount('Residential', 'Single Phase', 250, '2026-07-01');` |
+
+The activity log knows **who** made a change because the backend runs `SELECT set_config('app.user_id', <user id>, true)` in the same transaction. `04_sample_data.sql` turns the log off while it loads (`app.skip_audit`), so the sample data does not fill it.
 
 ## Old files
 

@@ -15,6 +15,10 @@ const STYLES = {
   Rejected: 'bg-rose-50 text-rose-700 ring-rose-200',
   Approved: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
   Completed: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+  Failed: 'bg-rose-50 text-rose-700 ring-rose-200',
+  // outage notices (state from the view current_outage_notices)
+  'Happening now': 'bg-rose-50 text-rose-700 ring-rose-200',
+  Planned: 'bg-amber-50 text-amber-700 ring-amber-200',
   Low: 'bg-slate-100 text-slate-600 ring-slate-200',
   Medium: 'bg-sky-50 text-sky-700 ring-sky-200',
   High: 'bg-amber-50 text-amber-700 ring-amber-200',
@@ -34,7 +38,7 @@ const DOTS = {
 };
 
 // These statuses still need attention, so their dot gently pulses
-const LIVE = ['Pending', 'In Progress', 'Overdue', 'Critical'];
+const LIVE = ['Pending', 'In Progress', 'Overdue', 'Critical', 'Happening now'];
 
 export default function StatusBadge({ status, className = '' }) {
   if (!status) return null;

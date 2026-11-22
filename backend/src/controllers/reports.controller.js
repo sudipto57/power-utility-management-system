@@ -37,12 +37,12 @@ export async function billReport(req, res) {
     query(
       `SELECT COUNT(*) AS total_bills,
               COALESCE(SUM(b.total_amount), 0) AS total_billed,
-              COALESCE(SUM(p.paid), 0) AS total_collected,
-              COALESCE(SUM(b.total_amount) - SUM(p.paid), 0) AS total_outstanding,
+              COALESCE(SUM(bb.paid_amount), 0) AS total_collected,
+              COALESCE(SUM(bb.balance), 0) AS total_outstanding,
+              COALESCE(SUM(bb.late_fee - bb.waived), 0) AS total_late_fees,
               COALESCE(SUM(b.tax_amount), 0) AS total_tax
        FROM bills b
-       LEFT JOIN LATERAL (SELECT COALESCE(SUM(amount), 0) AS paid FROM payments
-                          WHERE bill_id = b.id AND status = 'Completed') p ON TRUE`
+       JOIN bill_balance bb ON bb.bill_id = b.id`
     ),
     query(
       `SELECT to_char(date_trunc('month', billing_period_start), 'Mon YYYY') AS month,

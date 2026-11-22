@@ -1,22 +1,39 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getBills } from '../api/bills';
 import { getRequests } from '../api/requests';
+import { getReadings } from '../api/readings';
 import { getChangeRequests } from '../api/changeRequests';
-import { getMyBills, getMyRequests } from '../api/my';
-import { formatDate, formatMoney } from '../utils/format';
+import { getMyNotifications, readMyNotification } from '../api/my';
+import { formatDate, formatMoney, timeAgo } from '../utils/format';
 
-const OPEN_BILLS = ['Unpaid', 'Partially Paid', 'Overdue'];
-const OPEN_REQUESTS = ['Pending', 'In Progress'];
-
-// Admin: overdue bills + complaints nobody has started yet + profile changes to approve
+// Admin: payments and readings that customers sent + profile changes to approve
+//        + overdue bills + complaints nobody has started yet
 async function loadAdminItems() {
-  const [overdue, pending, changes] = await Promise.all([
+  const [overdue, pending, changes, payments, readings] = await Promise.all([
     getBills({ status: 'Overdue' }),
     getRequests({ status: 'Pending' }),
     getChangeRequests({ status: 'Pending' }),
+    getBills({ waiting: 'yes' }),
+    getReadings({ status: 'Pending' }),
   ]);
   return [
+    ...payments.map((b) => ({
+      id: `payment-${b.id}`,
+      icon: 'wallet',
+      tone: 'bg-emerald-100 text-emerald-700',
+      title: `${b.customer_name} paid ${b.bill_number} online`,
+      text: 'Check the reference and confirm it',
+      to: `/admin/bills/${b.id}`,
+    })),
+    ...readings.map((r) => ({
+      id: `reading-${r.id}`,
+      icon: 'gauge',
+      tone: 'bg-sky-100 text-sky-700',
+      title: `${r.customer_name} sent a meter reading`,
+      text: `${r.meter_number} · ${r.current_reading} kWh · ${formatDate(r.reading_date)}`,
+      to: '/admin/readings?status=Pending',
+    })),
     ...changes.map((c) => ({
       id: `change-${c.id}`,
       icon: 'user',
@@ -44,49 +61,53 @@ async function loadAdminItems() {
   ];
 }
 
-// Customer: bills still to pay + their requests that are still open
-async function loadCustomerItems() {
-  const [bills, requests] = await Promise.all([getMyBills(), getMyRequests()]);
-  return [
-    ...bills
-      .filter((b) => OPEN_BILLS.includes(b.status))
-      .map((b) => ({
-        id: `bill-${b.id}`,
-        icon: b.status === 'Overdue' ? 'alert' : 'receipt',
-        tone: b.status === 'Overdue' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600',
-        title: `${b.bill_number} · ${formatMoney(b.balance)} to pay`,
-        text: `${b.status} · due ${formatDate(b.due_date)}`,
-        to: `/my/bills/${b.id}`,
-        unpaidBill: true,
-      })),
-    ...requests
-      .filter((r) => OPEN_REQUESTS.includes(r.status))
-      .map((r) => ({
-        id: `request-${r.id}`,
-        icon: 'complaint',
-        tone: 'bg-sky-100 text-sky-600',
-        title: `${r.request_number} · ${r.category}`,
-        text: `Status: ${r.status}`,
-        to: `/my/requests/${r.id}`,
-      })),
-  ];
+// Customer: their inbox (messages saved by the backend, newest first)
+const KIND_LOOK = {
+  bill: { icon: 'receipt', tone: 'bg-amber-100 text-amber-700' },
+  reminder: { icon: 'alert', tone: 'bg-rose-100 text-rose-700' },
+  payment: { icon: 'wallet', tone: 'bg-emerald-100 text-emerald-700' },
+  reading: { icon: 'gauge', tone: 'bg-sky-100 text-sky-700' },
+  request: { icon: 'complaint', tone: 'bg-violet-100 text-violet-700' },
+  notice: { icon: 'megaphone', tone: 'bg-orange-100 text-orange-700' },
+  profile: { icon: 'user', tone: 'bg-indigo-100 text-indigo-700' },
+};
+
+function toItem(message) {
+  return {
+    id: message.id,
+    ...(KIND_LOOK[message.kind] || KIND_LOOK.notice),
+    title: message.title,
+    text: message.message,
+    time: timeAgo(message.created_at),
+    to: message.link || '/my',
+    unread: !message.is_read,
+  };
 }
 
 /**
- * Things that need attention, for the bell in the top bar.
- * Loads again when another page opens and every minute.
+ * The bell in the top bar. Loads again when another page opens and every minute.
+ * Returns { items, count, openItem, readAll }
+ *   admin:    things that need attention (count = how many)
+ *   customer: the inbox (count = unread messages; opening one marks it as read)
  */
 export default function useNotifications(role) {
   const [items, setItems] = useState([]);
+  const [unread, setUnread] = useState(0);
   const { pathname } = useLocation();
+  const isCustomer = role === 'customer';
+
+  const showInbox = useCallback((inbox) => {
+    setItems(inbox.items.map(toItem));
+    setUnread(inbox.unread);
+  }, []);
 
   useEffect(() => {
     let active = true;
     const load = () => {
-      const loader = role === 'admin' ? loadAdminItems : loadCustomerItems;
-      loader()
-        .then((list) => active && setItems(list))
-        .catch(() => {}); // the bell is extra: if it fails, the page still works
+      const request = isCustomer
+        ? getMyNotifications().then((inbox) => active && showInbox(inbox))
+        : loadAdminItems().then((list) => active && setItems(list));
+      request.catch(() => {}); // the bell is extra: if it fails, the page still works
     };
     load();
     const timer = setInterval(load, 60000);
@@ -94,7 +115,21 @@ export default function useNotifications(role) {
       active = false;
       clearInterval(timer);
     };
-  }, [role, pathname]);
+  }, [isCustomer, pathname, showInbox]);
 
-  return items;
+  const openItem = (item) => {
+    if (isCustomer && item.unread)
+      readMyNotification(item.id)
+        .then(showInbox)
+        .catch(() => {});
+  };
+  const readAll =
+    isCustomer && unread > 0
+      ? () =>
+          readMyNotification('all')
+            .then(showInbox)
+            .catch(() => {})
+      : null;
+
+  return { items, count: isCustomer ? unread : items.length, openItem, readAll };
 }

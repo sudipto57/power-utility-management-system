@@ -105,7 +105,7 @@ export async function updateRequestStatus(req, res) {
         `Status changed from ${current.status} to ${status}`,
       ]);
     }
-  });
+  }, req.user.id);
 
   res.json({ data: await findRequest(id) });
 }

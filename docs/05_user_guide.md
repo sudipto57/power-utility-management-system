@@ -7,7 +7,7 @@ How to use each feature. Screenshots are in `docs/images/`.
 Open http://localhost:5173. The first page has the login card on the right.
 
 1. Pick **Customer** or **Admin** on the slide switch (Role Based Login: an account only works on its own tab).
-2. Type your **email or username** and password (demo logins: `PUMSadmin` / `PUMS@dmin578` on the Admin tab, `sumaiya.khanam` / `customer123` on the Customer tab). The eye button shows or hides the password.
+2. Type your **email or username** and password (demo logins: `PUMSadmin` / `<staff password>` on the Admin tab, `sumaiya.khanam` / `customer123` on the Customer tab). The eye button shows or hides the password.
 3. New customers can press **Create an account** (or **Sign up** in the top bar). Sign up is for customers only; admin accounts are made by the system administrator.
    The password needs **8+ characters with a letter and a number** (both password boxes have an eye button).
    **Customers: every login has a second step, like GitHub.** After the right password, the card shows **Verify your identity**: an **8-digit code** is emailed to you (subject *[Power Utility] Sudo email verification code*), valid for 15 minutes and usable once. Type it and press **Verify**. No email? Check spam, or press **Send a new code** (once a minute). Admins log in with the password only.
@@ -49,7 +49,7 @@ On every page (Admin and Customer):
 - Click a row to open the **profile**: contact details, connections (meters), bills and requests.
 - ✏️ edits, 🗑️ deletes. A customer **with bills cannot be deleted** (that would erase billing history), so the app offers **Set as Inactive** instead.
 - The newest customers are at the top; people who joined in the last 7 days have a green **New** label.
-- The green strip above the list says how many customers joined after the 200 sample customers. They are saved live in the database **and** copied into `database/04_sample_data.sql`. If it turns amber, press **Save now**.
+- The green strip above the list says how many customers joined after the 200 sample customers. They are saved live in the database **and** copied into `database/04_sample_data.sql` on the laptop. On the live website an amber strip means some sign-ups are waiting for the laptop to be switched on (they are copied automatically). On the laptop you can also press **Save now**.
 - After a customer signs up, the sign-up card shows their new customer number (e.g. *CUST-201*).
 
 ![Customers](images/03_customers.png)
@@ -59,6 +59,7 @@ On every page (Admin and Customer):
 - **Connections & Meters** → list of every service with its meter and last reading.
 - **New connection** (or *Add connection* on a customer profile). Leave *Meter number* empty to create one automatically (MET-####).
 - Open a connection to see the **meter card** (number, status, odometer of the last reading), meter information, a consumption chart, all readings and bills.
+- **Replace meter** (on a connection): type the old meter's final reading, the new meter number (empty = automatic) and its start reading. The old meter's last reading is saved, the history appears under **Meter replacements**, and the next reading starts from the new meter's start reading.
 
 ![Connection details](images/04_connection_details.png)
 
@@ -68,6 +69,7 @@ On every page (Admin and Customer):
 - Type the current reading. The live box shows the consumption. The current reading can never be lower than the previous one.
 - After saving, click **Generate bill now**.
 - The *Waiting for a bill* tab lists readings that have no bill yet.
+- A reading far from the meter's usual use shows a warning after saving. **Usage alerts** (button on *Meter Readings*) lists every reading whose use per day is more than double or less than a third of usual. Check them before billing.
 
 ![Reading entry](images/05_reading_entry.png)
 
@@ -78,10 +80,23 @@ On every page (Admin and Customer):
 - Every new bill is **emailed** to the customer (if they have an email address). The message after *Generate* says whether the email went out.
 - **Mark paid** → choose the method (cash, mobile banking …) → the bill becomes **Paid** (a green tick and confetti confirm it).
   **Mark unpaid** removes the payment again.
+- A bill that becomes **Overdue** gets a **5 % late fee** once, automatically. The bill shows it under the total. **Waive late fee** (on the bill, with a reason) cancels it.
 - Open a bill to see the printable invoice → **Print** (or *Save as PDF* in the print window). The printed copy keeps the logo and colours.
 
 ![Generate bill](images/06_generate_bill.png)
 ![Bill](images/07_bill_details.png)
+
+### Account statement
+
+On a customer profile → **View statement**: every bill, late fee and payment in date order with the balance after each line, like a bank statement. **Print** gives a paper copy.
+
+### Outage notices
+
+**Outage Notices** (menu) → **New notice**: title, area, when the power goes off and comes back. Notices that have not ended yet scroll in the news strip at the top for staff **and** customers. Click a notice to edit it.
+
+### Activity log
+
+**Activity Log** (menu): who changed what and when, for customers, meters, readings, bills, payments, requests and notices. Filter by area or action, or search a bill / customer / meter number or a person's name. The database writes it by itself, so nothing is missed.
 
 ### Profile change requests
 
@@ -106,9 +121,11 @@ Totals (billed, collected, outstanding, VAT), customers by type, **top customers
 ## Customer
 
 - **My Dashboard**: amount due, overdue bills, open requests, active services, kWh used per month, latest bill, a **usage gauge** for the latest month (green / amber / red) with a *compared to last month* badge, and **energy-saving tips**.
-- **My Bills**: every bill with its payment status; open one for the full printable bill. The browser tab shows how many bills are still unpaid, e.g. *(1) My Bills*.
+- **My Bills**: every bill with its payment status; open one for the full printable bill. The browser tab shows how many bills are still unpaid, e.g. *(1) My Bills*. A late bill shows its 5 % late fee.
+- **My Statement**: all your bills and payments in date order with the balance after each one.
 - **My Requests → New request**: choose what it is about, how urgent, describe it. Follow the progress bar (Pending → In Progress → Resolved) and staff replies.
 - **My Profile**: contact details and meters (the meter numbers roll up like a real meter).
+- **Give Feedback** (also at the bottom of the first page, no login needed): choose 1-5 stars and a topic, write what you think. Each message is emailed to the team.
   - **Edit my details**: change your **name and address** straight away.
   - **Request a change**: a new **email, phone number, customer type** or a meter's **connection type** needs the office's OK. The request appears under **My change requests** as *Pending*, then *Approved* or *Rejected* (with the office's note). You also get an email with the answer.
 

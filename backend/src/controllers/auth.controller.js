@@ -4,7 +4,7 @@
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { query, withTransaction } from '../config/db.js';
+import { query, setAuditUser, withTransaction } from '../config/db.js';
 import env from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
 import { generateNumber } from '../utils/generateNumber.js';
@@ -256,6 +256,7 @@ export async function signup(req, res) {
       [username, email, fullName, passwordHash]
     );
     const newUser = userResult.rows[0];
+    await setAuditUser(client, newUser.id); // the activity log shows the customer as the one who signed up
 
     const customerResult = await client.query(
       `INSERT INTO customers (customer_number, full_name, phone, email, address, customer_type, status, user_id)

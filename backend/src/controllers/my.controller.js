@@ -1,6 +1,6 @@
 // Customer portal: a logged-in customer sees ONLY their own data.
 // Features 3 (customer dashboard), 5 (own profile), 10/11 (own bills), 12 (service requests)
-import { query, withTransaction } from '../config/db.js';
+import { query, queryAs, withTransaction } from '../config/db.js';
 import ApiError from '../utils/ApiError.js';
 import { generateNumber } from '../utils/generateNumber.js';
 import { BILL_STATUSES, OPEN_BILL_STATUSES, REQUEST_CATEGORIES, REQUEST_PRIORITIES } from '../utils/constants.js';
@@ -54,7 +54,7 @@ export async function updateMyProfile(req, res) {
   await withTransaction(async (client) => {
     await client.query('UPDATE customers SET full_name = $1, address = $2 WHERE id = $3', [fullName, address, customerId]);
     await client.query('UPDATE users SET full_name = $1 WHERE id = $2', [fullName, req.user.id]); // name shown after login
-  });
+  }, req.user.id);
   return getMyProfile(req, res);
 }
 
@@ -66,11 +66,11 @@ export async function getMyDashboard(req, res) {
   const [summary, latestBill, requests, connections, usage] = await Promise.all([
     query(
       `SELECT COUNT(*) FILTER (WHERE b.status = ANY($2)) AS unpaid_bills,
-              COALESCE(SUM(b.total_amount - COALESCE(p.paid, 0)) FILTER (WHERE b.status = ANY($2)), 0) AS outstanding_amount,
+              COALESCE(SUM(bb.balance) FILTER (WHERE b.status = ANY($2)), 0) AS outstanding_amount,
               COUNT(*) FILTER (WHERE b.status = 'Overdue') AS overdue_bills
        FROM bills b
        JOIN connections co ON co.id = b.connection_id
-       LEFT JOIN LATERAL (SELECT SUM(amount) AS paid FROM payments WHERE bill_id = b.id AND status = 'Completed') p ON TRUE
+       JOIN bill_balance bb ON bb.bill_id = b.id
        WHERE co.customer_id = $1`,
       [customerId, OPEN_BILL_STATUSES]
     ),
@@ -155,7 +155,8 @@ export async function createMyRequest(req, res) {
   if (description.length < 10) throw new ApiError(400, 'Please describe the problem in at least 10 characters');
 
   const requestNumber = await generateNumber({ query }, 'request');
-  const { rows } = await query(
+  const { rows } = await queryAs(
+    req.user.id,
     `INSERT INTO service_requests (request_number, customer_id, category, priority, status, description)
      VALUES ($1, $2, $3, $4, 'Pending', $5) RETURNING id`,
     [requestNumber, customerId, category, priority, description]

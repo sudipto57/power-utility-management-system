@@ -15,6 +15,10 @@ dist-ssr/
 
 # Logs
 *.log
+
+# The laptop's background auto-save job (backend/scripts/autoSave.js)
+backend/auto-save.lock
+*.saving
 npm-debug.log*
 
 # Editors / OS

@@ -5,7 +5,7 @@
 --
 -- What is inside:
 --   * Bangladesh tariffs (BERC order of June 2026, 5% VAT) used by calculate_bill_amount()
---   * 3 staff logins (password PUMS@dmin578): PUMSadmin, tech.john, billing.officer
+--   * 3 staff logins (password <staff password>): PUMSadmin, tech.john, billing.officer
 --   * 200 sample customers built from the electricity survey (fake people: no real
 --     respondent's name, phone, email or meter number is used). 100 men, 100 women,
 --     all 8 divisions, all 6 distribution companies, homes, shops, factories and farms.
@@ -17,6 +17,10 @@
 --   * service requests + comments from the problems people reported
 --   * 7 demo customer logins (password customer123) - see the list at the end of this file
 -- =====================================================================
+
+-- The activity log (file 11) is switched off while the sample data loads, so it stays empty.
+-- (If file 11 has not been run yet, this setting does nothing.)
+SELECT set_config('app.skip_audit', 'on', false);
 
 -- ---------------------------------------------------------------------
 -- 1. Clear old data (children first). Tariffs are replaced in step 2.
@@ -57,7 +61,7 @@ INSERT INTO tariff_slabs (tariff_id, slab_order, start_unit, end_unit, rate_per_
 SELECT t.id, 1, 0, NULL, 15.36 FROM tariffs t WHERE t.customer_type = 'Commercial';
 
 -- ---------------------------------------------------------------------
--- 3. Staff logins (password: PUMS@dmin578)
+-- 3. Staff logins (password: <staff password>)
 -- ---------------------------------------------------------------------
 INSERT INTO users (username, email, full_name, role, status, password_hash) VALUES
 ('PUMSadmin',       'admin@powerutility.com',     'System Administrator', 'admin', 'Active', '$2b$10$D5XbuCWsC50s/A9d8zdOTufMk7X2uUxnZiVmFxUb6tc2qpPlWlZva'),
@@ -3239,7 +3243,7 @@ JOIN users u ON u.username = v.username;
 
 -- ---------------------------------------------------------------------
 -- Demo logins created by this file
---   Staff (Admin tab):     PUMSadmin / PUMS@dmin578   (also tech.john, billing.officer)
+--   Staff (Admin tab):     PUMSadmin / <staff password>   (also tech.john, billing.officer)
 --   Customers (Customer tab), password customer123:
 --     sumaiya.khanam         CUST-011  Sylhet      Postpaid  Home
 --     nayeem.sheikh          CUST-007  Chattogram  Postpaid  Home
@@ -3255,24 +3259,39 @@ JOIN users u ON u.username = v.username;
 -- 11. Customers who joined after the sample data (website sign-ups and customers added by an admin)
 --     The backend rewrites this part after every sign-up or customer change,
 --     so running this file again brings these customers back.
--- Last saved: 18 Nov 2026, 17:48 (Dhaka time)
--- Customers: 1 | Logins: 1 | Meters: 0
+-- Last saved: 20 Nov 2026, 02:24 (Dhaka time)
+-- Customers: 5 | Logins: 5 | Meters: 0
 -- =====================================================================
 
 INSERT INTO customers (customer_number, full_name, phone, email, address, customer_type, status, created_at, updated_at) VALUES
-('CUST-201', 'Sudipto Pramanik', '01303437131', 'sudiptokumarpramanik@gmail.com', 'Khilkhet, Dhaka', 'Residential', 'Active', '2026-11-18T10:39:42.107Z', '2026-11-18T10:39:42.107Z');
+('CUST-201', 'Sudipto Pramanik', '+8801303437131', 'sudiptokumarpramanik@gmail.com', 'Khilkhet, Dhaka', 'Residential', 'Active', '2026-11-18T10:39:42.107Z', '2026-11-19T20:03:59.274Z'),
+('CUST-202', 'Tasnim Khan Nova', '+8801841953856', 'tasnimkhan625974@gmail.com', 'Ashkona, Dhaka', 'Residential', 'Active', '2026-11-18T19:21:52.418Z', '2026-11-19T20:03:59.274Z'),
+('CUST-203', 'Deep Kumar', '+8801744837203', 'deepkumar1589@gmail.com', 'Upper Bazar, Natore', 'Commercial', 'Active', '2026-11-18T19:28:26.474Z', '2026-11-19T20:03:59.274Z'),
+('CUST-204', 'Apurba Das', '+8801683445103', 'apurbadas4582@gmail.com', 'Kawlar, Dhaka', 'Commercial', 'Active', '2026-11-18T19:32:00.964Z', '2026-11-19T20:03:59.274Z'),
+('CUST-205', 'Ridoy Karmokar', '+8801737317950', 'ridoykarmokar13579@gmail.com', 'Kapuriapotty , Natore Sadar , Natore', 'Residential', 'Active', '2026-11-19T17:31:43.371Z', '2026-11-19T17:31:43.371Z');
 
 -- Their logins (the password is stored only as a bcrypt hash, never as plain text)
 INSERT INTO users (username, email, full_name, role, status, password_hash, created_at) VALUES
-('sudipto.57', 'sudiptokumarpramanik@gmail.com', 'Sudipto Pramanik', 'customer', 'Active', '$2b$10$TiXPHHi0/YN.OyGt.bNET.PW2NbH6KK.E6dFf0dFO6Q83D2WXWanq', '2026-11-18T10:39:42.107Z');
+('sudipto.57', 'sudiptokumarpramanik@gmail.com', 'Sudipto Pramanik', 'customer', 'Active', '$2b$10$TiXPHHi0/YN.OyGt.bNET.PW2NbH6KK.E6dFf0dFO6Q83D2WXWanq', '2026-11-18T10:39:42.107Z'),
+('tasnim.57', 'tasnimkhan625974@gmail.com', 'Tasnim Khan Nova', 'customer', 'Active', '$2b$10$TvRKqz1NF4yjjG2JOfKDquzzNQCp9BlvEDvMbAhHUe22diQASGs7q', '2026-11-18T19:21:52.418Z'),
+('deepkumar.01', 'deepkumar1589@gmail.com', 'Deep Kumar', 'customer', 'Active', '$2b$10$l6uGU7iZ5O6jQs8s6IdBee8MBKBtnGD00qkUrzzXZcUgoVi9a0Uiu', '2026-11-18T19:28:26.474Z'),
+('apurba.99', 'apurbadas4582@gmail.com', 'Apurba Das', 'customer', 'Active', '$2b$10$RL3yBiz8S80./xHas0KEPOetAdytP6GtHXR.I/bhPJIvYQ3NmEl2.', '2026-11-18T19:32:00.964Z'),
+('ask', 'ridoykarmokar13579@gmail.com', 'Ridoy Karmokar', 'customer', 'Active', '$2b$10$5rSjLBo35616Xlb.Sa0/BOL19J1SE526.X/CTyOwntM61OsUylT4m', '2026-11-19T17:31:43.371Z');
 
 -- Link each login to its customer profile (both directions)
 UPDATE customers c SET user_id = u.id
 FROM (VALUES
-('CUST-201', 'sudipto.57')
+('CUST-201', 'sudipto.57'),
+('CUST-202', 'tasnim.57'),
+('CUST-203', 'deepkumar.01'),
+('CUST-204', 'apurba.99'),
+('CUST-205', 'ask')
 ) AS v(customer_number, username)
 JOIN users u ON u.username = v.username
 WHERE c.customer_number = v.customer_number;
 UPDATE users u SET customer_id = c.id FROM customers c
 WHERE c.user_id = u.id AND u.role = 'customer' AND u.customer_id IS NULL;
 -- <<< WEBSITE CUSTOMERS END <<<
+
+-- Activity log on again (see the top of this file)
+SELECT set_config('app.skip_audit', 'off', false);

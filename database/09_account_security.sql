@@ -88,7 +88,7 @@ $$;
 
 -- ---------------------------------------------------------------------
 -- 4. Existing database only (04_sample_data.sql already has these):
---    a) New admin login:  PUMSadmin / PUMS@dmin578  (the old admin123 was public)
+--    a) New admin login:  PUMSadmin / <staff password>  (the old admin123 was public)
 --       tech.john and billing.officer get the same new password.
 --       Only accounts that still have the OLD name/password are changed, so running
 --       this file again never undoes a password you changed yourself.

@@ -91,6 +91,8 @@ export function requirePhone(value, label = 'Phone') {
   if (!/^\+?[0-9 -]+$/.test(text) || digits.length < 10 || digits.length > 15) {
     throw new ApiError(400, `${label} must be a phone number like 01712345678`);
   }
+  // Bangladeshi mobile numbers are saved in one format: 01712345678 -> +8801712345678
+  if (/^(88)?01[0-9]{9}$/.test(digits)) return `+88${digits.slice(-11)}`;
   return text;
 }
 

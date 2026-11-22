@@ -10,6 +10,7 @@ import ConfirmDialog from '../../../components/common/ConfirmDialog';
 import { PageSkeleton } from '../../../components/common/Skeleton';
 import BillInvoice from '../../../components/bills/BillInvoice';
 import MarkPaidModal from '../../../components/bills/MarkPaidModal';
+import WaiveLateFeeModal from '../../../components/bills/WaiveLateFeeModal';
 import PaidCelebration from '../../../components/bills/PaidCelebration';
 
 export default function BillDetails() {
@@ -17,6 +18,7 @@ export default function BillDetails() {
   const toast = useToast();
   const { data: bill, loading, error, reload, setData } = useFetch(() => getBill(id), [id]);
   const [paying, setPaying] = useState(false);
+  const [waiving, setWaiving] = useState(false);
   const [confirmUnpaid, setConfirmUnpaid] = useState(false);
   const [working, setWorking] = useState(false);
   const [celebrate, setCelebrate] = useState(false); // green tick + confetti after "Mark paid"
@@ -57,6 +59,12 @@ export default function BillDetails() {
             <Button variant="secondary" icon="printer" onClick={() => window.print()}>
               Print
             </Button>
+            {/* A late fee can be waived once, while the bill is still open */}
+            {bill.late_fee > 0 && bill.waived === 0 && bill.status !== 'Paid' && (
+              <Button variant="secondary" onClick={() => setWaiving(true)}>
+                Waive late fee
+              </Button>
+            )}
             {bill.status === 'Paid' ? (
               <Button variant="secondary" onClick={() => setConfirmUnpaid(true)}>
                 Mark unpaid
@@ -81,6 +89,17 @@ export default function BillDetails() {
             setPaying(false);
             setCelebrate(true);
             toast.success(`${updated.bill_number} marked as Paid`);
+          }}
+        />
+      )}
+      {waiving && (
+        <WaiveLateFeeModal
+          bill={bill}
+          onClose={() => setWaiving(false)}
+          onWaived={(updated) => {
+            setData(updated);
+            setWaiving(false);
+            toast.success(`Late fee of ${updated.bill_number} waived`);
           }}
         />
       )}

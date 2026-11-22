@@ -9,6 +9,7 @@ import {
   saveSqlFileNow,
   updateCustomer,
 } from '../controllers/customers.controller.js';
+import { getCustomerStatement } from '../controllers/statement.controller.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireRole } from '../middleware/requireRole.js';
 
@@ -23,5 +24,6 @@ router.post('/sql-file', saveSqlFileNow);
 router.get('/:id', getCustomer);
 router.put('/:id', updateCustomer);
 router.delete('/:id', deleteCustomer);
+router.get('/:id/statement', getCustomerStatement); // bills, late fees and payments with a running balance
 
 export default router;

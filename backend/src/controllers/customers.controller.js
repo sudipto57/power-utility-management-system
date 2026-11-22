@@ -5,7 +5,18 @@ import ApiError from '../utils/ApiError.js';
 import { generateNumber } from '../utils/generateNumber.js';
 import { CUSTOMER_STATUSES, CUSTOMER_TYPES } from '../utils/constants.js';
 import { readSqlFileStatus, saveCustomersToSqlFile } from '../utils/saveCustomersToSql.js';
-import { clean, optionalEmail, optionalOneOf, requireEmail, requireOneOf, requireText, requireUuid } from '../utils/validate.js';
+import env from '../config/env.js';
+import {
+  clean,
+  optionalEmail,
+  optionalOneOf,
+  requireEmail,
+  requireOneOf,
+  requirePassword,
+  requirePhone,
+  requireText,
+  requireUuid,
+} from '../utils/validate.js';
 
 // Shared by the list and the single-customer endpoints
 const CUSTOMER_SELECT = `
@@ -53,6 +64,9 @@ export async function getSqlFileStatus(req, res) {
 
 // POST /api/customers/sql-file  -> "Save now": copy the website customers into the file right away
 export async function saveSqlFileNow(req, res) {
+  if (!env.saveCustomersToSqlFile) {
+    throw new ApiError(409, 'This server does not keep the SQL file. The laptop copies new sign-ups automatically when it is on.');
+  }
   try {
     await saveCustomersToSqlFile();
   } catch (err) {
@@ -104,7 +118,7 @@ export async function getCustomer(req, res) {
 export async function createCustomer(req, res) {
   const body = req.body || {};
   const fullName = requireText(body.full_name, 'Full name', 100);
-  const phone = requireText(body.phone, 'Phone', 20);
+  const phone = requirePhone(body.phone);
   const address = requireText(body.address, 'Address', 500);
   const customerType = requireOneOf(body.customer_type, CUSTOMER_TYPES, 'Customer type');
   const status = optionalOneOf(body.status, CUSTOMER_STATUSES, 'Status') || 'Active';
@@ -119,8 +133,8 @@ export async function createCustomer(req, res) {
     if (!/^[a-z0-9._-]{3,50}$/.test(username)) {
       throw new ApiError(400, 'Username must be 3-50 characters: letters, numbers, dot, dash or underscore');
     }
-    const password = requireText(body.password, 'Password', 100);
-    if (password.length < 6) throw new ApiError(400, 'Password must be at least 6 characters');
+    // Same strong-password rule as the website sign up (8+ characters, a letter and a number)
+    const password = requirePassword(body.password);
     passwordHash = await bcrypt.hash(password, 10);
   }
 
@@ -148,7 +162,7 @@ export async function createCustomer(req, res) {
       await client.query('UPDATE users SET customer_id = $1 WHERE id = $2', [customerId, userId]);
     }
     return customerId;
-  });
+  }, req.user.id);
 
   res.status(201).json({ data: await findCustomer(newId) });
 }
@@ -161,7 +175,7 @@ export async function updateCustomer(req, res) {
 
   const changes = {};
   if ('full_name' in body) changes.full_name = requireText(body.full_name, 'Full name', 100);
-  if ('phone' in body) changes.phone = requireText(body.phone, 'Phone', 20);
+  if ('phone' in body) changes.phone = requirePhone(body.phone);
   if ('email' in body) changes.email = existing.user_id ? requireEmail(body.email) : optionalEmail(body.email);
   if ('address' in body) changes.address = requireText(body.address, 'Address', 500);
   if ('customer_type' in body) changes.customer_type = requireOneOf(body.customer_type, CUSTOMER_TYPES, 'Customer type');
@@ -183,7 +197,7 @@ export async function updateCustomer(req, res) {
         [changes.full_name ?? null, changes.email ?? null, changes.status ?? null, existing.user_id]
       );
     }
-  });
+  }, req.user.id);
 
   res.json({ data: await findCustomer(id) });
 }
@@ -209,7 +223,7 @@ export async function deleteCustomer(req, res) {
   await withTransaction(async (client) => {
     await client.query('DELETE FROM customers WHERE id = $1', [id]); // also removes connections, readings, requests
     await client.query("DELETE FROM users WHERE role = 'customer' AND (id = $1 OR customer_id = $2)", [customer.user_id, id]);
-  });
+  }, req.user.id);
 
   res.json({ data: { id, deleted: true } });
 }

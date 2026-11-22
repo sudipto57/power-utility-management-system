@@ -38,6 +38,8 @@ You already connected Supabase to pgAdmin. We run the SQL files there.
 | 5 | `database/04_sample_data.sql` |
 | 6 | `database/07_supabase_security.sql` |
 | 7 | `database/09_account_security.sql` (email codes + profile change requests) |
+| 8 | `database/10_auto_save.sql` (history of the laptop's copies into `04`, `customers_in_order` view) |
+| 9 | `database/11_extra_features.sql` (activity log, statement, usage alerts, late fees, outage notices, meter replacement) |
 
 *(Skip `05_roles_and_grants.sql` on Supabase. `06_report_queries.sql` is optional practice.)*
 
@@ -45,7 +47,7 @@ You already connected Supabase to pgAdmin. We run the SQL files there.
 
 ✅ **Check:** run `SELECT * FROM calculate_bill_amount('Residential', 'Single Phase', 250);`. The total should be **2095.80**.
 
-**Already set up before?** Run **`09_account_security.sql`** again (it adds the tables for email codes and profile change requests, and the customer login codes). It is safe to run more than once. The backend will not start without it.
+**Already set up before?** Run **`11_extra_features.sql`** once (after 10). Also run **`10_auto_save.sql`** once, and **`09_account_security.sql`** again (it adds the tables for email codes and profile change requests, and the customer login codes). It is safe to run more than once. The backend will not start without it.
 
 > "relation already exists" error? You skipped 00. Run `00_reset.sql`, then 01 → 07 again.
 
@@ -119,7 +121,7 @@ npm install
 npm run dev
 ```
 
-✅ **Check:** open **http://localhost:5173**. Pick the **Admin** tab, type `PUMSadmin` / `PUMS@dmin578` → **Log in**. The dashboard appears with numbers and charts.
+✅ **Check:** open **http://localhost:5173**. Pick the **Admin** tab, type `PUMSadmin` / `<staff password>` → **Log in**. The dashboard appears with numbers and charts.
 
 ---
 
@@ -147,7 +149,8 @@ cd frontend && npm run dev
 | `'npm' is not recognized` | Node.js not installed, or terminal opened before installing | Install Node LTS, close and reopen VS Code |
 | `npm.ps1 cannot be loaded because running scripts is disabled` | PowerShell security setting | Run once: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, or switch the terminal to **Command Prompt** (the ˅ next to +) |
 | `Vite requires Node.js version 20.19+ or 22.12+` | Node too old | Install the current Node LTS |
-| Sign-ups are not in `database/04_sample_data.sql` | The backend runs on Render (no project folder there) or `SAVE_CUSTOMERS_TO_SQL_FILE=false` | On your computer: `cd backend && npm run db:save-customers` (copies them from Supabase into the file) |
+| Sign-ups are not in `database/04_sample_data.sql` | The laptop was off or the auto-save job is not on | On the laptop, once: `cd backend && npm run auto-save:on` (starts with Windows, copies every 10 minutes). Check with `npm run auto-save:status` |
+| `SELECT * FROM customers` shows CUST-201 first / numbers "missing" | Rows have no fixed order in PostgreSQL | `SELECT * FROM customers_in_order;` (or add `ORDER BY customer_number`) |
 | `[setup] These settings are missing: DB_HOST ...` | Step 2 not done / file named `.env.txt` | Create `backend/.env` (turn on "File name extensions" in Explorer to see `.txt`). On Render: add the settings on the Environment page |
 | `[database] ... tables for email codes and change requests are missing` | `09_account_security.sql` not run yet | Run it once in pgAdmin / Supabase SQL Editor |
 | `[database] The database is missing the newest change for customer login codes` | An older copy of `09_account_security.sql` was run | Run the newest `09_account_security.sql` again |
@@ -162,7 +165,7 @@ cd frontend && npm run dev
 | `Connected, but the project tables/functions are missing` | SQL files not run on this database | Do Step 1 (on the `postgres` database) |
 | `Port 5000 is already in use` | The backend is already running in another terminal | Close the other terminal (Ctrl + C) or change `PORT` |
 | Website says **"Cannot reach the server"** | Backend not running | Start it (Step 3) |
-| Login says **"Wrong email/username or password"** | Sample data not loaded, or typo | Run `04_sample_data.sql`; demo password is `admin123` / `customer123` |
+| Login says **"Wrong email/username or password"** | Sample data not loaded, or typo | Run `04_sample_data.sql`; demo logins are `PUMSadmin` / `<staff password>` (Admin tab) and `sumaiya.khanam` / `customer123` (Customer tab) |
 | Website blank / errors after changing `.env` | Vite reads `.env` only at start | Stop (Ctrl + C) and `npm run dev` again |
 | Opened `http://127.0.0.1:5173` and requests fail | The API only allows `localhost:5173` | Use **http://localhost:5173** or add it to `CLIENT_URL` |
 

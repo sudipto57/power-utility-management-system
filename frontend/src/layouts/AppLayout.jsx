@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import Topbar from '../components/layout/Topbar';
 import AnnouncementStrip from '../components/layout/AnnouncementStrip';
 import BackToTop from '../components/common/BackToTop';
+import { PageSkeleton } from '../components/common/Skeleton';
 import useAuth from '../hooks/useAuth';
 import useNotifications from '../hooks/useNotifications';
 
@@ -29,14 +30,14 @@ export default function AppLayout({ menu, roleLabel, role }) {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  // Browser tab title, e.g. "(1) My Bills · Power Utility Management System"
-  // Customers see how many bills they still have to pay.
-  const unpaidBills = notifications.filter((item) => item.unpaidBill).length;
+  // Browser tab title, e.g. "(2) My Bills · Power Utility Management System"
+  // Customers see how many unread messages are in their inbox.
+  const unread = role === 'customer' ? notifications.count : 0;
   const pageLabel = currentMenuLabel(menu, location.pathname);
   useEffect(() => {
-    const count = role === 'customer' && unpaidBills > 0 ? `(${unpaidBills}) ` : '';
+    const count = unread > 0 ? `(${unread}) ` : '';
     document.title = `${count}${pageLabel ? `${pageLabel} · ` : ''}${SITE_NAME}`;
-  }, [role, unpaidBills, pageLabel]);
+  }, [unread, pageLabel]);
 
   // Put the normal title back after logging out
   useEffect(() => {
@@ -61,7 +62,11 @@ export default function AppLayout({ menu, roleLabel, role }) {
           key={location.pathname}
           className="mx-auto w-full max-w-7xl animate-fade-in px-4 py-6 sm:px-6 lg:px-8 lg:py-8 print:p-0"
         >
-          <Outlet />
+          {/* Each page's code is downloaded the first time it is opened (see App.jsx);
+              meanwhile the menu stays and a page-shaped placeholder shows */}
+          <Suspense fallback={<PageSkeleton />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
       <BackToTop />

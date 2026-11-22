@@ -6,7 +6,7 @@ import { formatDate, formatMoney } from '../../utils/format';
 
 // Colour of each kind of line: charges in rose, money paid or taken off in green
 const TYPE_STYLES = {
-  Bill: 'bg-slate-100 text-slate-700',
+  Bill: 'bg-sand-100 text-sand-700',
   'Late fee': 'bg-rose-50 text-rose-700',
   Payment: 'bg-emerald-50 text-emerald-700',
   Waiver: 'bg-emerald-50 text-emerald-700',
@@ -42,7 +42,7 @@ export default function StatementTable({ statement, billLink }) {
       key: 'description',
       header: 'Details',
       // long details wrap onto a second line, so the Balance column always fits
-      render: (l) => <span className="block min-w-48 max-w-xs whitespace-normal text-slate-600">{l.description}</span>,
+      render: (l) => <span className="block min-w-48 max-w-xs whitespace-normal text-sand-600">{l.description}</span>,
     },
     {
       key: 'debit',
@@ -60,7 +60,7 @@ export default function StatementTable({ statement, billLink }) {
       key: 'balance',
       header: 'Balance',
       className: 'text-right',
-      render: (l) => <span className="font-extrabold text-slate-900">{formatMoney(l.balance)}</span>,
+      render: (l) => <span className="font-extrabold text-sand-900">{formatMoney(l.balance)}</span>,
     },
   ];
 

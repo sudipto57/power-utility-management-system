@@ -50,24 +50,24 @@ export default function MyRequests() {
               <Link
                 key={r.id}
                 to={`/my/requests/${r.id}`}
-                className="group animate-fade-up rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/70 transition hover:-translate-y-1 hover:shadow-lg"
+                className="group animate-fade-up rounded-2xl bg-white p-5 shadow-sm ring-1 ring-sand-200/70 transition hover:-translate-y-1 hover:shadow-lg"
                 style={{ animationDelay: `${index * 60}ms` }}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-mono text-xs font-bold text-slate-400">{r.request_number}</p>
-                    <p className="mt-1 font-bold text-slate-900">{r.category}</p>
+                    <p className="font-mono text-xs font-bold text-sand-500">{r.request_number}</p>
+                    <p className="mt-1 font-bold text-sand-900">{r.category}</p>
                   </div>
                   <StatusBadge status={r.status} />
                 </div>
-                <p className="mt-2 line-clamp-2 text-sm text-slate-600">{r.description}</p>
+                <p className="mt-2 line-clamp-2 text-sm text-sand-600">{r.description}</p>
 
                 {/* Progress bar: Pending -> In Progress -> Resolved */}
                 <div className="mt-5">
                   <RequestProgress status={r.status} />
                 </div>
 
-                <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
+                <div className="mt-4 flex items-center justify-between text-xs text-sand-500">
                   <span>
                     Sent {timeAgo(r.created_at)} · {r.comments_count} update(s)
                   </span>

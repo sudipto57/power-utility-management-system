@@ -4,7 +4,8 @@ import ApiError from '../utils/ApiError.js';
 import { generateNumber } from '../utils/generateNumber.js';
 import { BILL_STATUSES, PAYMENT_METHODS } from '../utils/constants.js';
 import { clean, optionalDate, optionalOneOf, optionalText, requireText, requireUuid } from '../utils/validate.js';
-import { billEmail, sendEmail } from '../utils/email.js';
+import { billEmail, formatDate, formatTaka, reminderEmail, sendEmail } from '../utils/email.js';
+import { notifyCustomer } from '../utils/notify.js';
 
 // One bill with its customer, meter, the reading it came from and how much is paid.
 // A bill belongs to the reading taken the day after the billing period ends.
@@ -18,7 +19,8 @@ export const BILL_SELECT = `
          c.address AS customer_address, c.phone AS customer_phone, c.email AS customer_email,
          mr.id AS reading_id, mr.previous_reading, mr.current_reading,
          (mr.current_reading - mr.previous_reading) AS consumption, mr.reading_date,
-         bb.late_fee, bb.waived, bb.amount_due, bb.paid_amount, bb.balance
+         bb.late_fee, bb.waived, bb.amount_due, bb.paid_amount, bb.balance,
+         (SELECT COUNT(*) FROM payments w WHERE w.bill_id = b.id AND w.status = 'Pending') AS waiting_payments
   FROM bills b
   JOIN bill_balance bb ON bb.bill_id = b.id
   JOIN connections co ON co.id = b.connection_id
@@ -105,8 +107,9 @@ async function calculateFromReading(db, readingId, { lock = false } = {}) {
   };
 }
 
-// GET /api/bills?search=&status=&customer_id=
+// GET /api/bills?search=&status=&customer_id=&waiting=yes   (waiting=yes: a customer paid online, staff must confirm)
 export async function listBills(req, res) {
+  const waiting = clean(req.query.waiting) === 'yes';
   const search = clean(req.query.search);
   const status = optionalOneOf(req.query.status, BILL_STATUSES, 'status');
   const customerId = clean(req.query.customer_id) ? requireUuid(req.query.customer_id, 'customer id') : null;
@@ -118,8 +121,9 @@ export async function listBills(req, res) {
             OR c.customer_number ILIKE $1 OR co.meter_number ILIKE $1)
        AND ($2::text IS NULL OR b.status = $2)
        AND ($3::uuid IS NULL OR c.id = $3)
+       AND (NOT $4::boolean OR EXISTS (SELECT 1 FROM payments w WHERE w.bill_id = b.id AND w.status = 'Pending'))
      ORDER BY b.billing_period_start DESC, b.bill_number DESC`,
-    [search ? `%${search}%` : null, status, customerId]
+    [search ? `%${search}%` : null, status, customerId, waiting]
   );
   res.json({ data: rows });
 }
@@ -181,6 +185,13 @@ export async function generateBill(req, res) {
     const { subject, html } = billEmail(bill);
     emailSent = await sendEmail({ to: bill.customer_email, name: bill.customer_name, subject, html });
   }
+  await notifyCustomer(bill.customer_id, {
+    kind: 'bill',
+    title: `New bill ${bill.bill_number}`,
+    message: `${bill.notes}. Total ${formatTaka(bill.total_amount)}, please pay by ${formatDate(bill.due_date)}.`,
+    link: `/my/bills/${bill.id}`,
+    refId: bill.id,
+  });
   res.status(201).json({ data: { ...bill, email_sent: emailSent } });
 }
 
@@ -195,6 +206,12 @@ export async function markBillPaid(req, res) {
   await withTransaction(async (client) => {
     const billResult = await client.query('SELECT id FROM bills WHERE id = $1 FOR UPDATE', [id]);
     if (!billResult.rows[0]) throw new ApiError(404, 'Bill not found');
+
+    // A customer's online payment must be confirmed or rejected first
+    const waiting = await client.query("SELECT 1 FROM payments WHERE bill_id = $1 AND status = 'Pending'", [id]);
+    if (waiting.rows[0]) {
+      throw new ApiError(409, 'The customer paid online and it is waiting. Confirm or reject that payment first');
+    }
 
     // A bill that became late since anyone last opened it gets its late fee first
     await client.query('SELECT check_overdue_bills()');
@@ -216,7 +233,8 @@ export async function markBillPaid(req, res) {
 }
 
 // POST /api/bills/:id/mark-unpaid
-// Removes the bill's payments; the trigger sets status back to Unpaid (or Overdue if late).
+// Removes the bill's completed payments; the trigger sets status back to Unpaid (or Overdue if late).
+// Failed online payments stay as history.
 export async function markBillUnpaid(req, res) {
   const id = requireUuid(req.params.id, 'bill id');
 
@@ -224,7 +242,7 @@ export async function markBillUnpaid(req, res) {
     const billResult = await client.query('SELECT id FROM bills WHERE id = $1 FOR UPDATE', [id]);
     if (!billResult.rows[0]) throw new ApiError(404, 'Bill not found');
 
-    const deleted = await client.query('DELETE FROM payments WHERE bill_id = $1', [id]);
+    const deleted = await client.query("DELETE FROM payments WHERE bill_id = $1 AND status = 'Completed'", [id]);
     if (deleted.rowCount === 0) throw new ApiError(409, 'This bill has no payments to remove');
 
     await client.query('SELECT check_overdue_bills()');
@@ -254,4 +272,102 @@ export async function waiveLateFee(req, res) {
   }, req.user.id);
 
   res.json({ data: await findBill(id) });
+}
+
+// ---------------------------------------------------------------------
+// Online payments from customers ("Pay now" on My Bills) wait as Pending.
+// ---------------------------------------------------------------------
+
+async function findPendingPayment(client, billId, paymentId) {
+  const { rows } = await client.query(
+    `SELECT pay.id, pay.payment_number, pay.amount, pay.status, b.bill_number, co.customer_id
+     FROM payments pay JOIN bills b ON b.id = pay.bill_id JOIN connections co ON co.id = b.connection_id
+     WHERE pay.id = $1 AND pay.bill_id = $2 FOR UPDATE OF pay`,
+    [paymentId, billId]
+  );
+  const payment = rows[0];
+  if (!payment) throw new ApiError(404, 'Payment not found');
+  if (payment.status !== 'Pending') throw new ApiError(409, `This payment is already ${payment.status.toLowerCase()}`);
+  return payment;
+}
+
+// POST /api/bills/:id/payments/:paymentId/confirm   -> Completed; the trigger marks the bill Paid
+export async function confirmPayment(req, res) {
+  const billId = requireUuid(req.params.id, 'bill id');
+  const paymentId = requireUuid(req.params.paymentId, 'payment id');
+
+  const payment = await withTransaction(async (client) => {
+    const found = await findPendingPayment(client, billId, paymentId);
+    await client.query(
+      "UPDATE payments SET status = 'Completed', notes = CONCAT_WS('. ', notes, 'Confirmed by ' || $1::text), updated_at = NOW() WHERE id = $2",
+      [req.user.name, paymentId]
+    );
+    return found;
+  }, req.user.id); // req.user.id: the activity log shows who confirmed it
+
+  await notifyCustomer(payment.customer_id, {
+    kind: 'payment',
+    title: `Payment ${payment.payment_number} confirmed`,
+    message: `Thank you! ${formatTaka(payment.amount)} for ${payment.bill_number} is received. Your receipt is ready.`,
+    link: `/my/payments/${paymentId}`,
+    refId: paymentId,
+  });
+  res.json({ data: await findBill(billId) });
+}
+
+// POST /api/bills/:id/payments/:paymentId/reject   body: { note }  -> Failed; the bill stays unpaid
+export async function rejectPayment(req, res) {
+  const billId = requireUuid(req.params.id, 'bill id');
+  const paymentId = requireUuid(req.params.paymentId, 'payment id');
+  const note = optionalText(req.body?.note, 'Note', 500);
+
+  const payment = await withTransaction(async (client) => {
+    const found = await findPendingPayment(client, billId, paymentId);
+    await client.query(
+      "UPDATE payments SET status = 'Failed', notes = CONCAT_WS('. ', notes, 'Not received: ' || $1::text), updated_at = NOW() WHERE id = $2",
+      [note || 'reference not found', paymentId]
+    );
+    await client.query('SELECT check_overdue_bills()');
+    return found;
+  }, req.user.id);
+
+  await notifyCustomer(payment.customer_id, {
+    kind: 'payment',
+    title: `Payment ${payment.payment_number} was not received`,
+    message: `We could not find your payment for ${payment.bill_number}.${note ? ` Office note: ${note}.` : ''} Please check the reference and pay again.`,
+    link: `/my/bills/${billId}`,
+    refId: paymentId,
+  });
+  res.json({ data: await findBill(billId) });
+}
+
+// POST /api/bills/send-reminders
+// Every bill that is overdue or due in the next 3 days gets an inbox message (and an email
+// when the customer has one). A bill gets at most one reminder every 3 days.
+export async function sendDueReminders(req, res) {
+  await query('SELECT check_overdue_bills()');
+  const { rows: bills } = await query(
+    `${BILL_SELECT}
+     WHERE b.status IN ('Unpaid', 'Partially Paid', 'Overdue') AND b.due_date <= CURRENT_DATE + 3
+       AND NOT EXISTS (SELECT 1 FROM notifications n
+                       WHERE n.ref_id = b.id AND n.kind = 'reminder' AND n.created_at > NOW() - INTERVAL '3 days')
+     ORDER BY b.due_date`
+  );
+
+  let emailed = 0;
+  for (const bill of bills) {
+    const late = bill.status === 'Overdue';
+    await notifyCustomer(bill.customer_id, {
+      kind: 'reminder',
+      title: late ? `${bill.bill_number} is overdue` : `${bill.bill_number} is due soon`,
+      message: `${formatTaka(bill.balance)} to pay, due ${formatDate(bill.due_date)}. You can pay online from My Bills.`,
+      link: `/my/bills/${bill.id}`,
+      refId: bill.id,
+    });
+    if (bill.customer_email) {
+      const { subject, html } = reminderEmail(bill);
+      if (await sendEmail({ to: bill.customer_email, name: bill.customer_name, subject, html })) emailed += 1;
+    }
+  }
+  res.json({ data: { reminded: bills.length, emailed } });
 }

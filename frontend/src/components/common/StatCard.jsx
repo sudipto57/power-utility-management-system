@@ -4,11 +4,11 @@ import { formatMoneyShort, formatNumber } from '../../utils/format';
 
 // Each colour: gradient icon chip + soft glow + bottom line
 const TONES = {
-  amber: { chip: 'from-amber-400 to-orange-500 shadow-orange-200', glow: 'from-amber-200/70', line: 'from-amber-400 to-orange-500' },
-  sky: { chip: 'from-sky-400 to-blue-500 shadow-sky-200', glow: 'from-sky-200/70', line: 'from-sky-400 to-blue-500' },
-  emerald: { chip: 'from-emerald-400 to-teal-500 shadow-emerald-200', glow: 'from-emerald-200/70', line: 'from-emerald-400 to-teal-500' },
-  rose: { chip: 'from-rose-400 to-pink-600 shadow-rose-200', glow: 'from-rose-200/70', line: 'from-rose-400 to-pink-600' },
-  violet: { chip: 'from-violet-500 to-fuchsia-500 shadow-violet-200', glow: 'from-violet-200/70', line: 'from-violet-500 to-fuchsia-500' },
+  amber: { chip: 'from-ember to-flame shadow-orange-200', glow: 'from-amber-200/70', line: 'from-ember to-flame' },
+  sky: { chip: 'from-sky-600 to-blue-600 shadow-sky-200', glow: 'from-sky-200/70', line: 'from-sky-600 to-blue-600' },
+  emerald: { chip: 'from-emerald-600 to-teal-600 shadow-emerald-200', glow: 'from-emerald-200/70', line: 'from-emerald-600 to-teal-600' },
+  rose: { chip: 'from-rose-600 to-pink-600 shadow-rose-200', glow: 'from-rose-200/70', line: 'from-rose-600 to-pink-600' },
+  violet: { chip: 'from-violet-600 to-fuchsia-600 shadow-violet-200', glow: 'from-violet-200/70', line: 'from-violet-600 to-fuchsia-600' },
 };
 
 /** Big animated number with an icon. format: 'number' | 'money' */
@@ -19,7 +19,7 @@ export default function StatCard({ label, value, icon = 'bolt', tone = 'amber', 
 
   return (
     <div
-      className="shine group relative animate-fade-up overflow-hidden rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/70 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/80"
+      className="shine group relative animate-fade-up overflow-hidden rounded-3xl bg-white p-5 shadow-sm ring-1 ring-sand-200/70 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-sand-200/80"
       style={{ animationDelay: `${delay}ms` }}
     >
       <div
@@ -27,14 +27,14 @@ export default function StatCard({ label, value, icon = 'bolt', tone = 'amber', 
       />
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">{label}</p>
+          <p className="text-[11px] font-extrabold uppercase tracking-wider text-sand-500">{label}</p>
           <p
-            className={`mt-2 truncate font-display font-extrabold tracking-tight text-slate-900 ${format === 'money' ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'}`}
+            className={`mt-2 truncate font-display font-extrabold tracking-tight text-sand-900 ${format === 'money' ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'}`}
             title={shown}
           >
             {shown}
           </p>
-          {hint && <p className="mt-1 truncate text-xs font-semibold text-slate-500">{hint}</p>}
+          {hint && <p className="mt-1 truncate text-xs font-semibold text-sand-500">{hint}</p>}
         </div>
         <span
           className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${colors.chip} text-white shadow-lg transition duration-300 group-hover:rotate-6 group-hover:scale-110`}

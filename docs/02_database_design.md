@@ -134,6 +134,7 @@ erDiagram
 | `audit_log` *(new, file 11)* | Activity log: one row for every insert, update or delete on customers, connections, readings, bills, payments, requests, bill adjustments, outage notices and meter replacements | filled only by the trigger `log_change()`; an UPDATE keeps only the columns that changed (`old_values` / `new_values` as JSONB); `changed_by` = the logged-in user the backend passes in `app.user_id` |
 | `outage_notices` *(new, file 11)* | Planned power cuts posted by the office (title, area, start, end, details) | CHECK `outage_notices_valid_times` (end after start). View `current_outage_notices` = the ones not ended yet, shown in the news strip |
 | `meter_replacements` *(new, file 11)* | History of meters swapped on a connection: old and new number, the old meter's final reading, the new meter's start reading, date, reason, who | new number ≠ old number; one replacement per connection per day |
+| `notifications` *(new, file 12)* | The customer's inbox (the bell): new bill, payment confirmed / not received, reading accepted / rejected, office reply, outage notice for their area, due reminder | belongs to the **customer** (`customer_id`, CASCADE), so a customer who makes a login later still sees it; `kind` CHECK; `is_read`; `ref_id` = the bill / payment / ... it is about (one due reminder per bill every 3 days) |
 
 ## Database logic (the DBMS part)
 
@@ -168,7 +169,13 @@ Example, 250 kWh residential single phase: 394.50 + 1,062.50 + 455.00 = **1,912.
 ## How "Paid / Unpaid" works
 
 - **Mark paid** inserts one `payments` row for the remaining balance → trigger sets the bill to **Paid**.
-- **Mark unpaid** deletes the bill's payments → trigger sets it to **Unpaid** (then `check_overdue_bills()` may make it **Overdue**).
+- **Mark unpaid** deletes the bill's completed payments → trigger sets it to **Unpaid** (then `check_overdue_bills()` may make it **Overdue**).
+- **Pay now** (customer, demo) inserts a payment with status **Pending**: the trigger only adds up **Completed** payments, so the bill stays unpaid. When staff **confirm** it, the row becomes Completed and the trigger sets **Paid**; **not received** makes it **Failed**.
+
+## Customer meter readings
+
+A customer can type their own meter reading. It is saved in `meter_readings` with status **Pending** (the column already allowed it), so the reading-sequence trigger and the bills ignore it. When staff **verify** it, its `previous_reading` is set to the last verified reading and the status becomes **Verified**; the trigger checks the sequence and it can be billed. **Rejected** readings are never used.
+The Meter & Usage page uses the newest Pending reading to show *units used so far*, a 30-day projection and the projected bill from `calculate_bill_amount()`.
 
 The status is never typed by hand, so it always matches the payments.
 

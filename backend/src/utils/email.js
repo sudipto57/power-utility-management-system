@@ -123,6 +123,24 @@ export function billEmail(bill) {
 }
 
 /** Answer to a profile change request */
+// Reminder for a bill that is due soon or overdue (POST /api/bills/send-reminders)
+export function reminderEmail(bill) {
+  const late = bill.status === 'Overdue';
+  return {
+    subject: late
+      ? `Reminder: bill ${bill.bill_number} is overdue (${formatTaka(bill.balance)})`
+      : `Reminder: bill ${bill.bill_number} is due on ${formatDate(bill.due_date)}`,
+    html: layout(
+      late ? 'Your bill is overdue' : 'Your bill is due soon',
+      `<p>Hello ${escapeHtml(bill.customer_name)},</p>
+       <p>Bill <b>${escapeHtml(bill.bill_number)}</b> for meter ${escapeHtml(bill.meter_number)} still has
+          <b>${formatTaka(bill.balance)}</b> to pay. The due date ${late ? 'was' : 'is'} <b>${formatDate(bill.due_date)}</b>.</p>
+       <p>You can pay online (Mobile Banking or Card) from My Bills. If you already paid, please ignore this email.</p>`,
+      { label: 'Pay my bill', url: `${env.appUrl}/my/bills/${bill.id}` }
+    ),
+  };
+}
+
 export function changeDecisionEmail(fullName, fieldLabel, newValue, approved, note) {
   return {
     subject: approved ? `Your ${fieldLabel.toLowerCase()} was changed` : `Your ${fieldLabel.toLowerCase()} change request was not approved`,
@@ -175,12 +193,13 @@ function layout(title, body, button) {
 }
 
 // 1537 -> "৳1,537.00" (Bangladeshi digit grouping, like the website)
-function formatTaka(value) {
+// Also used for the inbox messages (utils/notify.js callers)
+export function formatTaka(value) {
   return `৳${Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 // '2026-12-07' -> "07 Dec 2026"
-function formatDate(ymd) {
+export function formatDate(ymd) {
   const [year, month, day] = String(ymd).split('-');
   const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   return names[Number(month) - 1] ? `${day} ${names[Number(month) - 1]} ${year}` : String(ymd);

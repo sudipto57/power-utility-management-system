@@ -44,9 +44,17 @@ function publicUser(user) {
 
 // The login "ticket" the frontend keeps and sends with every request.
 // pv = password fingerprint: the ticket stops working when the password changes.
+// pl = the previous login time (read before last_login is updated), for "new since your last visit".
 function makeToken(user) {
   return jwt.sign(
-    { id: user.id, role: user.role, customerId: user.customer_id, name: user.full_name, pv: passwordVersion(user.password_hash) },
+    {
+      id: user.id,
+      role: user.role,
+      customerId: user.customer_id,
+      name: user.full_name,
+      pv: passwordVersion(user.password_hash),
+      pl: user.last_login || null,
+    },
     env.jwtSecret,
     { expiresIn: env.jwtExpiresIn, algorithm: 'HS256' }
   );

@@ -51,6 +51,7 @@ export async function requireAuth(req, res, next) {
     role: payload.role,
     customerId: payload.customerId || null,
     name: payload.name,
+    previousLogin: payload.pl || null, // the login BEFORE this one (for "new since you last logged in")
   };
   return next();
 }

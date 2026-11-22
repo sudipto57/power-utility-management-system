@@ -43,14 +43,15 @@ src/
 ├── utils/        format (money, dates), options (dropdown values), ui (shared classes), routes, time (morning/afternoon/evening/night)
 ├── App.jsx       every page/route in one place
 ├── main.jsx      starts React
-└── index.css     Tailwind + animations (fade-up, scale-in, shimmer, flow, glow ...) + dark mode colours
+└── index.css     Tailwind + "Warm Sunrise" colours (sand greys, deep ember/flame/dusk) + animations (fade-up, scale-in, shimmer, flow ...) + dark mode colours
 
 public/videos/   hero-loop.webm (first-page background) + demo.mp4 ("Watch demo"), each with a poster .jpg
 ```
 
 Every page handles three states: **loading** (skeletons), **empty** (friendly message) and **error** (message + "Try again").
 Animations are switched off automatically for people who turn on "reduce motion" in their system settings.
+Each page's code is downloaded only when it is first opened (`React.lazy` in `App.jsx`), so the first page loads faster.
 
 Money is shown in Bangladeshi Taka: `৳1,537.00`, with Bangladeshi digit grouping (`৳3,08,896.40`) and lakh / crore on stat cards (`৳3.09 lakh`). To change it, edit `CURRENCY` and `LOCALE` in `src/utils/format.js`.
 
-**Dark mode:** the sun / moon button (`ThemeToggle`) adds the class `dark` to the page and saves the choice in the browser (`localStorage`). The `.dark { ... }` block in `src/index.css` swaps the colour values, so the same Tailwind classes (`bg-white`, `text-slate-900` ...) turn dark by themselves. A small script in `index.html` sets dark mode before the page shows, so there is no white flash. Printed bills always stay light.
+**Dark mode:** the sun / moon button (`ThemeToggle`) adds the class `dark` to the page and saves the choice in the browser (`localStorage`). The `.dark { ... }` block in `src/index.css` swaps the colour values, so the same Tailwind classes (`bg-white`, `text-sand-900` ...) turn dark by themselves. A small script in `index.html` sets dark mode before the page shows, so there is no white flash. Printed bills always stay light.

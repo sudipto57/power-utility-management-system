@@ -17,7 +17,7 @@ const STATUS_TONES = {
   Pending: 'from-amber-400 to-amber-500',
   'In Progress': 'from-sky-400 to-sky-500',
   Resolved: 'from-emerald-400 to-emerald-500',
-  Cancelled: 'from-slate-300 to-slate-400',
+  Cancelled: 'from-sand-300 to-sand-400',
 };
 
 export default function RequestList() {
@@ -44,15 +44,15 @@ export default function RequestList() {
     {
       key: 'request_number',
       header: 'Request',
-      render: (r) => <span className="font-mono font-bold text-slate-900">{r.request_number}</span>,
+      render: (r) => <span className="font-mono font-bold text-sand-900">{r.request_number}</span>,
     },
     {
       key: 'customer_name',
       header: 'Customer',
       render: (r) => (
         <div>
-          <p className="font-semibold text-slate-800">{r.customer_name}</p>
-          <p className="text-xs text-slate-500">{r.customer_number}</p>
+          <p className="font-semibold text-sand-800">{r.customer_name}</p>
+          <p className="text-xs text-sand-500">{r.customer_number}</p>
         </div>
       ),
     },
@@ -61,8 +61,8 @@ export default function RequestList() {
       header: 'Problem',
       render: (r) => (
         <div className="max-w-xs">
-          <p className="font-semibold text-slate-800">{r.category}</p>
-          <p className="truncate text-xs text-slate-500">{r.description}</p>
+          <p className="font-semibold text-sand-800">{r.category}</p>
+          <p className="truncate text-xs text-sand-500">{r.description}</p>
         </div>
       ),
     },
@@ -71,12 +71,12 @@ export default function RequestList() {
     {
       key: 'assigned_to_name',
       header: 'Assigned to',
-      render: (r) => r.assigned_to_name || <span className="text-slate-400">nobody yet</span>,
+      render: (r) => r.assigned_to_name || <span className="text-sand-500">nobody yet</span>,
     },
     {
       key: 'created_at',
       header: 'Received',
-      render: (r) => <span className="text-xs text-slate-500">{timeAgo(r.created_at)}</span>,
+      render: (r) => <span className="text-xs text-sand-500">{timeAgo(r.created_at)}</span>,
     },
   ];
 
@@ -91,19 +91,19 @@ export default function RequestList() {
             type="button"
             onClick={() => setStatus(status === s ? '' : s)}
             className={`group relative animate-fade-up overflow-hidden rounded-2xl bg-white p-4 text-left shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-md ${
-              status === s ? 'ring-2 ring-slate-900' : 'ring-slate-200/70'
+              status === s ? 'ring-2 ring-sand-900' : 'ring-sand-200/70'
             }`}
             style={{ animationDelay: `${index * 60}ms` }}
           >
             <span className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${STATUS_TONES[s]}`} />
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{s}</p>
-            <p className="mt-1 text-2xl font-extrabold text-slate-900">{all.data ? counts[s] : '…'}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-sand-500">{s}</p>
+            <p className="mt-1 text-2xl font-extrabold text-sand-900">{all.data ? counts[s] : '…'}</p>
           </button>
         ))}
       </div>
 
       <Card bodyClassName="p-0" className="animate-fade-up" style={{ animationDelay: '120ms' }}>
-        <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 p-4">
+        <div className="flex flex-wrap items-center gap-3 border-b border-sand-100 p-4">
           <SearchBar
             value={search}
             onChange={setSearch}

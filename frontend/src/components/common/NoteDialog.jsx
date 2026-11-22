@@ -35,7 +35,7 @@ export default function NoteDialog({
         </>
       }
     >
-      {message && <p className="mb-4 text-sm text-slate-600">{message}</p>}
+      {message && <p className="mb-4 text-sm text-sand-600">{message}</p>}
       <Field label={label}>
         <Textarea rows={3} maxLength={500} value={note} onChange={(event) => setNote(event.target.value)} />
       </Field>

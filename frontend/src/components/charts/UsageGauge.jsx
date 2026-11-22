@@ -7,9 +7,9 @@ const HIGH = 400; // up to 400 kWh -> amber, above -> red
 const MAX = 600; // the right end of the dial
 
 function levelFor(units) {
-  if (units <= LOW) return { label: 'Low use', color: '#10b981', text: 'text-emerald-600' };
-  if (units <= HIGH) return { label: 'Medium use', color: '#f59e0b', text: 'text-amber-600' };
-  return { label: 'High use', color: '#f43f5e', text: 'text-rose-600' };
+  if (units <= LOW) return { label: 'Low use', color: '#009e73', text: 'text-emerald-600' };
+  if (units <= HIGH) return { label: 'Medium use', color: '#e69f00', text: 'text-amber-600' };
+  return { label: 'High use', color: '#d55e00', text: 'text-rose-600' };
 }
 
 /** Half-circle dial. The needle swings from 0 to `units` when the page opens. */
@@ -28,7 +28,7 @@ export default function UsageGauge({ units = 0 }) {
     <div className="flex flex-col items-center">
       <svg viewBox="0 0 200 116" className="w-full max-w-xs" role="img" aria-label={`${units} kWh, ${level.label}`}>
         {/* Grey track */}
-        <path d="M20 100 A80 80 0 0 1 180 100" fill="none" className="stroke-slate-100" strokeWidth="16" strokeLinecap="round" />
+        <path d="M20 100 A80 80 0 0 1 180 100" fill="none" className="stroke-sand-100" strokeWidth="16" strokeLinecap="round" />
         {/* Coloured arc that grows to the value (pathLength=100 makes it a simple percentage) */}
         <path
           d="M20 100 A80 80 0 0 1 180 100"
@@ -50,7 +50,7 @@ export default function UsageGauge({ units = 0 }) {
               x={100 + Math.cos(a) * 62}
               y={100 - Math.sin(a) * 62 + 4}
               textAnchor="middle"
-              className="fill-slate-400 text-[8px] font-bold"
+              className="fill-sand-400 text-[8px] font-bold"
             >
               {mark}
             </text>
@@ -58,14 +58,14 @@ export default function UsageGauge({ units = 0 }) {
         })}
         {/* Needle */}
         <g style={{ transform: `rotate(${angle}deg)`, transformOrigin: '100px 100px', transition: 'transform 1.4s cubic-bezier(0.2, 0.8, 0.2, 1)' }}>
-          <path d="M97 100 L100 34 L103 100 Z" className="fill-slate-900" />
+          <path d="M97 100 L100 34 L103 100 Z" className="fill-sand-900" />
         </g>
         {/* Classes (not fixed colours) so the needle follows light / dark mode */}
-        <circle cx="100" cy="100" r="8" className="fill-slate-900" />
+        <circle cx="100" cy="100" r="8" className="fill-sand-900" />
         <circle cx="100" cy="100" r="3" className="fill-white" />
       </svg>
-      <p className="-mt-1 font-display text-3xl font-extrabold tracking-tight text-slate-900">
-        {formatNumber(units)} <span className="text-base font-bold text-slate-400">kWh</span>
+      <p className="-mt-1 font-display text-3xl font-extrabold tracking-tight text-sand-900">
+        {formatNumber(units)} <span className="text-base font-bold text-sand-500">kWh</span>
       </p>
       <p className={`text-sm font-extrabold ${level.text}`}>{level.label}</p>
     </div>

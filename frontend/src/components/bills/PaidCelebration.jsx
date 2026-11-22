@@ -29,7 +29,7 @@ export default function PaidCelebration({ billNumber, onDone }) {
 
   // Shown straight in <body> so it always covers the whole screen
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 backdrop-blur-[2px] print:hidden" onClick={onDone}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-sand-900/20 backdrop-blur-[2px] print:hidden" onClick={onDone}>
       <div className="relative flex animate-scale-in flex-col items-center rounded-3xl bg-white px-10 py-8 shadow-2xl">
         {/* Confetti */}
         {PIECES.map((p, i) => (
@@ -55,8 +55,8 @@ export default function PaidCelebration({ billNumber, onDone }) {
             className="animate-draw"
           />
         </svg>
-        <p className="mt-4 font-display text-xl font-extrabold text-slate-900">Payment recorded!</p>
-        <p className="mt-1 text-sm font-semibold text-slate-500">{billNumber} is now Paid</p>
+        <p className="mt-4 font-display text-xl font-extrabold text-sand-900">Payment recorded</p>
+        <p className="mt-1 text-sm font-semibold text-sand-500">{billNumber} is now Paid</p>
       </div>
     </div>,
     document.body

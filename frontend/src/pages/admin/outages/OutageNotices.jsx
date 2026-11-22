@@ -16,7 +16,7 @@ import { formatDateTime, formatNumber } from '../../../utils/format';
 const STATE_STYLES = {
   'Happening now': 'bg-rose-50 text-rose-700 ring-rose-200',
   Planned: 'bg-amber-50 text-amber-700 ring-amber-200',
-  Ended: 'bg-slate-100 text-slate-600 ring-slate-200',
+  Ended: 'bg-sand-100 text-sand-600 ring-sand-200',
 };
 
 /** ISO time from the API -> the "2026-11-25T10:00" text a datetime-local input needs (local time). */
@@ -135,8 +135,8 @@ export default function OutageNotices() {
       header: 'Notice',
       render: (o) => (
         <div>
-          <p className="font-semibold text-slate-900">{o.title}</p>
-          <p className="text-xs text-slate-500">
+          <p className="font-semibold text-sand-900">{o.title}</p>
+          <p className="text-xs text-sand-500">
             {o.area} · {formatNumber(o.customers_reached)} customer(s)
           </p>
         </div>

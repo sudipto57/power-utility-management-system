@@ -80,15 +80,15 @@ export default function BillList() {
     {
       key: 'bill_number',
       header: 'Bill',
-      render: (b) => <span className="font-mono font-bold text-slate-900">{b.bill_number}</span>,
+      render: (b) => <span className="font-mono font-bold text-sand-900">{b.bill_number}</span>,
     },
     {
       key: 'customer_name',
       header: 'Customer',
       render: (b) => (
         <div>
-          <p className="font-semibold text-slate-800">{b.customer_name}</p>
-          <p className="text-xs text-slate-500">{b.meter_number}</p>
+          <p className="font-semibold text-sand-800">{b.customer_name}</p>
+          <p className="text-xs text-sand-500">{b.meter_number}</p>
         </div>
       ),
     },
@@ -107,7 +107,7 @@ export default function BillList() {
       key: 'total_amount',
       header: 'Amount',
       className: 'text-right',
-      render: (b) => <span className="font-semibold text-slate-900">{formatMoney(b.total_amount)}</span>,
+      render: (b) => <span className="font-semibold text-sand-900">{formatMoney(b.total_amount)}</span>,
     },
     {
       key: 'due_date',
@@ -159,7 +159,7 @@ export default function BillList() {
       />
 
       <Card bodyClassName="p-0" className="animate-fade-up" style={{ animationDelay: '80ms' }}>
-        <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 p-4">
+        <div className="flex flex-wrap items-center gap-3 border-b border-sand-100 p-4">
           <SearchBar
             value={search}
             onChange={setSearch}
@@ -173,7 +173,7 @@ export default function BillList() {
                 type="button"
                 onClick={() => setStatus(s)}
                 className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                  status === s ? 'bg-slate-900 text-white shadow dark:bg-orange-500' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  status === s ? 'bg-sand-900 text-white shadow dark:bg-orange-500' : 'bg-sand-100 text-sand-600 hover:bg-sand-200'
                 }`}
               >
                 {s || 'All'}
@@ -191,12 +191,12 @@ export default function BillList() {
           </div>
         </div>
         {data && data.length > 0 && (
-          <div className="flex flex-wrap gap-6 border-b border-slate-100 bg-slate-50/60 px-5 py-3 text-xs text-slate-600">
+          <div className="flex flex-wrap gap-6 border-b border-sand-100 bg-sand-50/60 px-5 py-3 text-xs text-sand-600">
             <span>
-              <b className="text-slate-900">{data.length}</b> bills
+              <b className="text-sand-900">{data.length}</b> bills
             </span>
             <span>
-              Billed: <b className="text-slate-900">{formatMoney(totals.billed)}</b>
+              Billed: <b className="text-sand-900">{formatMoney(totals.billed)}</b>
             </span>
             <span>
               Still to collect: <b className="text-rose-600">{formatMoney(totals.balance)}</b>

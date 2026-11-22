@@ -76,7 +76,7 @@ export default function MyRequestDetails() {
               </Button>
             </form>
           ) : (
-            <p className="mt-6 rounded-xl bg-slate-100 px-4 py-3 text-xs font-semibold text-slate-500">
+            <p className="mt-6 rounded-xl bg-sand-100 px-4 py-3 text-xs font-semibold text-sand-500">
               This request is {r.status.toLowerCase()}. Still need help? Send a new request.
             </p>
           )}

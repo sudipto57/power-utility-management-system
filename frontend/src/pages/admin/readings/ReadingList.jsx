@@ -68,20 +68,20 @@ export default function ReadingList() {
     {
       key: 'reading_date',
       header: 'Date',
-      render: (r) => <span className="font-semibold text-slate-800">{formatDate(r.reading_date)}</span>,
+      render: (r) => <span className="font-semibold text-sand-800">{formatDate(r.reading_date)}</span>,
     },
     {
       key: 'meter_number',
       header: 'Meter',
-      render: (r) => <span className="font-mono font-bold text-slate-900">{r.meter_number}</span>,
+      render: (r) => <span className="font-mono font-bold text-sand-900">{r.meter_number}</span>,
     },
     {
       key: 'customer_name',
       header: 'Customer',
       render: (r) => (
         <div>
-          <p className="font-semibold text-slate-800">{r.customer_name}</p>
-          <p className="text-xs text-slate-500">
+          <p className="font-semibold text-sand-800">{r.customer_name}</p>
+          <p className="text-xs text-sand-500">
             {r.customer_number}
             {r.recorded_by_role === 'customer' && <span className="ml-1.5 font-bold text-sky-700">· sent by customer</span>}
           </p>
@@ -94,7 +94,7 @@ export default function ReadingList() {
       key: 'consumption',
       header: 'Used',
       className: 'text-right',
-      render: (r) => <span className="font-bold text-slate-900">{formatNumber(r.consumption)} kWh</span>,
+      render: (r) => <span className="font-bold text-sand-900">{formatNumber(r.consumption)} kWh</span>,
     },
     { key: 'status', header: 'Status', render: (r) => <StatusBadge status={r.status} /> },
     {
@@ -112,7 +112,7 @@ export default function ReadingList() {
             </Button>
           </div>
         ) : r.status === 'Rejected' ? (
-          <span className="text-xs text-slate-400">Not used</span>
+          <span className="text-xs text-sand-500">Not used</span>
         ) : r.bill_id ? (
           <Link
             to={`/admin/bills/${r.bill_id}`}
@@ -150,15 +150,15 @@ export default function ReadingList() {
         }
       />
       <Card bodyClassName="p-0" className="animate-fade-up" style={{ animationDelay: '80ms' }}>
-        <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 p-4">
-          <div className="flex flex-wrap rounded-xl bg-slate-100 p-1">
+        <div className="flex flex-wrap items-center gap-3 border-b border-sand-100 p-4">
+          <div className="flex flex-wrap rounded-xl bg-sand-100 p-1">
             {TABS.map((item) => (
               <button
                 key={item.value}
                 type="button"
                 onClick={() => setTab(item.value)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-                  tab === item.value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  tab === item.value ? 'bg-white text-sand-900 shadow-sm' : 'text-sand-500 hover:text-sand-800'
                 }`}
               >
                 {item.label}
@@ -166,7 +166,7 @@ export default function ReadingList() {
             ))}
           </div>
           <SearchBar value={search} onChange={setSearch} placeholder="Search meter or customer..." className="min-w-60 flex-1" />
-          {data && <span className="text-xs font-semibold text-slate-500">{data.length} found</span>}
+          {data && <span className="text-xs font-semibold text-sand-500">{data.length} found</span>}
         </div>
         {error ? (
           <div className="p-5">
@@ -184,7 +184,7 @@ export default function ReadingList() {
             }
             emptyText={
               tab === 'no'
-                ? 'Nice! Nothing is waiting for a bill.'
+                ? 'Nothing is waiting for a bill.'
                 : tab === 'pending'
                   ? 'Readings that customers send from their Meter & Usage page appear here.'
                   : undefined

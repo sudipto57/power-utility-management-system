@@ -32,6 +32,23 @@ const SLAB_SPLIT_SQL = `
   FROM filled
   ORDER BY slab_order`;
 
+/** The price bands of the active tariff, cheapest first: [{ slab_order, start_unit, end_unit, rate_per_unit }] */
+export async function activeSlabs(customerType, connectionType) {
+  const { rows } = await query(
+    `SELECT s.slab_order, s.start_unit, s.end_unit, s.rate_per_unit
+     FROM tariff_slabs s
+     WHERE s.tariff_id = (
+       SELECT t.id FROM tariffs t
+       WHERE t.customer_type = $1 AND t.connection_type = $2
+         AND t.is_active = TRUE AND t.effective_from <= CURRENT_DATE
+         AND (t.effective_to IS NULL OR t.effective_to >= CURRENT_DATE)
+       ORDER BY t.effective_from DESC LIMIT 1)
+     ORDER BY s.slab_order`,
+    [customerType, connectionType]
+  );
+  return rows;
+}
+
 // GET /api/tariffs/estimate?customer_type=Residential&connection_type=Single Phase&units=250
 export async function estimateBill(req, res) {
   const customerType = requireOneOf(req.query.customer_type, CUSTOMER_TYPES, 'Customer type');

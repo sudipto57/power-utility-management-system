@@ -10,8 +10,8 @@ export default function InfoRow({ icon, label, children }) {
         </span>
       )}
       <div className="min-w-0">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
-        <div className="mt-0.5 break-words text-sm font-bold text-slate-800">{children || '-'}</div>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-sand-500">{label}</p>
+        <div className="mt-0.5 break-words text-sm font-bold text-sand-800">{children || '-'}</div>
       </div>
     </div>
   );

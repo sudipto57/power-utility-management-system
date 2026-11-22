@@ -2,16 +2,22 @@ import { useMemo } from 'react';
 import ChartCanvas from './ChartCanvas';
 import { formatNumber } from '../../utils/format';
 
+// Each line gets its own point shape and dash, so lines differ by more than colour
+const POINTS = ['circle', 'rectRot', 'triangle', 'rect'];
+const DASHES = [[], [6, 4], [2, 3], [10, 4]];
+
 /** Smooth line with a soft filled area. series: [{ label, data, color }] */
 export default function LineChart({ labels, series, height = 280 }) {
   const data = useMemo(
     () => ({
       labels,
-      datasets: series.map((s) => ({
+      datasets: series.map((s, i) => ({
         label: s.label,
         data: s.data,
         borderColor: s.color,
         backgroundColor: `${s.color}22`,
+        borderDash: DASHES[i % DASHES.length],
+        pointStyle: POINTS[i % POINTS.length],
         pointBackgroundColor: '#fff',
         pointBorderColor: s.color,
         pointBorderWidth: 2,

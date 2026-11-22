@@ -26,8 +26,8 @@ Academic DBMS project, built by beginners as a simple and finishable full-stack 
 **You need:** Node.js 22.12 or newer (Node 24 / 26 LTS recommended), pgAdmin 4, and your Supabase project (or a local PostgreSQL).
 
 1. **Database:** in pgAdmin, open the Query Tool on your database and run the files in `database/` in this order:
-   `00_reset.sql` → `01_create_tables.sql` → `02_billing_tables.sql` → `03_functions_triggers_views.sql` → `04_sample_data.sql` → `07_supabase_security.sql` (Supabase only) → `09_account_security.sql` → `10_auto_save.sql` → `11_extra_features.sql`.
-   The backend does not start without `09` and `11`. Full table: [database/README.md](database/README.md).
+   `00_reset.sql` → `01_create_tables.sql` → `02_billing_tables.sql` → `03_functions_triggers_views.sql` → `04_sample_data.sql` → `07_supabase_security.sql` (Supabase only) → `09_account_security.sql` → `10_auto_save.sql` → `11_extra_features.sql` → `12_customer_inbox.sql`.
+   The backend does not start without `09`, `11` and `12`. Full table: [database/README.md](database/README.md).
 2. **Backend settings:** copy `backend/.env.example` to `backend/.env` and fill in the same host / user / password that work in pgAdmin.
 3. **Start the API** (terminal 1):
    ```bash

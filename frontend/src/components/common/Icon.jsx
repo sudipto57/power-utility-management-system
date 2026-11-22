@@ -293,6 +293,52 @@ const ICONS = {
       <path d="M9 18c-4.51 2-5-2-7-2" />
     </>
   ),
+  // Home appliances (bill calculator helper and energy tips)
+  fan: (
+    <>
+      <path d="M10.83 16.38a6 6 0 0 1-8.62-7l5.41 1.45a6 6 0 0 1 7-8.62l-1.45 5.41a6 6 0 0 1 8.62 7l-5.41-1.45a6 6 0 0 1-7 8.62l1.45-5.41Z" />
+      <path d="M12 12v.01" />
+    </>
+  ),
+  snow: <path d="M12 2v20M4.93 4.93l14.14 14.14M2 12h20M4.93 19.07 19.07 4.93" />,
+  fridge: (
+    <>
+      <rect x="5" y="2" width="14" height="20" rx="2" />
+      <path d="M5 10h14M9 5v2M9 13v3" />
+    </>
+  ),
+  tv: (
+    <>
+      <rect x="2" y="7" width="20" height="14" rx="2" />
+      <path d="m17 2-5 5-5-5" />
+    </>
+  ),
+  laptop: (
+    <>
+      <rect x="4" y="4" width="16" height="11" rx="2" />
+      <path d="M2 20h20" />
+    </>
+  ),
+  droplet: <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5S12.5 5.5 12 3c-.5 2.5-2 4.9-4 6.5S5 13 5 15a7 7 0 0 0 7 7Z" />,
+  shirt: (
+    <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23Z" />
+  ),
+  pot: (
+    <>
+      <path d="M4 10h16v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z" />
+      <path d="M2 10h20M9 6h6M12 6V4" />
+    </>
+  ),
+  washer: (
+    <>
+      <rect x="4" y="2" width="16" height="20" rx="2" />
+      <circle cx="12" cy="13" r="5" />
+      <path d="M8 6h.01M11 6h.01" />
+    </>
+  ),
+  wrench: (
+    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z" />
+  ),
 };
 
 export default function Icon({ name, className = 'h-5 w-5', strokeWidth = 1.9 }) {

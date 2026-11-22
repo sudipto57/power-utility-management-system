@@ -64,6 +64,13 @@ async function checkDatabase() {
     console.error('           Run database/11_extra_features.sql (pgAdmin or the Supabase SQL Editor). It is safe to run again.\n');
     return false;
   }
+  // 21 Nov 2026: the customer inbox (the bell, reminders, messages about bills, payments and readings)
+  const inbox = await pool.query("SELECT to_regclass('public.notifications') AS inbox_table");
+  if (!inbox.rows[0].inbox_table) {
+    console.error('\n[database] Connected, but the table for the customer inbox is missing.');
+    console.error('           Run database/12_customer_inbox.sql once (pgAdmin or the Supabase SQL Editor).\n');
+    return false;
+  }
   return true;
 }
 

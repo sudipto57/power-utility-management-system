@@ -8,7 +8,7 @@ Chart.defaults.font.size = 12;
 Chart.defaults.font.weight = 600; // bolder chart labels
 Chart.defaults.plugins.legend.labels.usePointStyle = true;
 Chart.defaults.plugins.legend.labels.boxWidth = 8;
-Chart.defaults.plugins.tooltip.backgroundColor = '#0f172a';
+Chart.defaults.plugins.tooltip.backgroundColor = '#1f1a15';
 Chart.defaults.plugins.tooltip.padding = 10;
 Chart.defaults.plugins.tooltip.cornerRadius = 10;
 
@@ -22,8 +22,8 @@ export default function ChartCanvas({ type, data, options, height = 280 }) {
 
   useEffect(() => {
     // Text and grid-line colours for light / dark mode (the chart is drawn again when the mode changes)
-    Chart.defaults.color = dark ? '#94a3b8' : '#64748b';
-    Chart.defaults.borderColor = dark ? '#1e293b' : '#f1f5f9';
+    Chart.defaults.color = dark ? '#a89f92' : '#7a7064';
+    Chart.defaults.borderColor = dark ? '#3a332b' : '#e9e2d8';
     const chart = new Chart(canvasRef.current, {
       type,
       data,

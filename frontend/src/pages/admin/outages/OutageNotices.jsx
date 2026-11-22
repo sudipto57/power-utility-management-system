@@ -11,12 +11,12 @@ import DataTable from '../../../components/common/DataTable';
 import ErrorState from '../../../components/common/ErrorState';
 import FormError from '../../../components/common/FormError';
 import { Field, Input, Textarea } from '../../../components/common/FormField';
-import { formatDateTime } from '../../../utils/format';
+import { formatDateTime, formatNumber } from '../../../utils/format';
 
 const STATE_STYLES = {
   'Happening now': 'bg-rose-50 text-rose-700 ring-rose-200',
   Planned: 'bg-amber-50 text-amber-700 ring-amber-200',
-  Ended: 'bg-slate-100 text-slate-600 ring-slate-200',
+  Ended: 'bg-sand-100 text-sand-600 ring-sand-200',
 };
 
 /** ISO time from the API -> the "2026-11-25T10:00" text a datetime-local input needs (local time). */
@@ -82,7 +82,12 @@ function OutageForm({ notice, onClose, onSaved }) {
         <Field label="Title" required className="sm:col-span-2" hint="e.g. Transformer repair">
           <Input value={form.title} onChange={set('title')} maxLength={120} />
         </Field>
-        <Field label="Area" required className="sm:col-span-2" hint="e.g. Mirpur 10, Dhaka">
+        <Field
+          label="Area"
+          required
+          className="sm:col-span-2"
+          hint="e.g. Mirpur 10, Dhaka. Customers whose address has the first place (Mirpur 10) see it, or type All areas"
+        >
           <Input value={form.area} onChange={set('area')} maxLength={150} />
         </Field>
         <Field label="Power off from" required>
@@ -130,8 +135,10 @@ export default function OutageNotices() {
       header: 'Notice',
       render: (o) => (
         <div>
-          <p className="font-semibold text-slate-900">{o.title}</p>
-          <p className="text-xs text-slate-500">{o.area}</p>
+          <p className="font-semibold text-sand-900">{o.title}</p>
+          <p className="text-xs text-sand-500">
+            {o.area} · {formatNumber(o.customers_reached)} customer(s)
+          </p>
         </div>
       ),
     },
@@ -200,7 +207,7 @@ export default function OutageNotices() {
           onClose={() => setEditing(null)}
           onSaved={(saved) => {
             setEditing(null);
-            toast.success(`Notice "${saved.title}" saved`);
+            toast.success(`Notice "${saved.title}" saved. ${formatNumber(saved.customers_reached)} customer(s) in this area see it`);
             reload();
           }}
         />

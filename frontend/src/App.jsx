@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import useAuth from './hooks/useAuth';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -7,37 +8,43 @@ import PageLoader from './components/common/PageLoader';
 import { homePathFor } from './utils/routes';
 
 import Login from './pages/auth/Login';
-import NotFound from './pages/NotFound';
 
-import Dashboard from './pages/admin/Dashboard';
-import CustomerList from './pages/admin/customers/CustomerList';
-import CustomerForm from './pages/admin/customers/CustomerForm';
-import CustomerProfile from './pages/admin/customers/CustomerProfile';
-import ConnectionList from './pages/admin/connections/ConnectionList';
-import ConnectionForm from './pages/admin/connections/ConnectionForm';
-import ConnectionDetails from './pages/admin/connections/ConnectionDetails';
-import ReadingList from './pages/admin/readings/ReadingList';
-import ReadingEntry from './pages/admin/readings/ReadingEntry';
-import BillList from './pages/admin/bills/BillList';
-import GenerateBill from './pages/admin/bills/GenerateBill';
-import BillDetails from './pages/admin/bills/BillDetails';
-import RequestList from './pages/admin/requests/RequestList';
-import RequestDetails from './pages/admin/requests/RequestDetails';
-import Reports from './pages/admin/reports/Reports';
-import CustomerStatement from './pages/admin/customers/CustomerStatement';
-import UsageAlerts from './pages/admin/readings/UsageAlerts';
-import ActivityLog from './pages/admin/activity/ActivityLog';
-import OutageNotices from './pages/admin/outages/OutageNotices';
+// Every other page is loaded only when someone opens it (React.lazy), so the first page appears faster.
+// While a page loads, the layout shows a placeholder (Suspense in layouts/AppLayout.jsx).
+const NotFound = lazy(() => import('./pages/NotFound'));
 
-import MyDashboard from './pages/customer/MyDashboard';
-import MyProfile from './pages/customer/MyProfile';
-import MyBills from './pages/customer/MyBills';
-import MyBillDetails from './pages/customer/MyBillDetails';
-import MyRequests from './pages/customer/MyRequests';
-import MyRequestDetails from './pages/customer/MyRequestDetails';
-import NewRequest from './pages/customer/NewRequest';
-import MyFeedback from './pages/customer/MyFeedback';
-import MyStatement from './pages/customer/MyStatement';
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const CustomerList = lazy(() => import('./pages/admin/customers/CustomerList'));
+const CustomerForm = lazy(() => import('./pages/admin/customers/CustomerForm'));
+const CustomerProfile = lazy(() => import('./pages/admin/customers/CustomerProfile'));
+const ConnectionList = lazy(() => import('./pages/admin/connections/ConnectionList'));
+const ConnectionForm = lazy(() => import('./pages/admin/connections/ConnectionForm'));
+const ConnectionDetails = lazy(() => import('./pages/admin/connections/ConnectionDetails'));
+const ReadingList = lazy(() => import('./pages/admin/readings/ReadingList'));
+const ReadingEntry = lazy(() => import('./pages/admin/readings/ReadingEntry'));
+const BillList = lazy(() => import('./pages/admin/bills/BillList'));
+const GenerateBill = lazy(() => import('./pages/admin/bills/GenerateBill'));
+const BillDetails = lazy(() => import('./pages/admin/bills/BillDetails'));
+const RequestList = lazy(() => import('./pages/admin/requests/RequestList'));
+const RequestDetails = lazy(() => import('./pages/admin/requests/RequestDetails'));
+const Reports = lazy(() => import('./pages/admin/reports/Reports'));
+const CustomerStatement = lazy(() => import('./pages/admin/customers/CustomerStatement'));
+const UsageAlerts = lazy(() => import('./pages/admin/readings/UsageAlerts'));
+const ActivityLog = lazy(() => import('./pages/admin/activity/ActivityLog'));
+const OutageNotices = lazy(() => import('./pages/admin/outages/OutageNotices'));
+
+const MyDashboard = lazy(() => import('./pages/customer/MyDashboard'));
+const MyProfile = lazy(() => import('./pages/customer/MyProfile'));
+const MyBills = lazy(() => import('./pages/customer/MyBills'));
+const MyBillDetails = lazy(() => import('./pages/customer/MyBillDetails'));
+const MyRequests = lazy(() => import('./pages/customer/MyRequests'));
+const MyRequestDetails = lazy(() => import('./pages/customer/MyRequestDetails'));
+const NewRequest = lazy(() => import('./pages/customer/NewRequest'));
+const MyFeedback = lazy(() => import('./pages/customer/MyFeedback'));
+const MyStatement = lazy(() => import('./pages/customer/MyStatement'));
+const MyUsage = lazy(() => import('./pages/customer/MyUsage'));
+const MyPayments = lazy(() => import('./pages/customer/MyPayments'));
+const MyReceipt = lazy(() => import('./pages/customer/MyReceipt'));
 
 /** "/" sends people to the right place. */
 function HomeRedirect() {
@@ -88,6 +95,9 @@ export default function App() {
           <Route path="bills" element={<MyBills />} />
           <Route path="bills/:id" element={<MyBillDetails />} />
           <Route path="statement" element={<MyStatement />} />
+          <Route path="usage" element={<MyUsage />} />
+          <Route path="payments" element={<MyPayments />} />
+          <Route path="payments/:id" element={<MyReceipt />} />
           <Route path="requests" element={<MyRequests />} />
           <Route path="requests/new" element={<NewRequest />} />
           <Route path="requests/:id" element={<MyRequestDetails />} />
@@ -95,7 +105,14 @@ export default function App() {
         </Route>
       </Route>
 
-      <Route path="*" element={<NotFound />} />
+      <Route
+        path="*"
+        element={
+          <Suspense fallback={<PageLoader />}>
+            <NotFound />
+          </Suspense>
+        }
+      />
     </Routes>
   );
 }

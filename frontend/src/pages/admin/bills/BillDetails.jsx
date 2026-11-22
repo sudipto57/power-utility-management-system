@@ -2,16 +2,19 @@ import { useCallback, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import useFetch from '../../../hooks/useFetch';
 import useToast from '../../../hooks/useToast';
-import { getBill, markBillUnpaid } from '../../../api/bills';
+import { confirmPayment, getBill, markBillUnpaid, rejectPayment } from '../../../api/bills';
 import PageHeader from '../../../components/common/PageHeader';
 import Button from '../../../components/common/Button';
 import ErrorState from '../../../components/common/ErrorState';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
+import NoteDialog from '../../../components/common/NoteDialog';
+import Icon from '../../../components/common/Icon';
 import { PageSkeleton } from '../../../components/common/Skeleton';
 import BillInvoice from '../../../components/bills/BillInvoice';
 import MarkPaidModal from '../../../components/bills/MarkPaidModal';
 import WaiveLateFeeModal from '../../../components/bills/WaiveLateFeeModal';
 import PaidCelebration from '../../../components/bills/PaidCelebration';
+import { formatDate, formatMoney } from '../../../utils/format';
 
 export default function BillDetails() {
   const { id } = useParams();
@@ -22,10 +25,42 @@ export default function BillDetails() {
   const [confirmUnpaid, setConfirmUnpaid] = useState(false);
   const [working, setWorking] = useState(false);
   const [celebrate, setCelebrate] = useState(false); // green tick + confetti after "Mark paid"
+  const [rejecting, setRejecting] = useState(false); // "payment not received" pop-up
   const closeCelebration = useCallback(() => setCelebrate(false), []);
 
   if (loading && !bill) return <PageSkeleton />;
   if (error) return <ErrorState message={error} onRetry={reload} />;
+
+  // A customer paid online ("Pay now"): staff check the money arrived, then confirm or reject it
+  const waiting = bill.payments.find((p) => p.status === 'Pending');
+
+  const handleConfirm = async () => {
+    setWorking(true);
+    try {
+      const updated = await confirmPayment(bill.id, waiting.id);
+      setData(updated);
+      setCelebrate(true);
+      toast.success(`${waiting.payment_number} confirmed. ${updated.bill_number} is now ${updated.status}`);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const handleReject = async (note) => {
+    setWorking(true);
+    try {
+      const updated = await rejectPayment(bill.id, waiting.id, note);
+      setData(updated);
+      setRejecting(false);
+      toast.success(`${waiting.payment_number} rejected. The customer was told`);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setWorking(false);
+    }
+  };
 
   const handleUnpaid = async () => {
     setWorking(true);
@@ -65,7 +100,7 @@ export default function BillDetails() {
                 Waive late fee
               </Button>
             )}
-            {bill.status === 'Paid' ? (
+            {waiting ? null : bill.status === 'Paid' ? (
               <Button variant="secondary" onClick={() => setConfirmUnpaid(true)}>
                 Mark unpaid
               </Button>
@@ -77,6 +112,29 @@ export default function BillDetails() {
           </>
         }
       />
+
+      {waiting && (
+        <div className="mb-6 flex animate-fade-up flex-wrap items-center gap-4 rounded-3xl bg-emerald-50 p-5 ring-1 ring-emerald-200 print:hidden">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+            <Icon name="wallet" className="h-5 w-5" />
+          </span>
+          <div className="min-w-56 flex-1">
+            <p className="font-extrabold text-sand-900">The customer paid {formatMoney(waiting.amount)} online</p>
+            <p className="text-sm text-sand-600">
+              {waiting.method} · reference <b className="font-mono">{waiting.reference}</b> · {formatDate(waiting.payment_date)}.
+              Check that the money arrived, then confirm it.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="secondary" icon="x" disabled={working} onClick={() => setRejecting(true)}>
+              Not received
+            </Button>
+            <Button variant="success" icon="check" loading={working && !rejecting} onClick={handleConfirm}>
+              Confirm payment
+            </Button>
+          </div>
+        </div>
+      )}
 
       <BillInvoice bill={bill} />
 
@@ -104,6 +162,20 @@ export default function BillDetails() {
         />
       )}
       {celebrate && <PaidCelebration billNumber={bill.bill_number} onDone={closeCelebration} />}
+      <NoteDialog
+        key={waiting?.id}
+        open={rejecting}
+        title="Payment not received?"
+        message={
+          waiting &&
+          `${waiting.payment_number} will be marked Failed and the bill stays unpaid. The customer gets a message to pay again.`
+        }
+        label="Note for the customer (optional)"
+        confirmLabel="Reject payment"
+        loading={working}
+        onConfirm={handleReject}
+        onCancel={() => setRejecting(false)}
+      />
       <ConfirmDialog
         open={confirmUnpaid}
         title="Mark as unpaid?"

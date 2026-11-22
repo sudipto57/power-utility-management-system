@@ -42,7 +42,7 @@ export default function MyReceipt() {
         }
       />
 
-      <article className="print-area relative animate-fade-up overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70">
+      <article className="print-area relative animate-fade-up overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-sand-200/70">
         <div className="h-2 bg-gradient-to-r from-emerald-400 via-teal-500 to-sky-500" />
         {/* Big "PAID" stamp */}
         {confirmed && (
@@ -54,26 +54,26 @@ export default function MyReceipt() {
           <header className="flex flex-wrap items-start justify-between gap-6">
             <Logo />
             <div className="text-right">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Payment receipt</p>
-              <p className="mt-1 font-mono text-xl font-extrabold text-slate-900">{p.payment_number}</p>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-sand-500">Payment receipt</p>
+              <p className="mt-1 font-mono text-xl font-extrabold text-sand-900">{p.payment_number}</p>
               <div className="mt-2 flex justify-end">
                 <StatusBadge status={p.status} />
               </div>
             </div>
           </header>
 
-          <div className="mt-8 rounded-xl bg-slate-50 p-4">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Received from</p>
-            <p className="mt-2 font-bold text-slate-900">{p.customer_name}</p>
-            <p className="text-sm text-slate-600">{p.customer_number}</p>
-            <p className="mt-1 text-sm text-slate-600">{p.customer_address}</p>
+          <div className="mt-8 rounded-xl bg-sand-50 p-4">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-sand-500">Received from</p>
+            <p className="mt-2 font-bold text-sand-900">{p.customer_name}</p>
+            <p className="text-sm text-sand-600">{p.customer_number}</p>
+            <p className="mt-1 text-sm text-sand-600">{p.customer_address}</p>
           </div>
 
-          <dl className="mt-6 divide-y divide-slate-100 text-sm">
+          <dl className="mt-6 divide-y divide-sand-100 text-sm">
             {rows.map(([label, value]) => (
               <div key={label} className="flex justify-between gap-4 py-2.5">
-                <dt className="text-slate-500">{label}</dt>
-                <dd className="text-right font-semibold text-slate-900">{value}</dd>
+                <dt className="text-sand-500">{label}</dt>
+                <dd className="text-right font-semibold text-sand-900">{value}</dd>
               </div>
             ))}
           </dl>
@@ -83,7 +83,7 @@ export default function MyReceipt() {
             <span className="font-display text-3xl font-extrabold text-emerald-700">{formatMoney(p.amount)}</span>
           </div>
 
-          <p className="mt-10 border-t border-dashed border-slate-200 pt-4 text-center text-xs text-slate-400">
+          <p className="mt-10 border-t border-dashed border-sand-200 pt-4 text-center text-xs text-sand-500">
             Confirmed {formatDateTime(p.updated_at)} · Thank you for using Power Utility Management System
           </p>
         </div>

@@ -8,7 +8,7 @@ function BrokenLine() {
   return (
     <svg viewBox="0 0 360 170" fill="none" className="h-auto w-full max-w-md" aria-hidden="true">
       {[60, 300].map((x) => (
-        <g key={x} className="stroke-slate-700" strokeWidth="3" strokeLinejoin="round">
+        <g key={x} className="stroke-sand-700" strokeWidth="3" strokeLinejoin="round">
           <path d={`M${x - 22} 165 L${x} 40 L${x + 22} 165`} />
           <path d={`M${x - 32} 56 H${x + 32} M${x - 24} 74 H${x + 24} M${x - 14} 120 H${x + 14}`} />
         </g>
@@ -32,8 +32,8 @@ export default function NotFound() {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-orange-50 via-white to-violet-50 px-6 text-center">
       {/* Glowing colour blobs */}
-      <div className="absolute -left-24 top-10 h-80 w-80 animate-glow rounded-full bg-amber-300/30 blur-3xl" />
-      <div className="absolute -right-24 bottom-10 h-80 w-80 animate-glow rounded-full bg-fuchsia-300/30 blur-3xl" style={{ animationDelay: '1.2s' }} />
+      <div className="absolute -left-24 top-10 h-80 w-80 rounded-full bg-amber-300/30 blur-3xl" />
+      <div className="absolute -right-24 bottom-10 h-80 w-80 rounded-full bg-fuchsia-300/30 blur-3xl" />
 
       <div className="relative flex w-full flex-col items-center">
         <div className="animate-fade-up">
@@ -45,10 +45,10 @@ export default function NotFound() {
         <p className="mt-4 animate-fade-up font-display text-7xl font-extrabold tracking-tight text-brand sm:text-8xl" style={{ animationDelay: '140ms' }}>
           404
         </p>
-        <h1 className="mt-2 animate-fade-up text-xl font-extrabold text-slate-900 sm:text-2xl" style={{ animationDelay: '200ms' }}>
+        <h1 className="mt-2 animate-fade-up text-xl font-extrabold text-sand-900 sm:text-2xl" style={{ animationDelay: '200ms' }}>
           Looks like this line is disconnected
         </h1>
-        <p className="mt-2 animate-fade-up text-sm font-semibold text-slate-500" style={{ animationDelay: '260ms' }}>
+        <p className="mt-2 animate-fade-up text-sm font-semibold text-sand-500" style={{ animationDelay: '260ms' }}>
           The page you are looking for does not exist or has moved.
         </p>
         <Button

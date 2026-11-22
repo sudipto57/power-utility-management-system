@@ -7,7 +7,7 @@ import { dayPartFor } from '../../utils/time';
 
 const BACKGROUND = {
   admin: 'from-indigo-600 via-violet-600 to-fuchsia-600',
-  customer: 'from-amber-500 via-orange-500 to-rose-500',
+  customer: 'from-ember via-flame to-dusk',
 };
 
 // A see-through colour layer on top of the banner for each part of the day
@@ -121,10 +121,8 @@ export default function WelcomeBanner({ role = 'customer', eyebrow, title, subti
 
   return (
     <div className="relative animate-fade-up overflow-hidden rounded-3xl p-7 text-white shadow-xl sm:p-8">
-      {/* Moving gradient background */}
-      <div
-        className={`absolute inset-0 animate-gradient bg-gradient-to-br ${BACKGROUND[role] || BACKGROUND.customer} bg-[length:200%_200%]`}
-      />
+      {/* Deep sunrise (customer) or indigo (admin) background: white text is easy to read on both */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${BACKGROUND[role] || BACKGROUND.customer}`} />
       {/* Day / evening / night colour layer */}
       <div className={`absolute inset-0 transition-colors duration-1000 ${SKY[part]}`} />
       {/* Twinkling stars at night */}
@@ -136,11 +134,10 @@ export default function WelcomeBanner({ role = 'customer', eyebrow, title, subti
             style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${(i % 5) * 0.5}s` }}
           />
         ))}
-      {/* Soft light blobs + dotted pattern */}
-      <div className="absolute -left-10 -top-20 h-64 w-64 animate-glow rounded-full bg-white/20 blur-3xl" />
+      {/* Soft light spots + dotted pattern */}
+      <div className="absolute -left-10 -top-20 h-64 w-64 rounded-full bg-white/20 blur-3xl" />
       <div
-        className="absolute bottom-0 right-1/3 h-48 w-48 animate-glow rounded-full bg-yellow-200/20 blur-3xl"
-        style={{ animationDelay: '1s' }}
+        className="absolute bottom-0 right-1/3 h-48 w-48 rounded-full bg-yellow-200/20 blur-3xl"
       />
       <div className="absolute inset-0 bg-[radial-gradient(rgb(255_255_255/0.15)_1px,transparent_1px)] bg-[size:18px_18px]" />
 
@@ -151,8 +148,8 @@ export default function WelcomeBanner({ role = 'customer', eyebrow, title, subti
 
       <div className="relative max-w-xl">
         {eyebrow && (
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-[11px] font-extrabold uppercase tracking-widest ring-1 ring-white/30 backdrop-blur">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-yellow-300" />
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-[11px] font-extrabold uppercase tracking-widest ring-1 ring-white/30">
+            <span className="h-1.5 w-1.5 rounded-full bg-yellow-300" />
             {eyebrow}
           </span>
         )}
@@ -168,7 +165,7 @@ export default function WelcomeBanner({ role = 'customer', eyebrow, title, subti
 /** Small see-through chip for the banner, e.g. <BannerChip>৳5,000 due</BannerChip> */
 export function BannerChip({ children }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold ring-1 ring-white/25 backdrop-blur">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold ring-1 ring-white/25">
       {children}
     </span>
   );

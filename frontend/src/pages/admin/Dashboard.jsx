@@ -53,10 +53,10 @@ const ACTIVITY = {
 
 // tone = gradient colour of the icon
 const QUICK_ACTIONS = [
-  { to: '/admin/customers/new', label: 'Add customer', icon: 'users', tone: 'from-violet-500 to-fuchsia-500' },
-  { to: '/admin/readings/new', label: 'Enter reading', icon: 'gauge', tone: 'from-sky-400 to-blue-500' },
-  { to: '/admin/bills/generate', label: 'Generate bill', icon: 'receipt', tone: 'from-amber-400 to-orange-500' },
-  { to: '/admin/requests?status=Pending', label: 'Pending complaints', icon: 'complaint', tone: 'from-rose-400 to-pink-600' },
+  { to: '/admin/customers/new', label: 'Add customer', icon: 'users', tone: 'from-violet-600 to-fuchsia-600' },
+  { to: '/admin/readings/new', label: 'Enter reading', icon: 'gauge', tone: 'from-sky-600 to-blue-600' },
+  { to: '/admin/bills/generate', label: 'Generate bill', icon: 'receipt', tone: 'from-ember to-flame' },
+  { to: '/admin/requests?status=Pending', label: 'Pending complaints', icon: 'complaint', tone: 'from-rose-600 to-pink-600' },
 ];
 
 // "Needs attention" rows under the quick actions (tone = background + text colour)
@@ -123,7 +123,7 @@ export default function Dashboard() {
     return {
       labels: s.monthly.map((m) => m.month),
       series: [
-        { label: 'Billed', data: s.monthly.map((m) => m.billed), color: CHART_COLORS.amber },
+        { label: 'Billed', data: s.monthly.map((m) => m.billed), color: CHART_COLORS.rose },
         { label: 'Collected', data: s.monthly.map((m) => m.collected), color: CHART_COLORS.emerald },
       ],
     };
@@ -134,7 +134,7 @@ export default function Dashboard() {
     return {
       labels: s.bill_status.map((b) => b.status),
       values: s.bill_status.map((b) => b.count),
-      colors: s.bill_status.map((b) => STATUS_COLORS[b.status] || CHART_COLORS.slate),
+      colors: s.bill_status.map((b) => STATUS_COLORS[b.status] || CHART_COLORS.sand),
     };
   }, [s]);
 
@@ -166,8 +166,14 @@ export default function Dashboard() {
           </>
         }
       >
-        <BannerChip>💰 {formatMoney(s.collected_this_month)} collected this month</BannerChip>
-        <BannerChip>⏳ {formatMoney(s.outstanding_amount)} outstanding</BannerChip>
+        <BannerChip>
+          <Icon name="wallet" className="h-3.5 w-3.5" />
+          {formatMoney(s.collected_this_month)} collected this month
+        </BannerChip>
+        <BannerChip>
+          <Icon name="clock" className="h-3.5 w-3.5" />
+          {formatMoney(s.outstanding_amount)} outstanding
+        </BannerChip>
       </WelcomeBanner>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -244,7 +250,7 @@ export default function Dashboard() {
         >
           {activity.error && <p className="p-4 text-sm text-rose-600">{activity.error}</p>}
           {activity.data && activity.data.length === 0 && <EmptyState icon="activity" title="No activity yet" />}
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-sand-100">
             {(activity.data || []).map((item, index) => {
               const kind = ACTIVITY[item.type] || ACTIVITY.bill;
               return (
@@ -261,10 +267,10 @@ export default function Dashboard() {
                       <Icon name={kind.icon} className="h-4 w-4" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-slate-800">
+                      <p className="truncate text-sm font-bold text-sand-800">
                         {kind.verb}: <span className="font-extrabold">{item.title}</span>
                       </p>
-                      <p className="truncate text-xs text-slate-500">
+                      <p className="truncate text-xs text-sand-500">
                         {item.subtitle}
                         {item.amount !== null && item.type === 'reading' && ` · ${formatNumber(item.amount)} kWh`}
                         {item.amount !== null && item.type !== 'reading' && ` · ${formatMoney(item.amount)}`}
@@ -274,9 +280,9 @@ export default function Dashboard() {
                       {item.type !== 'payment' && item.type !== 'reading' ? (
                         <StatusBadge status={item.status} />
                       ) : (
-                        <span className="text-xs font-semibold text-slate-500">{item.status}</span>
+                        <span className="text-xs font-semibold text-sand-500">{item.status}</span>
                       )}
-                      <p className="mt-1 text-[11px] text-slate-400">{timeAgo(item.happened_at)}</p>
+                      <p className="mt-1 text-[11px] text-sand-500">{timeAgo(item.happened_at)}</p>
                     </div>
                   </Link>
                 </li>
@@ -291,7 +297,7 @@ export default function Dashboard() {
               <Link
                 key={action.to}
                 to={action.to}
-                className="group flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:bg-white hover:text-slate-900 hover:shadow-md"
+                className="group flex items-center gap-3 rounded-2xl bg-sand-50 px-4 py-3 text-sm font-bold text-sand-700 ring-1 ring-sand-200/70 transition hover:-translate-y-0.5 hover:bg-white hover:text-sand-900 hover:shadow-md"
               >
                 <span
                   className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${action.tone} text-white shadow-md transition group-hover:rotate-6 group-hover:scale-110`}
@@ -299,20 +305,20 @@ export default function Dashboard() {
                   <Icon name={action.icon} className="h-4 w-4" />
                 </span>
                 <span className="flex-1">{action.label}</span>
-                <Icon name="chevronRight" className="h-4 w-4 text-slate-400 transition group-hover:translate-x-1" />
+                <Icon name="chevronRight" className="h-4 w-4 text-sand-500 transition group-hover:translate-x-1" />
               </Link>
             ))}
           </div>
 
           {/* Needs attention: the numbers that need action today */}
-          <p className="mt-6 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">Needs attention</p>
+          <p className="mt-6 text-[11px] font-extrabold uppercase tracking-wider text-sand-500">Needs attention</p>
           <div className="mt-3 grid gap-2">
             {attentionRows(s).map((row) => {
               const rowClass = `flex items-center gap-3 rounded-2xl px-4 py-3 ring-1 transition hover:-translate-y-0.5 hover:shadow-md ${row.tone}`;
               const content = (
                 <>
                   <Icon name={row.done ? 'check' : row.icon} className="h-4 w-4 shrink-0" />
-                  <span className="flex-1 text-sm font-bold text-slate-700">{row.label}</span>
+                  <span className="flex-1 text-sm font-bold text-sand-700">{row.label}</span>
                   <span className="font-display text-base font-extrabold">{row.done ? 'All clear' : row.value}</span>
                 </>
               );
@@ -330,11 +336,8 @@ export default function Dashboard() {
           </div>
 
           {/* Live status line */}
-          <div className="mt-5 flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-xs font-bold text-white">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-            </span>
+          <div className="mt-5 flex items-center gap-2 rounded-2xl bg-sand-900 px-4 py-3 text-xs font-bold text-white">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
             System online · live data from the database
           </div>
         </Card>
@@ -409,19 +412,19 @@ function ChangeRequestsSection({ onChanged }) {
         {list.error ? (
           <ErrorState message={list.error} onRetry={list.reload} />
         ) : list.loading && !list.data ? (
-          <p className="text-sm text-slate-500">Loading…</p>
+          <p className="text-sm text-sand-500">Loading…</p>
         ) : items.length === 0 ? (
           <EmptyState icon="check" title="No requests waiting" text="New email, phone or type change requests appear here." />
         ) : (
           <ul className="grid gap-3 md:grid-cols-2">
             {items.map((r) => (
-              <li key={r.id} className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200/70">
+              <li key={r.id} className="rounded-2xl bg-sand-50 p-4 ring-1 ring-sand-200/70">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <Link to={`/admin/customers/${r.customer_id}`} className="text-sm font-bold text-slate-900 hover:text-orange-600">
+                    <Link to={`/admin/customers/${r.customer_id}`} className="text-sm font-bold text-sand-900 hover:text-orange-600">
                       {r.customer_name}
                     </Link>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-sand-500">
                       {r.customer_number} · {timeAgo(r.created_at)}
                     </p>
                   </div>
@@ -430,11 +433,11 @@ function ChangeRequestsSection({ onChanged }) {
                     {r.meter_number && ` · ${r.meter_number}`}
                   </span>
                 </div>
-                <p className="mt-3 break-all text-sm text-slate-600">
-                  {r.old_value || '—'} <Icon name="arrowRight" className="inline h-3.5 w-3.5 text-slate-400" />{' '}
-                  <b className="text-slate-900">{r.new_value}</b>
+                <p className="mt-3 break-all text-sm text-sand-600">
+                  {r.old_value || '—'} <Icon name="arrowRight" className="inline h-3.5 w-3.5 text-sand-500" />{' '}
+                  <b className="text-sand-900">{r.new_value}</b>
                 </p>
-                {r.reason && <p className="mt-1 text-xs text-slate-500">Reason: {r.reason}</p>}
+                {r.reason && <p className="mt-1 text-xs text-sand-500">Reason: {r.reason}</p>}
                 <div className="mt-4 flex gap-2">
                   <Button size="sm" variant="success" icon="check" loading={busyId === r.id && !rejecting} onClick={() => approve(r)}>
                     Approve
@@ -467,7 +470,7 @@ function ChangeRequestsSection({ onChanged }) {
       >
         {rejecting && (
           <div className="space-y-3">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-sand-600">
               {rejecting.customer_name} asked to change their {rejecting.field_label.toLowerCase()} to{' '}
               <b className="break-all">{rejecting.new_value}</b>.
             </p>

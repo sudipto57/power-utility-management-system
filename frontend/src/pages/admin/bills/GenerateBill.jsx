@@ -141,16 +141,16 @@ export default function GenerateBill() {
             )}
             {preview && !previewing && (
               <div className="animate-fade-in">
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-sand-50 p-4">
                   <div>
-                    <p className="font-bold text-slate-900">{preview.reading.customer_name}</p>
-                    <p className="text-xs text-slate-500">
+                    <p className="font-bold text-sand-900">{preview.reading.customer_name}</p>
+                    <p className="text-xs text-sand-500">
                       {preview.reading.customer_type} · {preview.reading.meter_number} ({preview.reading.connection_type})
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-slate-500">Billing period</p>
-                    <p className="text-sm font-semibold text-slate-800">
+                    <p className="text-xs text-sand-500">Billing period</p>
+                    <p className="text-sm font-semibold text-sand-800">
                       {formatDate(preview.billing_period_start)} – {formatDate(preview.billing_period_end)}
                     </p>
                   </div>
@@ -158,26 +158,26 @@ export default function GenerateBill() {
 
                 <dl className="mt-5 space-y-3 text-sm">
                   <div className="flex justify-between">
-                    <dt className="text-slate-500">Units used</dt>
-                    <dd className="font-semibold text-slate-900">
+                    <dt className="text-sand-500">Units used</dt>
+                    <dd className="font-semibold text-sand-900">
                       {formatNumber(preview.reading.previous_reading)} → {formatNumber(preview.reading.current_reading)} ={' '}
                       {formatNumber(preview.reading.consumption)} kWh
                     </dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-slate-500">Fixed charge</dt>
-                    <dd className="text-slate-800">{formatMoney(preview.fixed_charge)}</dd>
+                    <dt className="text-sand-500">Fixed charge</dt>
+                    <dd className="text-sand-800">{formatMoney(preview.fixed_charge)}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-slate-500">Energy charge (slabs)</dt>
-                    <dd className="text-slate-800">{formatMoney(preview.variable_charge)}</dd>
+                    <dt className="text-sand-500">Energy charge (slabs)</dt>
+                    <dd className="text-sand-800">{formatMoney(preview.variable_charge)}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-slate-500">VAT</dt>
-                    <dd className="text-slate-800">{formatMoney(preview.tax_amount)}</dd>
+                    <dt className="text-sand-500">VAT</dt>
+                    <dd className="text-sand-800">{formatMoney(preview.tax_amount)}</dd>
                   </div>
                 </dl>
-                <div className="mt-5 flex items-center justify-between rounded-2xl bg-slate-950 px-5 py-4 text-white">
+                <div className="mt-5 flex items-center justify-between rounded-2xl bg-sand-950 px-5 py-4 text-white">
                   <span className="flex items-center gap-2 font-semibold">
                     <Icon name="bolt" className="h-5 w-5 text-amber-300" /> Total
                   </span>

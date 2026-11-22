@@ -28,15 +28,15 @@ export default function UsageAlerts() {
     {
       key: 'meter_number',
       header: 'Meter',
-      render: (r) => <span className="font-mono font-bold text-slate-900">{r.meter_number}</span>,
+      render: (r) => <span className="font-mono font-bold text-sand-900">{r.meter_number}</span>,
     },
     {
       key: 'customer_name',
       header: 'Customer',
       render: (r) => (
         <div>
-          <p className="font-semibold text-slate-800">{r.customer_name}</p>
-          <p className="text-xs text-slate-500">{r.customer_number}</p>
+          <p className="font-semibold text-sand-800">{r.customer_name}</p>
+          <p className="text-xs text-sand-500">{r.customer_number}</p>
         </div>
       ),
     },
@@ -50,7 +50,7 @@ export default function UsageAlerts() {
       key: 'daily_usage',
       header: 'Per day',
       className: 'text-right',
-      render: (r) => <span className="font-bold text-slate-900">{formatNumber(r.daily_usage)} kWh</span>,
+      render: (r) => <span className="font-bold text-sand-900">{formatNumber(r.daily_usage)} kWh</span>,
     },
     {
       key: 'usual_daily_usage',
@@ -97,22 +97,22 @@ export default function UsageAlerts() {
         subtitle="Readings far from the meter's usual use per day (more than double, or less than a third). Check them before billing."
       />
       <Card bodyClassName="p-0" className="animate-fade-up" style={{ animationDelay: '80ms' }}>
-        <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 p-4">
-          <div className="flex rounded-xl bg-slate-100 p-1">
+        <div className="flex flex-wrap items-center gap-3 border-b border-sand-100 p-4">
+          <div className="flex rounded-xl bg-sand-100 p-1">
             {TABS.map((tab) => (
               <button
                 key={tab.value}
                 type="button"
                 onClick={() => setAlert(tab.value)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-                  alert === tab.value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  alert === tab.value ? 'bg-white text-sand-900 shadow-sm' : 'text-sand-500 hover:text-sand-800'
                 }`}
               >
                 {tab.label}
               </button>
             ))}
           </div>
-          {data && <span className="text-xs font-semibold text-slate-500">{data.length} found</span>}
+          {data && <span className="text-xs font-semibold text-sand-500">{data.length} found</span>}
         </div>
         {error ? (
           <div className="p-5">

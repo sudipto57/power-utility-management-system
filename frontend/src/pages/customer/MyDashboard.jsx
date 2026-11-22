@@ -21,10 +21,10 @@ import { firstName, formatDate, formatDateTime, formatMoney, formatNumber } from
 /** "↓ 12% less than last month" (green) or "↑ 8% more than last month" (red), with a moving arrow. */
 function CompareBadge({ current, previous }) {
   if (!previous || previous.units === 0) {
-    return <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">First month on record</span>;
+    return <span className="rounded-full bg-sand-100 px-3 py-1 text-xs font-bold text-sand-500">First month on record</span>;
   }
   if (current.units === previous.units) {
-    return <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">Same as {previous.month}</span>;
+    return <span className="rounded-full bg-sand-100 px-3 py-1 text-xs font-bold text-sand-600">Same as {previous.month}</span>;
   }
   const less = current.units < previous.units;
   const percent = Math.round((Math.abs(current.units - previous.units) / previous.units) * 100);
@@ -63,11 +63,11 @@ function AlertsList({ alerts }) {
               className={`flex items-center gap-3 rounded-2xl px-4 py-3 ring-1 transition hover:-translate-y-0.5 ${tone.box}`}
             >
               <Icon name={tone.icon} className={`h-5 w-5 shrink-0 ${tone.iconClass}`} />
-              <span className="flex-1 text-sm font-semibold text-slate-800">{alert.text}</span>
+              <span className="flex-1 text-sm font-semibold text-sand-800">{alert.text}</span>
               {alert.amount > 0 && (
-                <span className="font-display text-sm font-extrabold text-slate-900">{formatMoney(alert.amount)}</span>
+                <span className="font-display text-sm font-extrabold text-sand-900">{formatMoney(alert.amount)}</span>
               )}
-              <Icon name="chevronRight" className="h-4 w-4 shrink-0 text-slate-400" />
+              <Icon name="chevronRight" className="h-4 w-4 shrink-0 text-sand-500" />
             </Link>
           </li>
         );
@@ -84,16 +84,16 @@ function NoticesList({ notices }) {
   return (
     <ul className="space-y-3">
       {notices.map((notice) => (
-        <li key={notice.id} className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+        <li key={notice.id} className="rounded-2xl bg-sand-50 p-4 ring-1 ring-sand-200">
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={notice.state} />
-            <span className="text-xs font-semibold text-slate-500">{notice.area}</span>
+            <span className="text-xs font-semibold text-sand-500">{notice.area}</span>
           </div>
-          <p className="mt-2 font-bold text-slate-900">{notice.title}</p>
-          <p className="mt-0.5 text-xs font-semibold text-slate-500">
+          <p className="mt-2 font-bold text-sand-900">{notice.title}</p>
+          <p className="mt-0.5 text-xs font-semibold text-sand-500">
             {formatDateTime(notice.starts_at)} – {formatDateTime(notice.ends_at)}
           </p>
-          {notice.details && <p className="mt-1.5 text-sm text-slate-600">{notice.details}</p>}
+          {notice.details && <p className="mt-1.5 text-sm text-sand-600">{notice.details}</p>}
         </li>
       ))}
     </ul>
@@ -108,7 +108,7 @@ export default function MyDashboard() {
     if (!d) return null;
     return {
       labels: d.usage.map((u) => u.month),
-      series: [{ label: 'kWh used', data: d.usage.map((u) => u.units), color: CHART_COLORS.amber }],
+      series: [{ label: 'kWh used', data: d.usage.map((u) => u.units), color: CHART_COLORS.blue }],
     };
   }, [d]);
 
@@ -126,7 +126,7 @@ export default function MyDashboard() {
       <WelcomeBanner
         role="customer"
         eyebrow="Customer portal"
-        title={`Welcome back, ${firstName(user?.full_name)}!`}
+        title={`Welcome back, ${firstName(user?.full_name)}`}
         subtitle="Here is your electricity account at a glance."
         actions={
           <>
@@ -140,9 +140,13 @@ export default function MyDashboard() {
         }
       >
         <BannerChip>
-          {d.outstanding_amount > 0 ? `💳 ${formatMoney(d.outstanding_amount)} to pay` : '✅ All bills paid'}
+          <Icon name={d.outstanding_amount > 0 ? 'wallet' : 'check'} className="h-3.5 w-3.5" />
+          {d.outstanding_amount > 0 ? `${formatMoney(d.outstanding_amount)} to pay` : 'All bills paid'}
         </BannerChip>
-        <BannerChip>🔌 {formatNumber(d.connections_active)} active service(s)</BannerChip>
+        <BannerChip>
+          <Icon name="plug" className="h-3.5 w-3.5" />
+          {formatNumber(d.connections_active)} active service(s)
+        </BannerChip>
       </WelcomeBanner>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -219,27 +223,27 @@ export default function MyDashboard() {
           ) : (
             <div>
               <div className="flex items-center justify-between">
-                <span className="font-mono text-sm font-bold text-slate-500">{bill.bill_number}</span>
+                <span className="font-mono text-sm font-bold text-sand-500">{bill.bill_number}</span>
                 <StatusBadge status={bill.status} />
               </div>
-              <p className="mt-4 font-display text-4xl font-extrabold tracking-tight text-slate-900">
+              <p className="mt-4 font-display text-4xl font-extrabold tracking-tight text-sand-900">
                 {formatMoney(bill.total_amount)}
               </p>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-sand-500">
                 {formatNumber(bill.consumption)} kWh · {formatDate(bill.billing_period_start)} –{' '}
                 {formatDate(bill.billing_period_end)}
               </p>
               <div className="mt-5 flex items-center gap-3 rounded-2xl bg-gradient-to-r from-orange-50 to-rose-50 px-4 py-3 ring-1 ring-orange-100">
                 <Icon name="calendar" className="h-5 w-5 text-amber-500" />
                 <div className="text-sm">
-                  <p className="text-slate-500">Due date</p>
-                  <p className={`font-bold ${bill.status === 'Overdue' ? 'text-rose-600' : 'text-slate-900'}`}>
+                  <p className="text-sand-500">Due date</p>
+                  <p className={`font-bold ${bill.status === 'Overdue' ? 'text-rose-600' : 'text-sand-900'}`}>
                     {formatDate(bill.due_date)}
                   </p>
                 </div>
                 {bill.balance > 0 && (
                   <div className="ml-auto text-right text-sm">
-                    <p className="text-slate-500">Balance</p>
+                    <p className="text-sand-500">Balance</p>
                     <p className="font-bold text-rose-600">{formatMoney(bill.balance)}</p>
                   </div>
                 )}

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import ChartCanvas from './ChartCanvas';
+import { CHART_EDGES } from './colors';
 import { formatNumber } from '../../utils/format';
 
 // Each bar fades from its colour (top) to a lighter version of it (bottom)
@@ -13,7 +14,7 @@ function gradientFill(context, color) {
 }
 
 /**
- * <BarChart labels={['Aug', 'Sep']} series={[{ label: 'Billed', data: [1, 2], color: '#f59e0b' }]} />
+ * <BarChart labels={['Aug', 'Sep']} series={[{ label: 'Billed', data: [1, 2], color: CHART_COLORS.blue }]} />
  * money=true formats the y axis with thousands separators.
  */
 export default function BarChart({ labels, series, height = 280, stacked = false }) {
@@ -25,6 +26,8 @@ export default function BarChart({ labels, series, height = 280, stacked = false
         data: s.data,
         backgroundColor: (context) => gradientFill(context, s.color),
         hoverBackgroundColor: s.color,
+        borderColor: CHART_EDGES[s.color] || s.color, // a thin edge in the full colour
+        borderWidth: 1.5,
         borderRadius: 10,
         borderSkipped: false,
         maxBarThickness: 34,

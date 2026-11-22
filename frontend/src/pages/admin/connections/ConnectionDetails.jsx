@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import useFetch from '../../../hooks/useFetch';
+import useToast from '../../../hooks/useToast';
 import { getConnection } from '../../../api/connections';
 import PageHeader from '../../../components/common/PageHeader';
 import Card from '../../../components/common/Card';
@@ -13,6 +14,7 @@ import DataTable from '../../../components/common/DataTable';
 import ErrorState from '../../../components/common/ErrorState';
 import EmptyState from '../../../components/common/EmptyState';
 import { PageSkeleton } from '../../../components/common/Skeleton';
+import ReplaceMeterModal from '../../../components/connections/ReplaceMeterModal';
 import LineChart from '../../../components/charts/LineChart';
 import { CHART_COLORS } from '../../../components/charts/colors';
 import { formatDate, formatMoney, formatNumber } from '../../../utils/format';
@@ -20,7 +22,9 @@ import { formatDate, formatMoney, formatNumber } from '../../../utils/format';
 export default function ConnectionDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const { data: co, loading, error, reload } = useFetch(() => getConnection(id), [id]);
+  const [replacing, setReplacing] = useState(false);
 
   // Consumption chart: oldest -> newest
   const chart = useMemo(() => {
@@ -37,6 +41,11 @@ export default function ConnectionDetails() {
 
   if (loading && !co) return <PageSkeleton />;
   if (error) return <ErrorState message={error} onRetry={reload} />;
+
+  // True when the newest meter replacement happened on or after the last reading (the new meter has no reading yet)
+  const lastReplacement = co.replacements?.[0];
+  const newMeterFitted =
+    Boolean(lastReplacement) && (!co.last_reading_date || lastReplacement.replaced_on >= co.last_reading_date);
 
   const readingColumns = [
     { key: 'reading_date', header: 'Date', render: (r) => formatDate(r.reading_date) },
@@ -85,6 +94,33 @@ export default function ConnectionDetails() {
     { key: 'status', header: 'Status', render: (b) => <StatusBadge status={b.status} /> },
   ];
 
+  const replacementColumns = [
+    { key: 'replaced_on', header: 'Date', render: (r) => formatDate(r.replaced_on) },
+    {
+      key: 'meters',
+      header: 'Meter',
+      render: (r) => (
+        <span className="font-mono font-bold text-slate-900">
+          {r.old_meter_number} <span className="text-slate-400">→</span> {r.new_meter_number}
+        </span>
+      ),
+    },
+    {
+      key: 'old_meter_final_reading',
+      header: 'Old meter final',
+      className: 'text-right',
+      render: (r) => formatNumber(r.old_meter_final_reading),
+    },
+    {
+      key: 'new_meter_start_reading',
+      header: 'New meter start',
+      className: 'text-right',
+      render: (r) => formatNumber(r.new_meter_start_reading),
+    },
+    { key: 'reason', header: 'Reason', render: (r) => r.reason || '-' },
+    { key: 'replaced_by_name', header: 'By', render: (r) => r.replaced_by_name || '-' },
+  ];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -95,6 +131,11 @@ export default function ConnectionDetails() {
             <Button variant="secondary" icon="edit" to={`/admin/connections/${co.id}/edit`}>
               Edit
             </Button>
+            {co.status === 'Active' && (
+              <Button variant="secondary" icon="refresh" onClick={() => setReplacing(true)}>
+                Replace meter
+              </Button>
+            )}
             {co.status === 'Active' && (
               <Button variant="accent" icon="gauge" to={`/admin/readings/new?connection=${co.id}`}>
                 Enter reading
@@ -120,7 +161,11 @@ export default function ConnectionDetails() {
               <span className="text-xs text-slate-400">kWh</span>
             </div>
             <p className="mt-2 text-xs text-slate-400">
-              {co.last_reading_date ? `Last read on ${formatDate(co.last_reading_date)}` : 'No reading yet'}
+              {newMeterFitted
+                ? `New meter fitted on ${formatDate(co.replacements[0].replaced_on)}`
+                : co.last_reading_date
+                  ? `Last read on ${formatDate(co.last_reading_date)}`
+                  : 'No reading yet'}
             </p>
           </div>
         </div>
@@ -184,6 +229,34 @@ export default function ConnectionDetails() {
           emptyTitle="No bills yet"
         />
       </Card>
+
+      <Card
+        title="Meter replacements"
+        subtitle="Every time this connection got a new meter"
+        bodyClassName="p-0"
+        className="animate-fade-up"
+        style={{ animationDelay: '280ms' }}
+      >
+        <DataTable
+          columns={replacementColumns}
+          rows={co.replacements}
+          emptyIcon="refresh"
+          emptyTitle="Still the first meter"
+          emptyText="Use “Replace meter” when a broken meter is swapped for a new one."
+        />
+      </Card>
+
+      {replacing && (
+        <ReplaceMeterModal
+          connection={co}
+          onClose={() => setReplacing(false)}
+          onReplaced={(updated) => {
+            setReplacing(false);
+            toast.success(`Meter replaced. The new meter is ${updated.meter_number}`);
+            reload();
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -63,6 +63,22 @@ const QUICK_ACTIONS = [
 function attentionRows(s) {
   return [
     {
+      label: 'Online payments to confirm',
+      value: formatNumber(s.pending_payments),
+      done: s.pending_payments === 0,
+      to: '/admin/bills?status=waiting',
+      icon: 'wallet',
+      tone: 'bg-emerald-50 text-emerald-600 ring-emerald-100',
+    },
+    {
+      label: 'Customer readings to check',
+      value: formatNumber(s.pending_readings),
+      done: s.pending_readings === 0,
+      to: '/admin/readings?status=Pending',
+      icon: 'gauge',
+      tone: 'bg-sky-50 text-sky-600 ring-sky-100',
+    },
+    {
       label: 'Overdue bills',
       value: formatNumber(s.overdue_bills),
       done: s.overdue_bills === 0,

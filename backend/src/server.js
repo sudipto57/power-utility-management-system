@@ -52,6 +52,25 @@ async function checkDatabase() {
     console.error('           Run database/09_account_security.sql again (it is safe to run more than once).\n');
     return false;
   }
+  // 20 Nov 2026: activity log, late fees, statement, usage alerts, outages, meter replacement
+  const extras = await pool.query(
+    `SELECT to_regclass('public.audit_log') AS audit_table, to_regclass('public.bill_balance') AS balance_view,
+            to_regprocedure('replace_meter(uuid, varchar, integer, integer, date, text, uuid)') AS replace_function,
+            to_regprocedure('meter_number_on(uuid, date)') AS meter_function`
+  );
+  const x = extras.rows[0];
+  if (!x.audit_table || !x.balance_view || !x.replace_function || !x.meter_function) {
+    console.error('\n[database] Connected, but the tables and views for the extra features are missing.');
+    console.error('           Run database/11_extra_features.sql (pgAdmin or the Supabase SQL Editor). It is safe to run again.\n');
+    return false;
+  }
+  // 21 Nov 2026: the customer inbox (the bell, reminders, messages about bills, payments and readings)
+  const inbox = await pool.query("SELECT to_regclass('public.notifications') AS inbox_table");
+  if (!inbox.rows[0].inbox_table) {
+    console.error('\n[database] Connected, but the table for the customer inbox is missing.');
+    console.error('           Run database/12_customer_inbox.sql once (pgAdmin or the Supabase SQL Editor).\n');
+    return false;
+  }
   return true;
 }
 

@@ -2,7 +2,7 @@
 
 | File | What it is |
 | --- | --- |
-| `Power-Utility-Management-System.postman_collection.json` | Every API endpoint (82 requests, 146 automatic checks) in 14 folders |
+| `Power-Utility-Management-System.postman_collection.json` | Every API endpoint (133 requests, 237 automatic checks) in 17 folders |
 | `Local.postman_environment.json` | Variables: `baseUrl`, tokens and saved ids |
 
 ## Use it
@@ -16,14 +16,15 @@
 
 ## Run everything at once
 
-Right-click the collection → **Run collection** → **Run**. Do step 4 first (so `loginCode` is filled), then run the collection within 15 minutes: all 146 checks should be green. (Logging in again does not send a new code while the last one still works.)
+Right-click the collection → **Run collection** → **Run**. Do step 4 first (so `loginCode` is filled), then run the collection within 15 minutes: all 237 checks should be green (*Save now* needs `SAVE_CUSTOMERS_TO_SQL_FILE` on and *Send feedback* needs `BREVO_API_KEY`). (Logging in again does not send a new code while the last one still works.)
 Running it creates a few test records ("Test Customer", "Temporary Customer"). Run `database/00_reset.sql` … `04_sample_data.sql` again to start fresh.
 
 ## Folders
 
 0 Health · 1 Auth · 2 Dashboard · 3 Customers · 4 Connections & Meters · 5 Meter Readings · 6 Bills & Payments ·
 7 My (Customer portal) · 8 Complaint Management · 9 Reports · 10 Security checks · 11 Delete rules ·
-12 Bill estimator (public) · 13 Account security & profile changes
+12 Bill estimator (public) · 13 Account security & profile changes · 14 Feedback (public) · 15 Extra features (activity log, statement, usage alerts, late fees, outage notices, meter replacement) ·
+16 Customer readings, Pay now & inbox (customer readings + Verify, Pay now + confirm / reject, payments and receipts, replies, outage notices on My Dashboard, due reminders, inbox; needs `database/12_customer_inbox.sql`)
 
 ## Postman desktop (local files)
 

@@ -40,6 +40,9 @@ export default function CustomerProfile() {
         title="Customer profile"
         actions={
           <>
+            <Button variant="secondary" icon="wallet" to={`/admin/customers/${c.id}/statement`}>
+              View statement
+            </Button>
             <Button variant="secondary" icon="plug" to={`/admin/connections/new?customer=${c.id}`}>
               Add connection
             </Button>

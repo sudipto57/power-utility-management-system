@@ -8,6 +8,8 @@ const ADMIN_MENU = [
   { to: '/admin/bills', label: 'Bills & Payments', icon: 'receipt' },
   { to: '/admin/requests', label: 'Complaints', icon: 'complaint' },
   { to: '/admin/reports', label: 'Reports', icon: 'chart' },
+  { to: '/admin/outages', label: 'Outage Notices', icon: 'megaphone' },
+  { to: '/admin/activity', label: 'Activity Log', icon: 'activity' },
 ];
 
 export default function AdminLayout() {

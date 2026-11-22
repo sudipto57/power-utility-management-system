@@ -16,7 +16,7 @@ import BarChart from '../../components/charts/BarChart';
 import UsageGauge from '../../components/charts/UsageGauge';
 import EnergyTips from '../../components/common/EnergyTips';
 import { CHART_COLORS } from '../../components/charts/colors';
-import { firstName, formatDate, formatMoney, formatNumber } from '../../utils/format';
+import { firstName, formatDate, formatDateTime, formatMoney, formatNumber } from '../../utils/format';
 
 /** "↓ 12% less than last month" (green) or "↑ 8% more than last month" (red), with a moving arrow. */
 function CompareBadge({ current, previous }) {
@@ -37,6 +37,66 @@ function CompareBadge({ current, previous }) {
       <Icon name="arrowRight" className={`h-3.5 w-3.5 animate-float ${less ? 'rotate-90' : '-rotate-90'}`} strokeWidth={2.6} />
       {percent}% {less ? 'less' : 'more'} than {previous.month}
     </span>
+  );
+}
+
+// Alert colours: danger = overdue, warning = due soon, info = new bill / reply / payment being checked
+const ALERT_TONES = {
+  danger: { box: 'bg-rose-50 ring-rose-200', icon: 'alert', iconClass: 'text-rose-700' },
+  warning: { box: 'bg-amber-50 ring-amber-200', icon: 'clock', iconClass: 'text-amber-700' },
+  info: { box: 'bg-sky-50 ring-sky-200', icon: 'info', iconClass: 'text-sky-700' },
+};
+
+/** Things that need the customer's attention (worked out by the backend every time) */
+function AlertsList({ alerts }) {
+  if (alerts.length === 0) {
+    return <EmptyState icon="check" title="All good" text="Nothing needs your attention right now." />;
+  }
+  return (
+    <ul className="space-y-2.5">
+      {alerts.map((alert) => {
+        const tone = ALERT_TONES[alert.tone] || ALERT_TONES.info;
+        return (
+          <li key={alert.text}>
+            <Link
+              to={alert.link}
+              className={`flex items-center gap-3 rounded-2xl px-4 py-3 ring-1 transition hover:-translate-y-0.5 ${tone.box}`}
+            >
+              <Icon name={tone.icon} className={`h-5 w-5 shrink-0 ${tone.iconClass}`} />
+              <span className="flex-1 text-sm font-semibold text-slate-800">{alert.text}</span>
+              {alert.amount > 0 && (
+                <span className="font-display text-sm font-extrabold text-slate-900">{formatMoney(alert.amount)}</span>
+              )}
+              <Icon name="chevronRight" className="h-4 w-4 shrink-0 text-slate-400" />
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** Outage notices for the customer's area (state: Happening now / Planned) */
+function NoticesList({ notices }) {
+  if (notices.length === 0) {
+    return <EmptyState icon="bolt" title="No power cuts planned" text="Planned work in your area will show here." />;
+  }
+  return (
+    <ul className="space-y-3">
+      {notices.map((notice) => (
+        <li key={notice.id} className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge status={notice.state} />
+            <span className="text-xs font-semibold text-slate-500">{notice.area}</span>
+          </div>
+          <p className="mt-2 font-bold text-slate-900">{notice.title}</p>
+          <p className="mt-0.5 text-xs font-semibold text-slate-500">
+            {formatDateTime(notice.starts_at)} – {formatDateTime(notice.ends_at)}
+          </p>
+          {notice.details && <p className="mt-1.5 text-sm text-slate-600">{notice.details}</p>}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -73,13 +133,15 @@ export default function MyDashboard() {
             <Button variant="secondary" icon="complaint" to="/my/requests/new">
               Report a problem
             </Button>
-            <Button variant="glass" icon="receipt" to="/my/bills">
-              My bills
+            <Button variant="glass" icon="gauge" to="/my/usage">
+              Send meter reading
             </Button>
           </>
         }
       >
-        <BannerChip>{d.outstanding_amount > 0 ? `💳 ${formatMoney(d.outstanding_amount)} to pay` : '✅ All bills paid'}</BannerChip>
+        <BannerChip>
+          {d.outstanding_amount > 0 ? `💳 ${formatMoney(d.outstanding_amount)} to pay` : '✅ All bills paid'}
+        </BannerChip>
         <BannerChip>🔌 {formatNumber(d.connections_active)} active service(s)</BannerChip>
       </WelcomeBanner>
 
@@ -118,6 +180,25 @@ export default function MyDashboard() {
         />
       </div>
 
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card
+          title="Alerts"
+          subtitle="Bills due, new bills and replies"
+          className="animate-fade-up"
+          style={{ animationDelay: '120ms' }}
+        >
+          <AlertsList alerts={d.alerts} />
+        </Card>
+        <Card
+          title="Power notices"
+          subtitle="Power cuts and maintenance in your area"
+          className="animate-fade-up"
+          style={{ animationDelay: '160ms' }}
+        >
+          <NoticesList notices={d.notices} />
+        </Card>
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-5">
         <Card
           title="Electricity used"
@@ -141,7 +222,9 @@ export default function MyDashboard() {
                 <span className="font-mono text-sm font-bold text-slate-500">{bill.bill_number}</span>
                 <StatusBadge status={bill.status} />
               </div>
-              <p className="mt-4 font-display text-4xl font-extrabold tracking-tight text-slate-900">{formatMoney(bill.total_amount)}</p>
+              <p className="mt-4 font-display text-4xl font-extrabold tracking-tight text-slate-900">
+                {formatMoney(bill.total_amount)}
+              </p>
               <p className="mt-1 text-sm text-slate-500">
                 {formatNumber(bill.consumption)} kWh · {formatDate(bill.billing_period_start)} –{' '}
                 {formatDate(bill.billing_period_end)}

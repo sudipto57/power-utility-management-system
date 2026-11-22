@@ -50,7 +50,7 @@ export default function Topbar({ user, notifications, onMenu, onLogout }) {
           {TIME_TEXT.format(now)}
         </div>
         <ThemeToggle />
-        <NotificationBell items={notifications} />
+        <NotificationBell {...notifications} />
         <div className="flex items-center gap-3 rounded-full bg-white py-1 pl-1 pr-1 shadow-sm ring-1 ring-slate-200 sm:pr-3">
           <span
             className={`flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-xs font-extrabold text-white shadow-md`}

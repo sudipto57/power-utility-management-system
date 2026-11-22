@@ -4,7 +4,7 @@
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { query, withTransaction } from '../config/db.js';
+import { query, setAuditUser, withTransaction } from '../config/db.js';
 import env from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
 import { generateNumber } from '../utils/generateNumber.js';
@@ -44,9 +44,17 @@ function publicUser(user) {
 
 // The login "ticket" the frontend keeps and sends with every request.
 // pv = password fingerprint: the ticket stops working when the password changes.
+// pl = the previous login time (read before last_login is updated), for "new since your last visit".
 function makeToken(user) {
   return jwt.sign(
-    { id: user.id, role: user.role, customerId: user.customer_id, name: user.full_name, pv: passwordVersion(user.password_hash) },
+    {
+      id: user.id,
+      role: user.role,
+      customerId: user.customer_id,
+      name: user.full_name,
+      pv: passwordVersion(user.password_hash),
+      pl: user.last_login || null,
+    },
     env.jwtSecret,
     { expiresIn: env.jwtExpiresIn, algorithm: 'HS256' }
   );
@@ -256,6 +264,7 @@ export async function signup(req, res) {
       [username, email, fullName, passwordHash]
     );
     const newUser = userResult.rows[0];
+    await setAuditUser(client, newUser.id); // the activity log shows the customer as the one who signed up
 
     const customerResult = await client.query(
       `INSERT INTO customers (customer_number, full_name, phone, email, address, customer_type, status, user_id)

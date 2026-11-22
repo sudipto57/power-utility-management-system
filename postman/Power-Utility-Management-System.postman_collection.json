@@ -3633,6 +3633,2074 @@
           ]
         }
       ]
+    },
+    {
+      "name": "15. Extra features",
+      "description": "Activity log, account statement, usage alerts, late fees, outage notices and meter replacement (database/11_extra_features.sql). Run folders 1-7 first: these use customerId, connectionId and billId.",
+      "item": [
+        {
+          "name": "Activity log (last 20 changes)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activity?limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activity"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json().data;",
+                  "pm.test(\"At most 20 rows\", () => pm.expect(rows.length).to.be.at.most(20));",
+                  "pm.test(\"Each row says what changed\", () => rows.forEach((r) => pm.expect(r).to.have.keys(",
+                  "  \"id\", \"table_name\", \"record_id\", \"action\", \"old_values\", \"new_values\", \"changed_at\",",
+                  "  \"changed_by_name\", \"changed_by_role\", \"label\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Activity log of the Postman bill (search by bill number)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activity?table=bills&search={{billNumber}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activity"
+              ],
+              "query": [
+                {
+                  "key": "table",
+                  "value": "bills"
+                },
+                {
+                  "key": "search",
+                  "value": "{{billNumber}}"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json().data;",
+                  "pm.test(\"The bill was logged\", () => pm.expect(rows.length).to.be.above(0));",
+                  "pm.test(\"Every row is about that bill\", () => rows.forEach((r) => pm.expect(r.label).to.eql(pm.environment.get(\"billNumber\"))));",
+                  "pm.test(\"The admin is named\", () => pm.expect(rows[0].changed_by_role).to.eql(\"admin\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Activity log with a wrong table (expect 400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activity?table=passwords",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activity"
+              ],
+              "query": [
+                {
+                  "key": "table",
+                  "value": "passwords"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer opens the activity log (expect 403)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activity",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activity"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer statement (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{customerId}}/statement",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "{{customerId}}",
+                "statement"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const s = pm.response.json().data;",
+                  "pm.test(\"Has lines\", () => pm.expect(s.lines).to.be.an(\"array\").that.is.not.empty);",
+                  "pm.test(\"Balance = charged - paid\", () => pm.expect(s.balance).to.be.closeTo(s.total_charged - s.total_paid, 0.01));",
+                  "const last = s.lines[s.lines.length - 1];",
+                  "pm.test(\"Last running balance = balance\", () => pm.expect(last.balance).to.be.closeTo(s.balance, 0.01));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My statement (customer)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/my/statement",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "statement"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const s = pm.response.json().data;",
+                  "pm.test(\"It is Sumaiya\", () => pm.expect(s.customer.full_name).to.eql(\"Sumaiya Khanam\"));",
+                  "pm.test(\"Balance = charged - paid\", () => pm.expect(s.balance).to.be.closeTo(s.total_charged - s.total_paid, 0.01));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Usage alerts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/readings/unusual",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "readings",
+                "unusual"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json().data;",
+                  "pm.test(\"A list\", () => pm.expect(rows).to.be.an(\"array\"));",
+                  "pm.test(\"Only the two alert words\", () => rows.forEach((r) => pm.expect([\"Very high\", \"Very low\"]).to.include(r.alert)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Usage alerts with a wrong filter (expect 400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/readings/unusual?alert=Medium",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "readings",
+                "unusual"
+              ],
+              "query": [
+                {
+                  "key": "alert",
+                  "value": "Medium"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Waive late fee without a reason (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bills/{{billId}}/waive-late-fee",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bills",
+                "{{billId}}",
+                "waive-late-fee"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Waive late fee on a bill that has none (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bills/{{billId}}/waive-late-fee",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bills",
+                "{{billId}}",
+                "waive-late-fee"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Postman test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Says there is no late fee\", () => pm.expect(pm.response.json().message).to.include(\"no late fee\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replace meter on the day of the last reading (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/connections/{{connectionId}}/replace-meter",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "connections",
+                "{{connectionId}}",
+                "replace-meter"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"new_meter_number\": \"\",\n  \"old_meter_final_reading\": 150,\n  \"replaced_on\": \"{{today}}\",\n  \"reason\": \"Postman test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Says the date must be after the last reading\", () => pm.expect(pm.response.json().message).to.include(\"after the last reading\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Outage notice with the end before the start (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/outages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "outages"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Wrong times\",\n  \"area\": \"Mirpur 10, Dhaka\",\n  \"starts_at\": \"2026-12-01T10:00:00.000Z\",\n  \"ends_at\": \"2026-12-01T09:00:00.000Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create outage notice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/outages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "outages"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Transformer repair (Postman test)\",\n  \"area\": \"Mirpur 10, Dhaka\",\n  \"starts_at\": \"{{outageStart}}\",\n  \"ends_at\": \"{{outageEnd}}\",\n  \"details\": \"Power will be back by 2 PM.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// A notice for tomorrow, 10:00 to 14:00 (your computer's time)",
+                  "const start = new Date(); start.setDate(start.getDate() + 1); start.setHours(10, 0, 0, 0);",
+                  "const end = new Date(start); end.setHours(14);",
+                  "pm.environment.set(\"outageStart\", start.toISOString());",
+                  "pm.environment.set(\"outageEnd\", end.toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "const o = pm.response.json().data;",
+                  "pm.environment.set(\"outageId\", o.id);",
+                  "pm.test(\"It is planned\", () => pm.expect(o.state).to.eql(\"Planned\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer sees the notice in the news strip",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/outages/current",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "outages",
+                "current"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const ids = pm.response.json().data.map((o) => o.id);",
+                  "pm.test(\"The new notice is there\", () => pm.expect(ids).to.include(pm.environment.get(\"outageId\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer posts a notice (expect 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/outages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "outages"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Not allowed\",\n  \"area\": \"Dhaka\",\n  \"starts_at\": \"{{outageStart}}\",\n  \"ends_at\": \"{{outageEnd}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update outage notice",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/outages/{{outageId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "outages",
+                "{{outageId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Transformer repair (Postman test)\",\n  \"area\": \"Mirpur 10, Dhaka\",\n  \"starts_at\": \"{{outageStart}}\",\n  \"ends_at\": \"{{outageEnd}}\",\n  \"details\": \"Power will be back by 3 PM.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Details changed\", () => pm.expect(pm.response.json().data.details).to.eql(\"Power will be back by 3 PM.\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List outage notices (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/outages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "outages"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const ids = pm.response.json().data.map((o) => o.id);",
+                  "pm.test(\"The notice is listed\", () => pm.expect(ids).to.include(pm.environment.get(\"outageId\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete outage notice",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/outages/{{outageId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "outages",
+                "{{outageId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Deleted\", () => pm.expect(pm.response.json().data.deleted).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete it again (expect 404)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/outages/{{outageId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "outages",
+                "{{outageId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "16. Customer readings, Pay now & inbox",
+      "item": [
+        {
+          "name": "My meter & usage (customer)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/my/usage",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "usage"
+              ]
+            },
+            "description": "Meters, the last official reading, the customer's own reading, units so far and the projected bill.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const m = pm.response.json().data[0];",
+                  "pm.environment.set(\"myConnectionId\", m.id);",
+                  "pm.environment.set(\"myOfficialReading\", m.official_reading.current_reading);",
+                  "pm.test(\"Has price bands\", () => pm.expect(m.slabs.length).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Send a reading lower than the official one (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "readings"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"connection_id\": \"{{myConnectionId}}\",\n  \"current_reading\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Send my meter reading (Pending)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "readings"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"connection_id\": \"{{myConnectionId}}\",\n  \"current_reading\": \"{{myNewReading}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 120 kWh more than the last official reading",
+                  "pm.environment.set('myNewReading', Number(pm.environment.get('myOfficialReading')) + 120);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Saved (201 new, 200 = replaced today's)\", () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const r = pm.response.json().data;",
+                  "pm.environment.set(\"myReadingId\", r.id);",
+                  "pm.test(\"Waits as Pending\", () => pm.expect(r.status).to.eql(\"Pending\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Usage now shows this month so far",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/my/usage",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "usage"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const m = pm.response.json().data[0];",
+                  "pm.test(\"Units so far = 120\", () => pm.expect(m.units_so_far).to.eql(120));",
+                  "pm.test(\"Has a projected bill\", () => pm.expect(m.projected_bill.total_amount).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: readings sent by customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/readings?status=Pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "readings"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "Pending"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Contains my reading\", () => pm.expect(pm.response.json().data.map((r) => r.id)).to.include(pm.environment.get(\"myReadingId\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: verify the reading",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/readings/{{myReadingId}}/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "readings",
+                "{{myReadingId}}",
+                "verify"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Now Verified\", () => pm.expect(pm.response.json().data.status).to.eql(\"Verified\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify it again (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/readings/{{myReadingId}}/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "readings",
+                "{{myReadingId}}",
+                "verify"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: generate a bill from it",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bills/generate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bills",
+                "generate"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reading_id\": \"{{myReadingId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.environment.set(\"myNewBillId\", pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pay with cash online (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/bills/{{myNewBillId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "bills",
+                "{{myNewBillId}}",
+                "pay"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"Cash\",\n  \"reference\": \"TRX12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pay now (Mobile Banking)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/bills/{{myNewBillId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "bills",
+                "{{myNewBillId}}",
+                "pay"
+              ]
+            },
+            "description": "Demo payment: no card number is ever sent, only the transaction reference.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"Mobile Banking\",\n  \"reference\": \"TRX8K2M4P9\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "const p = pm.response.json().data.payments.find((x) => x.status === \"Pending\");",
+                  "pm.environment.set(\"myPaymentId\", p.id);",
+                  "pm.test(\"Full balance\", () => pm.expect(p.amount).to.eql(pm.response.json().data.total_amount));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pay again while one waits (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/bills/{{myNewBillId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "bills",
+                "{{myNewBillId}}",
+                "pay"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"Card\",\n  \"reference\": \"CARD-1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: Mark paid while a payment waits (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bills/{{myNewBillId}}/mark-paid",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bills",
+                "{{myNewBillId}}",
+                "mark-paid"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: bills paid online",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bills?waiting=yes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bills"
+              ],
+              "query": [
+                {
+                  "key": "waiting",
+                  "value": "yes"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Contains the bill\", () => pm.expect(pm.response.json().data.map((b) => b.id)).to.include(pm.environment.get(\"myNewBillId\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: payment not received (reject)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bills/{{myNewBillId}}/payments/{{myPaymentId}}/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bills",
+                "{{myNewBillId}}",
+                "payments",
+                "{{myPaymentId}}",
+                "reject"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Reference not found\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Bill is still not paid\", () => pm.expect(pm.response.json().data.status).to.not.eql(\"Paid\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pay now again (Card)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/bills/{{myNewBillId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "bills",
+                "{{myNewBillId}}",
+                "pay"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"Card\",\n  \"reference\": \"CARD-82615\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.environment.set(\"myPaymentId\", pm.response.json().data.payments.find((x) => x.status === \"Pending\").id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: confirm the payment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bills/{{myNewBillId}}/payments/{{myPaymentId}}/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bills",
+                "{{myNewBillId}}",
+                "payments",
+                "{{myPaymentId}}",
+                "confirm"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"The trigger marked the bill Paid\", () => pm.expect(pm.response.json().data.status).to.eql(\"Paid\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/my/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "payments"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Contains the payment\", () => pm.expect(pm.response.json().data.map((p) => p.id)).to.include(pm.environment.get(\"myPaymentId\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My receipt",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/my/payments/{{myPaymentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "payments",
+                "{{myPaymentId}}"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Completed\", () => pm.expect(pm.response.json().data.status).to.eql(\"Completed\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Submit a request to reply on",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "requests"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Meter Issue\",\n  \"priority\": \"Medium\",\n  \"description\": \"The meter display flickers at night.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.environment.set(\"myOpenRequestId\", pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reply on my request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/requests/{{myOpenRequestId}}/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "requests",
+                "{{myOpenRequestId}}",
+                "comments"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"It happens every evening after 8 pm.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "const c = pm.response.json().data.comments;",
+                  "pm.test(\"Reply saved as the customer\", () => pm.expect(c[c.length - 1].user_role).to.eql(\"customer\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reply on a resolved request (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/requests/{{requestId}}/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "requests",
+                "{{requestId}}",
+                "comments"
+              ]
+            },
+            "description": "requestId was resolved in folder 8.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Hello again\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: post an outage notice (All areas)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/outages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "outages"
+              ]
+            },
+            "description": "Uses the outage notices of folder 15 (11_extra_features.sql): every customer in the area also gets an inbox message.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Line repair on the main feeder\",\n  \"area\": \"All areas\",\n  \"details\": \"Power will be off from 10 am to 2 pm.\",\n  \"starts_at\": \"{{myOutageStart}}\",\n  \"ends_at\": \"{{myOutageEnd}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// tomorrow, 4 hours long",
+                  "const start = new Date(Date.now() + 24 * 60 * 60 * 1000);",
+                  "pm.environment.set('myOutageStart', start.toISOString());",
+                  "pm.environment.set('myOutageEnd', new Date(start.getTime() + 4 * 60 * 60 * 1000).toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "const n = pm.response.json().data;",
+                  "pm.environment.set(\"myOutageId\", n.id);",
+                  "pm.test(\"Reaches customers\", () => pm.expect(n.customers_reached).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My dashboard: alerts and notices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/my/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "dashboard"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data;",
+                  "pm.test(\"Has alerts list\", () => pm.expect(d.alerts).to.be.an(\"array\"));",
+                  "pm.test(\"Shows the notice\", () => pm.expect(d.notices.map((n) => n.id)).to.include(pm.environment.get(\"myOutageId\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: send due reminders",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bills/send-reminders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bills",
+                "send-reminders"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Has counts\", () => pm.expect(pm.response.json().data).to.have.property(\"reminded\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My inbox",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/my/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "notifications"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data;",
+                  "pm.test(\"Has messages\", () => pm.expect(d.items.length).to.be.above(0));",
+                  "pm.environment.set(\"messageId\", d.items[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark one message as read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/notifications/{{messageId}}/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "notifications",
+                "{{messageId}}",
+                "read"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark all messages as read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my/notifications/all/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my",
+                "notifications",
+                "all",
+                "read"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Nothing unread\", () => pm.expect(pm.response.json().data.unread).to.eql(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: delete the outage notice",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/outages/{{myOutageId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "outages",
+                "{{myOutageId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Customer meter readings (Pending until verified), this month so far, Pay now + confirm / reject, payment history and receipts, replies on requests, outage notices on My Dashboard, due reminders and the inbox. Needs database/12_customer_inbox.sql."
     }
   ]
 }

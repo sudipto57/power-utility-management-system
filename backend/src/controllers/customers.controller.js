@@ -162,7 +162,7 @@ export async function createCustomer(req, res) {
       await client.query('UPDATE users SET customer_id = $1 WHERE id = $2', [customerId, userId]);
     }
     return customerId;
-  });
+  }, req.user.id);
 
   res.status(201).json({ data: await findCustomer(newId) });
 }
@@ -197,7 +197,7 @@ export async function updateCustomer(req, res) {
         [changes.full_name ?? null, changes.email ?? null, changes.status ?? null, existing.user_id]
       );
     }
-  });
+  }, req.user.id);
 
   res.json({ data: await findCustomer(id) });
 }
@@ -223,7 +223,7 @@ export async function deleteCustomer(req, res) {
   await withTransaction(async (client) => {
     await client.query('DELETE FROM customers WHERE id = $1', [id]); // also removes connections, readings, requests
     await client.query("DELETE FROM users WHERE role = 'customer' AND (id = $1 OR customer_id = $2)", [customer.user_id, id]);
-  });
+  }, req.user.id);
 
   res.json({ data: { id, deleted: true } });
 }

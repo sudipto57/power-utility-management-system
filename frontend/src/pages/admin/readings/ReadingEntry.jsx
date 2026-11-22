@@ -127,6 +127,14 @@ export default function ReadingEntry() {
           <p className="mt-2 text-xs text-slate-500">
             {formatNumber(saved.previous_reading)} → {formatNumber(saved.current_reading)}
           </p>
+          {/* The database view unusual_readings flagged this reading: ask for a second look before billing */}
+          {saved.unusual && (
+            <p className="mt-5 flex items-start gap-2 rounded-xl bg-rose-50 px-4 py-3 text-left text-sm font-semibold text-rose-700 ring-1 ring-rose-100">
+              <Icon name="alert" className="mt-0.5 h-4 w-4 shrink-0" />
+              {saved.unusual.alert} usage: about {saved.unusual.times_usual}× this meter&apos;s usual use per day. Please
+              check the number before making the bill.
+            </p>
+          )}
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Button variant="secondary" icon="plus" onClick={resetForAnother}>
               Enter another

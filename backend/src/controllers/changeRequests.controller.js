@@ -6,6 +6,7 @@ import { query, withTransaction } from '../config/db.js';
 import ApiError from '../utils/ApiError.js';
 import { CONNECTION_TYPES, CUSTOMER_TYPES } from '../utils/constants.js';
 import { changeDecisionEmail, sendEmail } from '../utils/email.js';
+import { notifyCustomer } from '../utils/notify.js';
 import {
   clean,
   optionalOneOf,
@@ -160,7 +161,7 @@ export async function approveChangeRequest(req, res) {
        WHERE id = $3`,
       [note, req.user.id, id]
     );
-  });
+  }, req.user.id);
 
   const result = await findChangeRequest(id);
   await tellCustomer(result, true);
@@ -189,6 +190,15 @@ export async function rejectChangeRequest(req, res) {
 
 // Email the customer the answer (after an approved email change, this goes to the NEW address)
 async function tellCustomer(request, approved) {
+  await notifyCustomer(request.customer_id, {
+    kind: 'profile',
+    title: `${request.field_label} change ${approved ? 'approved' : 'not approved'}`,
+    message: approved
+      ? `Your ${request.field_label.toLowerCase()} is now ${request.new_value}.`
+      : `Your ${request.field_label.toLowerCase()} stays the same.${request.admin_note ? ` Office note: ${request.admin_note}` : ''}`,
+    link: '/my/profile',
+    refId: request.id,
+  });
   const to = clean(request.customer_email);
   if (!to) return;
   const { subject, html } = changeDecisionEmail(request.customer_name, request.field_label, request.new_value, approved, request.admin_note);

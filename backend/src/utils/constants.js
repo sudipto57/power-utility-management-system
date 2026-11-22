@@ -17,5 +17,18 @@ export const REQUEST_CATEGORIES = [
 export const REQUEST_PRIORITIES = ['Low', 'Medium', 'High', 'Critical'];
 export const REQUEST_STATUSES = ['Pending', 'In Progress', 'Resolved', 'Cancelled'];
 
+// Tables whose changes the activity log keeps (database/11_extra_features.sql, part 8)
+export const AUDITED_TABLES = [
+  'customers',
+  'connections',
+  'meter_readings',
+  'bills',
+  'payments',
+  'service_requests',
+  'bill_adjustments',
+  'outage_notices',
+  'meter_replacements',
+];
+
 // Bills that still have money to collect
 export const OPEN_BILL_STATUSES = ['Unpaid', 'Partially Paid', 'Overdue'];

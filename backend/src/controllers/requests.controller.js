@@ -3,6 +3,7 @@ import { query, withTransaction } from '../config/db.js';
 import ApiError from '../utils/ApiError.js';
 import { REQUEST_CATEGORIES, REQUEST_PRIORITIES, REQUEST_STATUSES } from '../utils/constants.js';
 import { clean, optionalOneOf, optionalText, requireOneOf, requireText, requireUuid } from '../utils/validate.js';
+import { notifyCustomer } from '../utils/notify.js';
 
 export const REQUEST_SELECT = `
   SELECT r.id, r.request_number, r.customer_id, r.category, r.priority, r.status, r.description,
@@ -75,8 +76,8 @@ export async function updateRequestStatus(req, res) {
   const assignProvided = 'assigned_to' in body;
   if (assignProvided && clean(body.assigned_to)) {
     assignedTo = requireUuid(body.assigned_to, 'staff member');
-    const staff = await query("SELECT id FROM users WHERE id = $1 AND role = 'admin'", [assignedTo]);
-    if (!staff.rows[0]) throw new ApiError(400, 'Requests can only be assigned to staff (admin) users');
+    const staff = await query("SELECT id FROM users WHERE id = $1 AND role = 'admin' AND status = 'Active'", [assignedTo]);
+    if (!staff.rows[0]) throw new ApiError(400, 'Requests can only be assigned to active staff (admin) users');
   }
 
   const current = await findRequest(id);
@@ -105,8 +106,17 @@ export async function updateRequestStatus(req, res) {
         `Status changed from ${current.status} to ${status}`,
       ]);
     }
-  });
+  }, req.user.id);
 
+  if (status !== current.status) {
+    await notifyCustomer(current.customer_id, {
+      kind: 'request',
+      title: `${current.request_number} is now ${status}`,
+      message: status === 'Resolved' ? `Solved: ${resolutionNotes || current.resolution_notes}` : `Your ${current.category.toLowerCase()} request moved from ${current.status} to ${status}.`,
+      link: `/my/requests/${id}`,
+      refId: id,
+    });
+  }
   res.json({ data: await findRequest(id) });
 }
 
@@ -114,11 +124,18 @@ export async function updateRequestStatus(req, res) {
 export async function addComment(req, res) {
   const id = requireUuid(req.params.id, 'request id');
   const comment = requireText(req.body?.comment, 'Comment', 2000);
-  await findRequest(id);
+  const request = await findRequest(id);
   await query('INSERT INTO service_request_comments (request_id, user_id, comment) VALUES ($1, $2, $3)', [
     id,
     req.user.id,
     comment,
   ]);
+  await notifyCustomer(request.customer_id, {
+    kind: 'request',
+    title: `New reply on ${request.request_number}`,
+    message: comment.length > 140 ? `${comment.slice(0, 140)}...` : comment,
+    link: `/my/requests/${id}`,
+    refId: id,
+  });
   res.status(201).json({ data: await findRequest(id) });
 }

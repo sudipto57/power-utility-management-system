@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import useFetch from '../../hooks/useFetch';
 import { getMyBills } from '../../api/my';
 import PageHeader from '../../components/common/PageHeader';
+import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import DataTable from '../../components/common/DataTable';
 import StatusBadge from '../../components/common/StatusBadge';
@@ -46,12 +47,34 @@ export default function MyBills() {
         <span className={b.status === 'Overdue' ? 'font-semibold text-rose-600' : ''}>{formatDate(b.due_date)}</span>
       ),
     },
-    { key: 'status', header: 'Payment status', render: (b) => <StatusBadge status={b.status} /> },
+    {
+      key: 'status',
+      header: 'Payment status',
+      render: (b) => (
+        <div>
+          <StatusBadge status={b.status} />
+          {b.waiting_payments > 0 && <p className="mt-1 text-xs font-semibold text-sky-700">Payment being checked</p>}
+        </div>
+      ),
+    },
   ];
 
   return (
     <div>
-      <PageHeader title="My bills" subtitle="All your electricity bills and whether they are paid." />
+      <PageHeader
+        title="My bills"
+        subtitle="All your electricity bills and whether they are paid. Open a bill to pay it online."
+        actions={
+          <>
+            <Button variant="secondary" icon="file" to="/my/statement">
+              View statement
+            </Button>
+            <Button variant="secondary" icon="wallet" to="/my/payments">
+              Payment history
+            </Button>
+          </>
+        }
+      />
       <Card bodyClassName="p-0" className="animate-fade-up" style={{ animationDelay: '80ms' }}>
         <div className="flex flex-wrap gap-1.5 border-b border-slate-100 p-4">
           {['', ...BILL_STATUSES].map((s) => (
@@ -60,7 +83,9 @@ export default function MyBills() {
               type="button"
               onClick={() => setStatus(s)}
               className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                status === s ? 'bg-slate-900 text-white shadow dark:bg-orange-500' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                status === s
+                  ? 'bg-slate-900 text-white shadow dark:bg-orange-500'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               {s || 'All'}

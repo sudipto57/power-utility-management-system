@@ -31,7 +31,7 @@ export default function ToastProvider({ children }) {
           <div
             key={toast.id}
             role="status"
-            className="pointer-events-auto flex animate-slide-in items-start gap-3 rounded-2xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl shadow-slate-900/20"
+            className="pointer-events-auto flex animate-slide-in items-start gap-3 rounded-2xl bg-sand-900 px-4 py-3 text-sm text-white shadow-xl shadow-sand-900/20"
           >
             <span
               className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
@@ -44,7 +44,7 @@ export default function ToastProvider({ children }) {
             <button
               type="button"
               onClick={() => remove(toast.id)}
-              className="text-slate-400 transition hover:text-white"
+              className="text-sand-400 transition hover:text-white"
               aria-label="Close message"
             >
               <Icon name="x" className="h-4 w-4" />

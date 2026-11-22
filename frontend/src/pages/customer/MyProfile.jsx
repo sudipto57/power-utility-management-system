@@ -56,16 +56,16 @@ export default function MyProfile() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="animate-fade-up text-center" bodyClassName="p-7">
-          <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-amber-300 to-amber-500 text-2xl font-extrabold text-slate-900 shadow-lg shadow-amber-500/30">
+          <span className="keep-dark mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-amber-300 to-amber-500 text-2xl font-extrabold text-sand-900 shadow-lg shadow-amber-500/30">
             {initials(p.full_name)}
           </span>
-          <h2 className="mt-4 text-xl font-extrabold text-slate-900">{p.full_name}</h2>
-          <p className="text-sm text-slate-500">{p.customer_number}</p>
+          <h2 className="mt-4 text-xl font-extrabold text-sand-900">{p.full_name}</h2>
+          <p className="text-sm text-sand-500">{p.customer_number}</p>
           <div className="mt-3 flex justify-center gap-2">
             <StatusBadge status={p.status} />
             <StatusBadge status={p.customer_type} />
           </div>
-          <p className="mt-4 text-xs text-slate-400">Customer since {formatDate(p.created_at)}</p>
+          <p className="mt-4 text-xs text-sand-500">Customer since {formatDate(p.created_at)}</p>
         </Card>
 
         <Card title="Contact details" className="animate-fade-up lg:col-span-2" style={{ animationDelay: '60ms' }}>
@@ -81,7 +81,7 @@ export default function MyProfile() {
             </InfoRow>
             <InfoRow icon="key" label="Username">
               {p.username}
-              <span className="block text-xs font-normal text-slate-500">Last login: {formatDateTime(p.last_login)}</span>
+              <span className="block text-xs font-normal text-sand-500">Last login: {formatDateTime(p.last_login)}</span>
             </InfoRow>
           </div>
         </Card>
@@ -95,7 +95,7 @@ export default function MyProfile() {
             {p.connections.map((co, index) => (
               <div
                 key={co.id}
-                className="animate-fade-up rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 p-5 text-white shadow-md transition hover:-translate-y-1"
+                className="animate-fade-up rounded-2xl bg-gradient-to-br from-sand-900 to-sand-950 p-5 text-white shadow-md transition hover:-translate-y-1"
                 style={{ animationDelay: `${150 + index * 60}ms` }}
               >
                 <div className="flex items-center justify-between">
@@ -110,12 +110,12 @@ export default function MyProfile() {
                   ) : (
                     <span className="text-2xl font-extrabold">—</span>
                   )}
-                  <span className="text-sm font-semibold text-slate-400">kWh</span>
+                  <span className="text-sm font-semibold text-sand-400">kWh</span>
                 </div>
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 text-xs text-sand-400">
                   {co.last_reading_date ? `Last read ${formatDate(co.last_reading_date)}` : 'No reading yet'}
                 </p>
-                <p className="mt-3 text-xs text-slate-400">
+                <p className="mt-3 text-xs text-sand-400">
                   {co.connection_type} · installed {formatDate(co.installation_date)}
                 </p>
               </div>
@@ -134,7 +134,7 @@ export default function MyProfile() {
         {changes.error ? (
           <ErrorState message={changes.error} onRetry={changes.reload} />
         ) : !changes.data ? (
-          <p className="text-sm text-slate-500">Loading…</p>
+          <p className="text-sm text-sand-500">Loading…</p>
         ) : changes.data.length === 0 ? (
           <EmptyState
             icon="send"
@@ -142,23 +142,23 @@ export default function MyProfile() {
             text="Need a new email, phone number or connection type? Press Request a change."
           />
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-sand-100">
             {changes.data.map((r) => (
               <li key={r.id} className="flex flex-wrap items-start justify-between gap-3 py-3.5">
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-slate-900">
+                  <p className="text-sm font-bold text-sand-900">
                     {r.field_label}
-                    {r.meter_number && <span className="font-mono text-slate-500"> · {r.meter_number}</span>}
+                    {r.meter_number && <span className="font-mono text-sand-500"> · {r.meter_number}</span>}
                   </p>
-                  <p className="mt-0.5 break-all text-sm text-slate-600">
-                    {r.old_value || '—'} <Icon name="arrowRight" className="inline h-3.5 w-3.5 text-slate-400" />{' '}
-                    <b className="text-slate-900">{r.new_value}</b>
+                  <p className="mt-0.5 break-all text-sm text-sand-600">
+                    {r.old_value || '—'} <Icon name="arrowRight" className="inline h-3.5 w-3.5 text-sand-500" />{' '}
+                    <b className="text-sand-900">{r.new_value}</b>
                   </p>
-                  {r.admin_note && <p className="mt-1 text-xs text-slate-500">Office note: {r.admin_note}</p>}
+                  {r.admin_note && <p className="mt-1 text-xs text-sand-500">Office note: {r.admin_note}</p>}
                 </div>
                 <div className="text-right">
                   <StatusBadge status={r.status} />
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-sand-500">
                     {r.decided_at ? `Answered ${formatDate(r.decided_at)}` : `Sent ${formatDate(r.created_at)}`}
                   </p>
                 </div>
@@ -237,7 +237,7 @@ function EditDetailsModal({ open, profile, onClose, onSaved }) {
         <Field label="Address" required>
           <Textarea rows={3} value={values.address} onChange={(e) => setForm({ ...values, address: e.target.value })} />
         </Field>
-        <p className="flex items-start gap-2 rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-500">
+        <p className="flex items-start gap-2 rounded-xl bg-sand-50 px-3 py-2.5 text-xs text-sand-500">
           <Icon name="info" className="mt-0.5 h-4 w-4 shrink-0 text-sky-500" />
           To change your email, phone number or a type, use Request a change. The office checks it first.
         </p>

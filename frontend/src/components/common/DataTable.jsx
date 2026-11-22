@@ -34,28 +34,28 @@ export default function DataTable({
     <div className={`overflow-x-auto transition-opacity ${loading ? 'opacity-60' : ''}`}>
       <table className="min-w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-slate-100 bg-slate-50/80">
+          <tr className="border-b border-sand-100 bg-sand-50/80">
             {columns.map((column) => (
               <th
                 key={column.key}
-                className={`whitespace-nowrap px-5 py-3 text-[11px] font-extrabold uppercase tracking-wider text-slate-600 ${column.className || ''}`}
+                className={`whitespace-nowrap px-5 py-3 text-[11px] font-extrabold uppercase tracking-wider text-sand-600 ${column.className || ''}`}
               >
                 {column.header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-sand-100">
           {rows.map((row, index) => (
             <tr
               key={row.id ?? index}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
               className={`transition-colors ${
-                onRowClick ? 'cursor-pointer hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent' : 'hover:bg-slate-50/70'
+                onRowClick ? 'cursor-pointer hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent' : 'hover:bg-sand-50/70'
               }`}
             >
               {columns.map((column) => (
-                <td key={column.key} className={`whitespace-nowrap px-5 py-3.5 font-semibold text-slate-700 ${column.className || ''}`}>
+                <td key={column.key} className={`whitespace-nowrap px-5 py-3.5 font-semibold text-sand-700 ${column.className || ''}`}>
                   {column.render ? column.render(row) : (row[column.key] ?? '-')}
                 </td>
               ))}

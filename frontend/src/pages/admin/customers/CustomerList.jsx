@@ -78,11 +78,11 @@ export default function CustomerList() {
       header: 'Customer',
       render: (c) => (
         <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-slate-800 to-slate-950 text-xs font-bold text-amber-300">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sand-800 to-sand-950 text-xs font-bold text-amber-300">
             {initials(c.full_name)}
           </span>
           <div className="min-w-0">
-            <p className="flex items-center gap-2 truncate font-semibold text-slate-900">
+            <p className="flex items-center gap-2 truncate font-semibold text-sand-900">
               {c.full_name}
               {isNew(c) && (
                 <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-100">
@@ -90,7 +90,7 @@ export default function CustomerList() {
                 </span>
               )}
             </p>
-            <p className="truncate text-xs text-slate-500">
+            <p className="truncate text-xs text-sand-500">
               {c.customer_number} · {c.email || 'no email'}
             </p>
           </div>
@@ -105,7 +105,7 @@ export default function CustomerList() {
       header: 'Outstanding',
       className: 'text-right',
       render: (c) => (
-        <span className={c.outstanding_amount > 0 ? 'font-semibold text-rose-600' : 'text-slate-400'}>
+        <span className={c.outstanding_amount > 0 ? 'font-semibold text-rose-600' : 'text-sand-500'}>
           {formatMoney(c.outstanding_amount)}
         </span>
       ),
@@ -121,7 +121,7 @@ export default function CustomerList() {
             type="button"
             title="Edit"
             onClick={() => navigate(`/admin/customers/${c.id}/edit`)}
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-800"
+            className="rounded-lg p-2 text-sand-500 transition hover:bg-sand-100 hover:text-sand-800"
           >
             <Icon name="edit" className="h-4 w-4" />
           </button>
@@ -129,7 +129,7 @@ export default function CustomerList() {
             type="button"
             title="Delete"
             onClick={() => setToDelete(c)}
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+            className="rounded-lg p-2 text-sand-500 transition hover:bg-rose-50 hover:text-rose-600"
           >
             <Icon name="trash" className="h-4 w-4" />
           </button>
@@ -153,7 +153,7 @@ export default function CustomerList() {
       <SqlFileStrip />
 
       <Card bodyClassName="p-0" className="animate-fade-up" style={{ animationDelay: '80ms' }}>
-        <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 p-4">
+        <div className="flex flex-wrap items-center gap-3 border-b border-sand-100 p-4">
           <SearchBar
             value={search}
             onChange={setSearch}
@@ -162,7 +162,7 @@ export default function CustomerList() {
           />
           <FilterSelect value={type} onChange={setType} options={CUSTOMER_TYPES} allLabel="All types" />
           <FilterSelect value={status} onChange={setStatus} options={CUSTOMER_STATUSES} allLabel="All statuses" />
-          {data && <span className="text-xs font-semibold text-slate-500">{data.length} found</span>}
+          {data && <span className="text-xs font-semibold text-sand-500">{data.length} found</span>}
         </div>
         {error ? (
           <div className="p-5">
@@ -263,11 +263,11 @@ function SqlFileStrip() {
         <Icon name={upToDate ? 'check' : 'clock'} className="h-5 w-5" />
       </span>
       <div className="min-w-0 flex-1 text-sm">
-        <p className="font-bold text-slate-900">
+        <p className="font-bold text-sand-900">
           {data.customers_in_database} new {data.customers_in_database === 1 ? 'customer' : 'customers'} since the sample data
-          <span className="font-semibold text-slate-500"> · saved live in the database</span>
+          <span className="font-semibold text-sand-500"> · saved live in the database</span>
         </p>
-        <p className="text-xs text-slate-600">{detail}</p>
+        <p className="text-xs text-sand-600">{detail}</p>
       </div>
       {data.found && (
         <Button variant="secondary" size="sm" icon="refresh" loading={saving} onClick={saveNow}>

@@ -20,7 +20,7 @@ export default function MyBills() {
     {
       key: 'bill_number',
       header: 'Bill',
-      render: (b) => <span className="font-mono font-bold text-slate-900">{b.bill_number}</span>,
+      render: (b) => <span className="font-mono font-bold text-sand-900">{b.bill_number}</span>,
     },
     { key: 'meter_number', header: 'Meter' },
     {
@@ -38,7 +38,7 @@ export default function MyBills() {
       key: 'total_amount',
       header: 'Amount',
       className: 'text-right',
-      render: (b) => <span className="font-semibold text-slate-900">{formatMoney(b.total_amount)}</span>,
+      render: (b) => <span className="font-semibold text-sand-900">{formatMoney(b.total_amount)}</span>,
     },
     {
       key: 'due_date',
@@ -47,29 +47,43 @@ export default function MyBills() {
         <span className={b.status === 'Overdue' ? 'font-semibold text-rose-600' : ''}>{formatDate(b.due_date)}</span>
       ),
     },
-    { key: 'status', header: 'Payment status', render: (b) => <StatusBadge status={b.status} /> },
+    {
+      key: 'status',
+      header: 'Payment status',
+      render: (b) => (
+        <div>
+          <StatusBadge status={b.status} />
+          {b.waiting_payments > 0 && <p className="mt-1 text-xs font-semibold text-sky-700">Payment being checked</p>}
+        </div>
+      ),
+    },
   ];
 
   return (
     <div>
       <PageHeader
         title="My bills"
-        subtitle="All your electricity bills and whether they are paid."
+        subtitle="All your electricity bills and whether they are paid. Open a bill to pay it online."
         actions={
-          <Button variant="secondary" icon="wallet" to="/my/statement">
-            View statement
-          </Button>
+          <>
+            <Button variant="secondary" icon="file" to="/my/statement">
+              View statement
+            </Button>
+            <Button variant="secondary" icon="wallet" to="/my/payments">
+              Payment history
+            </Button>
+          </>
         }
       />
       <Card bodyClassName="p-0" className="animate-fade-up" style={{ animationDelay: '80ms' }}>
-        <div className="flex flex-wrap gap-1.5 border-b border-slate-100 p-4">
+        <div className="flex flex-wrap gap-1.5 border-b border-sand-100 p-4">
           {['', ...BILL_STATUSES].map((s) => (
             <button
               key={s || 'all'}
               type="button"
               onClick={() => setStatus(s)}
               className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                status === s ? 'bg-slate-900 text-white shadow dark:bg-orange-500' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                status === s ? 'bg-sand-900 text-white shadow dark:bg-orange-500' : 'bg-sand-100 text-sand-600 hover:bg-sand-200'
               }`}
             >
               {s || 'All'}

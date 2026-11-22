@@ -17,8 +17,8 @@ An academic DBMS project: a web app where an electricity company manages custome
    - Frontend: React 19 + Vite + Tailwind CSS v4 + Chart.js + React Router. Plain JavaScript (no TypeScript). `fetch` for API calls. No Redux, no UI kit, no icon library.
    - Backend: Node.js + Express 5, plain SQL through `pg`. No ORM.
    - Database: PostgreSQL on Supabase (also runs on local PostgreSQL), managed with pgAdmin 4.
-4. **Do not change the tables.** `database/01_create_tables.sql` and `database/02_billing_tables.sql` are the team's schema. Never add, remove or rename a table or column unless the team asks for exactly that. New logic goes in functions, triggers, views or the API. The team asked for email codes (sign-up confirmation, forgot password, an 8-digit code at every customer login like GitHub) and profile change requests, so `database/09_account_security.sql` **adds** two new tables (`account_codes`, `profile_change_requests`); for the automatic copy of sign-ups the team asked for, `database/10_auto_save.sql` adds `sql_file_saves`; for the extra features the team chose (20 Nov 2026), `database/11_extra_features.sql` adds `audit_log`, `outage_notices` and `meter_replacements`. The original tables are unchanged.
-5. **Build only what was asked.** The scope is the 15 features (plus customer sign-up and role-based login) and the six extra features of file 11 (activity log, account statement, usage alerts, late fees, outage notices, meter replacement). `bill_adjustments` is used only for late fees and their waivers; `bill_installments` and `meter_reading_schedules` exist in the database but have no API or UI on purpose.
+4. **Do not change the tables.** `database/01_create_tables.sql` and `database/02_billing_tables.sql` are the team's schema. Never add, remove or rename a table or column unless the team asks for exactly that. New logic goes in functions, triggers, views or the API. The team asked for email codes (sign-up confirmation, forgot password, an 8-digit code at every customer login like GitHub) and profile change requests, so `database/09_account_security.sql` **adds** two new tables (`account_codes`, `profile_change_requests`); for the automatic copy of sign-ups the team asked for, `database/10_auto_save.sql` adds `sql_file_saves`; for the extra features the team chose (20 Nov 2026), `database/11_extra_features.sql` adds `audit_log`, `outage_notices` and `meter_replacements`; for the customer inbox the team asked for (21 Nov 2026), `database/12_customer_inbox.sql` adds `notifications`. The original tables are unchanged.
+5. **Build only what was asked.** The scope is the 15 features (plus customer sign-up and role-based login) the six extra features of file 11 (activity log, account statement, usage alerts, late fees, outage notices, meter replacement) and the customer features of 21 Nov 2026 (own meter readings + this month so far, price-band warning, bill calculator with appliance helper, dashboard alerts, replies on requests, Pay now, payment history + receipts, outage notices per area, inbox + due reminders). Prepaid meters are a future idea. `bill_adjustments` is used only for late fees and their waivers; `bill_installments` and `meter_reading_schedules` exist in the database but have no API or UI on purpose.
 6. **Secrets stay out of git.** Never print, copy or commit `backend/.env`. Only `.env.example` files (with fake values) are committed. `.gitignore` blocks every `.env*` file except `.env.example`.
 
 ## Run it
@@ -34,13 +34,13 @@ cd frontend && npm install && npm run dev
 Demo logins (from `database/04_sample_data.sql`): `PUMSadmin` / staff password (ask the team: it is shared privately and never written in GitHub), `sumaiya.khanam` / `customer123` (Bangladesh sample data: 200 customers CUST-001 … CUST-200, emails end in `@example.com` so test emails never reach real people).
 Website sign-ups (and customers added by an admin) are saved in the database and then copied by the backend into the marked "WEBSITE CUSTOMERS" part at the end of `database/04_sample_data.sql` (`backend/src/utils/saveCustomersToSql.js`; by hand: `npm run db:save-customers`). Never edit that part by hand. When the laptop is off, sign-ups wait in Supabase; the laptop's background job (`npm run auto-save:on`, starts with Windows, runs every 10 minutes) copies them in. On Render `SAVE_CUSTOMERS_TO_SQL_FILE=false`.
 `SELECT * FROM customers` has no fixed order: use the view `customers_in_order` or `ORDER BY`.
-Database setup order: `00_reset` → `01` → `02` → `03` → `04` → `07` (Supabase only) → `09` → `10` → `11`. `05` is local-only, `06` is practice queries. Full steps: `docs/04_setup_guide.md`.
+Database setup order: `00_reset` → `01` → `02` → `03` → `04` → `07` (Supabase only) → `09` → `10` → `11` → `12`. `05` is local-only, `06` is practice queries. Full steps: `docs/04_setup_guide.md`.
 
 ## Check your work (before saying something is done)
 
 ```bash
 cd frontend && npm run lint && npm run build     # must show no errors
-cd backend  && npm run db:test                   # database reachable, 19 tables
+cd backend  && npm run db:test                   # database reachable, 20 tables
 ```
 
 API changes: run the Postman collection in `postman/` (or the matching request) against the running backend. UI changes: open the page in the browser as admin **and** as customer.
@@ -51,7 +51,7 @@ API changes: run the Postman collection in `postman/` (or the matching request) 
 frontend/src/
   api/          one file per backend area; all go through api/client.js (adds the token, turns errors into messages)
   context/      AuthProvider (who is logged in), ToastProvider (pop-up messages), ThemeProvider (light / dark mode)
-  hooks/        useAuth, useToast, useTheme, useFetch, useDebounce, useCountUp, useNow (live clock), useNotifications (top-bar bell)
+  hooks/        useAuth, useToast, useTheme, useFetch, useDebounce, useCountUp, useNow (live clock), useNotifications (top-bar bell: admin to-dos, customer inbox), useReveal (first page scroll reveal)
   routes/       ProtectedRoute (login + role check)
   layouts/      AppLayout, AdminLayout, CustomerLayout (the menus)
   components/   common/ (Button, Card, StatCard, StatusBadge, DataTable, Modal, FormField ...)
@@ -59,7 +59,7 @@ frontend/src/
   pages/        auth/Login.jsx   admin/...   customer/...   NotFound.jsx
   utils/        format.js (money, dates)  options.js (dropdown values)  ui.js (shared class strings)  routes.js
   App.jsx       every route in one place
-  index.css     Tailwind @theme: fonts + animations
+  index.css     Tailwind @theme: fonts, Warm Sunrise colours (sand, ember, flame, dusk, focus), animations, dark mode
 
 backend/src/
   config/       env.js (reads .env), db.js (pool, query(), withTransaction(), connection tips)
@@ -94,16 +94,22 @@ Work one feature end to end, in this order. Do not start the next step until the
 - Writes pass the logged-in user: `withTransaction(work, req.user.id)` or `queryAs(req.user.id, sql, params)`, so the activity log knows who made the change.
 - Admin routes: `router.use(requireAuth, requireRole('admin'))`. Customer routes live under `/api/my` and use the customer id from the token, never from the request.
 - Bill amounts are **never** typed or calculated in JavaScript: call `calculate_bill_amount()`. Balances come from the view `bill_balance` (total + late fee − waiver − payments). "Mark paid" inserts a payment row (the trigger sets the status); "Mark unpaid" deletes it.
+- Customer readings and "Pay now" payments are saved as **Pending** (the original status columns) and only count after staff verify / confirm them. Pay now never asks for a card number, only the transaction reference.
+- Tell the customer about a change with `notifyCustomer()` (`utils/notify.js`, the inbox), after the change is saved.
 - A customer with bills is never deleted: answer 409 and offer "Inactive".
 
 ### Frontend conventions
 
 - Follow the design system: https://claude.ai/artifact/U6q3eGG593W9Z4hpZmJLnm (colours, type, spacing, components, wording).
-- Reuse `components/common/` and the class strings in `utils/ui.js` before writing new styles. One brand gradient (`from-amber-400 via-orange-500 to-rose-500`) for customer screens, the cool one (`from-indigo-500 via-violet-500 to-fuchsia-500`) for admin.
+- Reuse `components/common/` and the class strings in `utils/ui.js` before writing new styles.
+- Colours ("Warm Sunrise", 23 Nov 2026, tokens in `index.css`): warm **sand** greys (`bg-sand-50` page, `text-sand-900` headings, `text-sand-600` secondary, `text-sand-500` muted, placeholders and input borders); never the old slate greys. `text-sand-400` only on dark panels.
+- White text or icons on the brand colour use the deep sunrise gradient `from-ember via-flame to-dusk` (customer) or `from-indigo-600 via-violet-600 to-fuchsia-600` (admin). The bright `from-amber-400 via-orange-500 to-rose-500` is for decoration only (thin bars, lines). Gradient headline text: `.text-brand`. Keyboard focus: `ring-focus`. Cards are solid white (`cardClass`).
+- Charts use `CHART_COLORS` from `components/charts/colors.js` (colour-blind-safe Okabe-Ito colours: kWh = blue, billed = rose/vermilion, paid = emerald, unpaid = amber).
+- Pages are loaded with `React.lazy` in `App.jsx` (a new page: add a `lazy(() => import(...))` line). On the first page, add `reveal` to a block to let it rise into view on scroll (`hooks/useReveal.js`).
 - Every page handles three states: loading (`PageSkeleton` / `Skeleton`), empty (`EmptyState`), error (`ErrorState` with "Try again").
 - Load data with `useFetch`; show results of actions with `useToast`; format with `utils/format.js` (`formatMoney`, `formatDate`, `formatNumber`).
-- Status words always go through `StatusBadge`. Titles and buttons are sentence case; buttons are verbs.
-- Animations come from the classes in `index.css` (`animate-fade-up`, `animate-scale-in` ...). Do not add an animation library.
+- Status words always go through `StatusBadge` (word + icon, never colour alone). Titles and buttons are sentence case; buttons are verbs; no exclamation marks and no emoji in the interface (use `Icon`).
+- Animations come from the classes in `index.css` (`animate-fade-up`, `animate-scale-in` ...). Do not add an animation library, and no endless pulsing or pinging dots.
 - Role checks in React only hide things. The real check is always in the backend.
 
 ## Git

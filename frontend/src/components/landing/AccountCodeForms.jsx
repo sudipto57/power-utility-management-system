@@ -48,7 +48,7 @@ function ResendLink({ onResend, sentAt }) {
       type="button"
       onClick={onResend}
       disabled={secondsLeft > 0}
-      className="text-sm font-bold text-orange-600 hover:underline disabled:cursor-not-allowed disabled:font-semibold disabled:text-slate-400 disabled:no-underline"
+      className="text-sm font-bold text-orange-600 hover:underline disabled:cursor-not-allowed disabled:font-semibold disabled:text-sand-500 disabled:no-underline"
     >
       {secondsLeft > 0 ? `Send a new code in ${secondsLeft}s` : 'Send a new code'}
     </button>

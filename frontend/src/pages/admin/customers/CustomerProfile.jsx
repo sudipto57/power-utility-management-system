@@ -22,7 +22,7 @@ export default function CustomerProfile() {
   if (error) return <ErrorState message={error} onRetry={reload} />;
 
   const billColumns = [
-    { key: 'bill_number', header: 'Bill', render: (b) => <span className="font-semibold text-slate-900">{b.bill_number}</span> },
+    { key: 'bill_number', header: 'Bill', render: (b) => <span className="font-semibold text-sand-900">{b.bill_number}</span> },
     { key: 'meter_number', header: 'Meter' },
     {
       key: 'period',
@@ -54,15 +54,15 @@ export default function CustomerProfile() {
       />
 
       {/* Header card */}
-      <div className="relative animate-fade-up overflow-hidden rounded-2xl bg-slate-950 p-6 text-white shadow-lg">
-        <div className="absolute -right-16 -top-16 h-56 w-56 animate-glow rounded-full bg-amber-500/25 blur-3xl" />
+      <div className="relative animate-fade-up overflow-hidden rounded-2xl bg-sand-950 p-6 text-white shadow-lg">
+        <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-amber-500/25 blur-3xl" />
         <div className="relative flex flex-wrap items-center gap-5">
-          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 to-amber-500 text-xl font-extrabold text-slate-900 shadow-lg shadow-amber-500/30">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 to-amber-500 text-xl font-extrabold text-sand-900 shadow-lg shadow-amber-500/30">
             {initials(c.full_name)}
           </span>
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-2xl font-extrabold tracking-tight">{c.full_name}</h2>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-sand-400">
               {c.customer_number} · Customer since {formatDate(c.created_at)}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -72,15 +72,15 @@ export default function CustomerProfile() {
           </div>
           <div className="grid grid-cols-3 gap-6 text-center sm:text-right">
             <div>
-              <p className="text-[11px] uppercase tracking-wider text-slate-400">Services</p>
+              <p className="text-[11px] uppercase tracking-wider text-sand-400">Services</p>
               <p className="mt-1 text-xl font-extrabold">{formatNumber(c.connections_count)}</p>
             </div>
             <div>
-              <p className="text-[11px] uppercase tracking-wider text-slate-400">Total billed</p>
+              <p className="text-[11px] uppercase tracking-wider text-sand-400">Total billed</p>
               <p className="mt-1 text-xl font-extrabold">{formatMoney(c.total_billed)}</p>
             </div>
             <div>
-              <p className="text-[11px] uppercase tracking-wider text-slate-400">Outstanding</p>
+              <p className="text-[11px] uppercase tracking-wider text-sand-400">Outstanding</p>
               <p className={`mt-1 text-xl font-extrabold ${c.outstanding_amount > 0 ? 'text-amber-300' : 'text-emerald-300'}`}>
                 {formatMoney(c.outstanding_amount)}
               </p>
@@ -104,10 +104,10 @@ export default function CustomerProfile() {
             {c.username ? (
               <span>
                 {c.username}
-                <span className="block text-xs font-normal text-slate-500">Last login: {formatDateTime(c.last_login)}</span>
+                <span className="block text-xs font-normal text-sand-500">Last login: {formatDateTime(c.last_login)}</span>
               </span>
             ) : (
-              <span className="text-slate-500">No login account</span>
+              <span className="text-sand-500">No login account</span>
             )}
           </InfoRow>
         </Card>
@@ -135,21 +135,21 @@ export default function CustomerProfile() {
                 <Link
                   key={co.id}
                   to={`/admin/connections/${co.id}`}
-                  className="group animate-fade-up rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
+                  className="group animate-fade-up rounded-xl bg-sand-50 p-4 ring-1 ring-sand-200/70 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
                   style={{ animationDelay: `${150 + index * 60}ms` }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-2 font-mono text-sm font-bold text-slate-900">
+                    <span className="flex items-center gap-2 font-mono text-sm font-bold text-sand-900">
                       <Icon name="gauge" className="h-4 w-4 text-amber-500" /> {co.meter_number}
                     </span>
                     <StatusBadge status={co.status} />
                   </div>
-                  <p className="mt-3 text-xs text-slate-500">
+                  <p className="mt-3 text-xs text-sand-500">
                     {co.connection_type} · installed {formatDate(co.installation_date)}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-sand-500">
                     Last reading:{' '}
-                    <span className="font-semibold text-slate-700">
+                    <span className="font-semibold text-sand-700">
                       {co.last_reading !== null
                         ? `${formatNumber(co.last_reading)} kWh on ${formatDate(co.last_reading_date)}`
                         : 'none yet'}
@@ -188,15 +188,15 @@ export default function CustomerProfile() {
         {c.requests.length === 0 ? (
           <EmptyState icon="complaint" title="No service requests" />
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-sand-100">
             {c.requests.map((r) => (
               <li key={r.id}>
                 <Link
                   to={`/admin/requests/${r.id}`}
-                  className="flex flex-wrap items-center gap-3 rounded-xl px-2 py-3 transition hover:bg-slate-50"
+                  className="flex flex-wrap items-center gap-3 rounded-xl px-2 py-3 transition hover:bg-sand-50"
                 >
-                  <span className="font-mono text-xs font-bold text-slate-500">{r.request_number}</span>
-                  <span className="flex-1 truncate text-sm font-semibold text-slate-800">{r.category}</span>
+                  <span className="font-mono text-xs font-bold text-sand-500">{r.request_number}</span>
+                  <span className="flex-1 truncate text-sm font-semibold text-sand-800">{r.category}</span>
                   <StatusBadge status={r.priority} />
                   <StatusBadge status={r.status} />
                 </Link>

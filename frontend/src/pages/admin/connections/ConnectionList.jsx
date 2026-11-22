@@ -36,7 +36,7 @@ export default function ConnectionList() {
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600 ring-1 ring-amber-100">
             <Icon name="gauge" className="h-4 w-4" />
           </span>
-          <span className="font-mono font-bold text-slate-900">{co.meter_number}</span>
+          <span className="font-mono font-bold text-sand-900">{co.meter_number}</span>
         </span>
       ),
     },
@@ -45,8 +45,8 @@ export default function ConnectionList() {
       header: 'Customer',
       render: (co) => (
         <div>
-          <p className="font-semibold text-slate-800">{co.customer_name}</p>
-          <p className="text-xs text-slate-500">{co.customer_number}</p>
+          <p className="font-semibold text-sand-800">{co.customer_name}</p>
+          <p className="text-xs text-sand-500">{co.customer_number}</p>
         </div>
       ),
     },
@@ -59,11 +59,11 @@ export default function ConnectionList() {
       render: (co) =>
         co.last_reading !== null ? (
           <div>
-            <p className="font-semibold text-slate-800">{formatNumber(co.last_reading)} kWh</p>
-            <p className="text-xs text-slate-500">{formatDate(co.last_reading_date)}</p>
+            <p className="font-semibold text-sand-800">{formatNumber(co.last_reading)} kWh</p>
+            <p className="text-xs text-sand-500">{formatDate(co.last_reading_date)}</p>
           </div>
         ) : (
-          <span className="text-slate-400">none</span>
+          <span className="text-sand-500">none</span>
         ),
     },
     { key: 'status', header: 'Status', render: (co) => <StatusBadge status={co.status} /> },
@@ -81,7 +81,7 @@ export default function ConnectionList() {
         }
       />
       <Card bodyClassName="p-0" className="animate-fade-up" style={{ animationDelay: '80ms' }}>
-        <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 p-4">
+        <div className="flex flex-wrap items-center gap-3 border-b border-sand-100 p-4">
           <SearchBar
             value={search}
             onChange={setSearch}
@@ -90,7 +90,7 @@ export default function ConnectionList() {
           />
           <FilterSelect value={type} onChange={setType} options={CONNECTION_TYPES} allLabel="All types" />
           <FilterSelect value={status} onChange={setStatus} options={CONNECTION_STATUSES} allLabel="All statuses" />
-          {data && <span className="text-xs font-semibold text-slate-500">{data.length} found</span>}
+          {data && <span className="text-xs font-semibold text-sand-500">{data.length} found</span>}
         </div>
         {error ? (
           <div className="p-5">

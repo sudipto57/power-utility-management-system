@@ -16,13 +16,15 @@ import DoughnutChart from '../../../components/charts/DoughnutChart';
 import { CHART_COLORS } from '../../../components/charts/colors';
 import { formatDate, formatMoney, formatNumber } from '../../../utils/format';
 
+// Okabe-Ito order: colour-blind safe, the strongest colours first
 const PALETTE = [
-  CHART_COLORS.amber,
-  CHART_COLORS.sky,
+  CHART_COLORS.blue,
+  CHART_COLORS.rose,
   CHART_COLORS.emerald,
   CHART_COLORS.violet,
-  CHART_COLORS.rose,
-  CHART_COLORS.slate,
+  CHART_COLORS.amber,
+  CHART_COLORS.sky,
+  CHART_COLORS.sand,
 ];
 const BILL_COLORS = {
   Paid: CHART_COLORS.emerald,
@@ -43,16 +45,16 @@ export default function Reports() {
       customerTypes: {
         labels: customers.data.by_type.map((t) => t.customer_type),
         values: customers.data.by_type.map((t) => t.count),
-        colors: [CHART_COLORS.violet, CHART_COLORS.indigo],
+        colors: [CHART_COLORS.violet, CHART_COLORS.blue],
       },
       billsByMonth: {
         labels: bills.data.by_month.map((m) => m.month),
-        series: [{ label: 'Billed', data: bills.data.by_month.map((m) => m.billed), color: CHART_COLORS.amber }],
+        series: [{ label: 'Billed', data: bills.data.by_month.map((m) => m.billed), color: CHART_COLORS.rose }],
       },
       billStatus: {
         labels: bills.data.by_status.map((s) => s.status),
         values: bills.data.by_status.map((s) => s.count),
-        colors: bills.data.by_status.map((s) => BILL_COLORS[s.status] || CHART_COLORS.slate),
+        colors: bills.data.by_status.map((s) => BILL_COLORS[s.status] || CHART_COLORS.sand),
       },
       paymentsByMonth: {
         labels: payments.data.by_month.map((m) => m.month),
@@ -138,13 +140,13 @@ export default function Reports() {
 
       {/* ---------- Customer summary ---------- */}
       <section className="space-y-4">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">Customer summary</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wider text-sand-500">Customer summary</h2>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card title="Customers by type" className="animate-fade-up">
             <DoughnutChart {...charts.customerTypes} height={240} />
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               {c.by_status.map((s) => (
-                <span key={s.status} className="flex items-center gap-2 text-xs text-slate-600">
+                <span key={s.status} className="flex items-center gap-2 text-xs text-sand-600">
                   <StatusBadge status={s.status} /> {s.count}
                 </span>
               ))}
@@ -158,7 +160,7 @@ export default function Reports() {
           >
             <table className="min-w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-100 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <tr className="border-b border-sand-100 text-left text-[11px] font-bold uppercase tracking-wider text-sand-500">
                   <th className="px-5 py-3">Customer</th>
                   <th className="px-5 py-3 text-right">Bills</th>
                   <th className="px-5 py-3 text-right">Billed</th>
@@ -166,7 +168,7 @@ export default function Reports() {
                   <th className="px-5 py-3 text-right">Outstanding</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-sand-100">
                 {c.top_customers.map((row, index) => {
                   const max = c.top_customers[0]?.total_billed || 1;
                   return (
@@ -174,12 +176,12 @@ export default function Reports() {
                       <td className="px-5 py-3">
                         <Link
                           to={`/admin/customers/${row.customer_id}`}
-                          className="font-semibold text-slate-800 hover:text-sky-600"
+                          className="font-semibold text-sand-800 hover:text-sky-600"
                         >
                           {row.full_name}
                         </Link>
                         {/* little bar = share of the biggest customer */}
-                        <div className="mt-1.5 h-1.5 w-full max-w-48 overflow-hidden rounded-full bg-slate-100">
+                        <div className="mt-1.5 h-1.5 w-full max-w-48 overflow-hidden rounded-full bg-sand-100">
                           <div
                             className="h-full origin-left animate-grow rounded-full bg-amber-400"
                             style={{ width: `${Math.max((row.total_billed / max) * 100, 2)}%` }}
@@ -190,7 +192,7 @@ export default function Reports() {
                       <td className="px-5 py-3 text-right">{formatMoney(row.total_billed)}</td>
                       <td className="px-5 py-3 text-right text-emerald-600">{formatMoney(row.total_paid)}</td>
                       <td
-                        className={`px-5 py-3 text-right font-semibold ${row.outstanding_amount > 0 ? 'text-rose-600' : 'text-slate-400'}`}
+                        className={`px-5 py-3 text-right font-semibold ${row.outstanding_amount > 0 ? 'text-rose-600' : 'text-sand-500'}`}
                       >
                         {formatMoney(row.outstanding_amount)}
                       </td>
@@ -205,7 +207,7 @@ export default function Reports() {
 
       {/* ---------- Bill summary ---------- */}
       <section className="space-y-4">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">Bill summary</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wider text-sand-500">Bill summary</h2>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card title="Amount billed per month" subtitle="By billing period" className="animate-fade-up lg:col-span-2">
             {charts.billsByMonth.labels.length ? (
@@ -226,7 +228,7 @@ export default function Reports() {
 
       {/* ---------- Payment summary ---------- */}
       <section className="space-y-4">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">Payment summary</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wider text-sand-500">Payment summary</h2>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card title="Money collected per month" subtitle="By payment date" className="animate-fade-up lg:col-span-2">
             {charts.paymentsByMonth.labels.length ? (
@@ -247,16 +249,16 @@ export default function Reports() {
           {p.recent.length === 0 ? (
             <EmptyState icon="wallet" title="No payments yet" />
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-sand-100">
               {p.recent.map((pay) => (
                 <li key={pay.id}>
                   <Link
                     to={`/admin/bills/${pay.bill_id}`}
-                    className="flex flex-wrap items-center gap-4 px-5 py-3 text-sm transition hover:bg-slate-50"
+                    className="flex flex-wrap items-center gap-4 px-5 py-3 text-sm transition hover:bg-sand-50"
                   >
-                    <span className="font-mono text-xs font-bold text-slate-500">{pay.payment_number}</span>
-                    <span className="flex-1 font-semibold text-slate-800">{pay.customer_name}</span>
-                    <span className="text-xs text-slate-500">
+                    <span className="font-mono text-xs font-bold text-sand-500">{pay.payment_number}</span>
+                    <span className="flex-1 font-semibold text-sand-800">{pay.customer_name}</span>
+                    <span className="text-xs text-sand-500">
                       {pay.bill_number} · {pay.method} · {formatDate(pay.payment_date)}
                     </span>
                     <span className="font-bold text-emerald-600">{formatMoney(pay.amount)}</span>

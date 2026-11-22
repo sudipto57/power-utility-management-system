@@ -8,8 +8,8 @@ export default function ErrorState({ message, onRetry }) {
       <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
         <Icon name="alert" className="h-6 w-6" />
       </span>
-      <p className="mt-4 font-display text-base font-extrabold text-slate-900">Could not load this page</p>
-      <p className="mt-1 max-w-md text-sm font-semibold text-slate-600">{message}</p>
+      <p className="mt-4 font-display text-base font-extrabold text-sand-900">Could not load this page</p>
+      <p className="mt-1 max-w-md text-sm font-semibold text-sand-600">{message}</p>
       {onRetry && (
         <Button variant="secondary" size="sm" icon="refresh" className="mt-5" onClick={onRetry}>
           Try again

@@ -9,7 +9,7 @@ import { ANNOUNCEMENTS } from './announcements';
 function outageMessage(outage) {
   const when = outage.state === 'Happening now' ? 'Now' : formatDateTime(outage.starts_at);
   return {
-    icon: '🔧',
+    icon: 'wrench',
     text: `Power cut (${outage.state.toLowerCase()}): ${outage.title}, ${outage.area}. ${when} until ${formatDateTime(outage.ends_at)}.`,
   };
 }
@@ -29,8 +29,8 @@ export default function AnnouncementStrip() {
   const messages = [...all, ...all];
 
   return (
-    <div className="relative flex h-9 items-center overflow-hidden bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-950 text-xs font-bold text-white print:hidden">
-      <span className="relative z-10 flex h-full shrink-0 items-center gap-1.5 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 px-3 font-extrabold uppercase tracking-wider">
+    <div className="relative flex h-9 items-center overflow-hidden bg-gradient-to-r from-sand-950 via-indigo-950 to-sand-950 text-xs font-bold text-white print:hidden">
+      <span className="relative z-10 flex h-full shrink-0 items-center gap-1.5 bg-gradient-to-r from-ember via-flame to-dusk px-3 font-extrabold uppercase tracking-wider">
         <Icon name="megaphone" className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">News</span>
       </span>
@@ -38,7 +38,7 @@ export default function AnnouncementStrip() {
         <div className="flex w-max animate-marquee group-hover:[animation-play-state:paused]">
           {messages.map((message, index) => (
             <span key={index} className="flex items-center gap-2 whitespace-nowrap px-8" aria-hidden={index >= all.length}>
-              <span>{message.icon}</span>
+              <Icon name={message.icon} className="h-3.5 w-3.5 shrink-0 text-amber-300" />
               {message.text}
             </span>
           ))}
@@ -47,7 +47,7 @@ export default function AnnouncementStrip() {
       <button
         type="button"
         onClick={() => setHidden(true)}
-        className="relative z-10 flex h-full shrink-0 items-center px-3 text-slate-400 transition hover:text-white"
+        className="relative z-10 flex h-full shrink-0 items-center px-3 text-sand-400 transition hover:text-white"
         aria-label="Hide announcements"
       >
         <Icon name="x" className="h-4 w-4" />

@@ -12,7 +12,7 @@ export default function ThemeToggle() {
       onClick={toggle}
       aria-label={label}
       title={label}
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:text-orange-500 hover:ring-orange-300"
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-sand-600 shadow-sm ring-1 ring-sand-200 transition hover:-translate-y-0.5 hover:text-orange-500 hover:ring-orange-300"
     >
       {/* key = which icon, so the new icon plays a small pop-in animation */}
       <Icon key={dark ? 'sun' : 'moon'} name={dark ? 'sun' : 'moon'} className={`h-5 w-5 animate-scale-in ${dark ? 'text-amber-400' : ''}`} />

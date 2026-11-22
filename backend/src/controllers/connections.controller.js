@@ -1,15 +1,25 @@
 // Feature 6 (Electricity Service Management) + Feature 7 (Meter Information)
-import { query } from '../config/db.js';
+import { query, queryAs, withTransaction } from '../config/db.js';
 import ApiError from '../utils/ApiError.js';
 import { generateNumber } from '../utils/generateNumber.js';
 import { CONNECTION_STATUSES, CONNECTION_TYPES } from '../utils/constants.js';
-import { clean, optionalOneOf, optionalText, requireDate, requireOneOf, requireText, requireUuid } from '../utils/validate.js';
+import {
+  clean,
+  optionalOneOf,
+  optionalText,
+  requireDate,
+  requireOneOf,
+  requireText,
+  requireUuid,
+  requireWholeNumber,
+} from '../utils/validate.js';
 
 const CONNECTION_SELECT = `
   SELECT co.id, co.customer_id, co.meter_number, co.connection_type, co.installation_date,
          co.status, co.notes, co.created_at, co.updated_at,
          c.customer_number, c.full_name AS customer_name, c.customer_type, c.phone AS customer_phone,
-         lr.current_reading AS last_reading, lr.reading_date AS last_reading_date,
+         -- after a meter replacement this is the new meter's start reading (function from file 11)
+         expected_previous_reading(co.id) AS last_reading, lr.reading_date AS last_reading_date,
          (SELECT COUNT(*) FROM meter_readings mr WHERE mr.connection_id = co.id) AS readings_count
   FROM connections co
   JOIN customers c ON c.id = co.customer_id
@@ -44,13 +54,13 @@ export async function listConnections(req, res) {
   res.json({ data: rows });
 }
 
-// GET /api/connections/:id  -> connection + meter info + readings + bills
+// GET /api/connections/:id  -> connection + meter info + readings + bills + meter replacements
 export async function getConnection(req, res) {
   const id = requireUuid(req.params.id, 'connection id');
   await query('SELECT check_overdue_bills()');
   const connection = await findConnection(id);
 
-  const [readings, bills] = await Promise.all([
+  const [readings, bills, replacements] = await Promise.all([
     query(
       `SELECT mr.id, mr.previous_reading, mr.current_reading, (mr.current_reading - mr.previous_reading) AS consumption,
               mr.reading_date, mr.status, mr.notes, u.full_name AS recorded_by_name,
@@ -67,9 +77,16 @@ export async function getConnection(req, res) {
        FROM bills WHERE connection_id = $1 ORDER BY billing_period_start DESC`,
       [id]
     ),
+    query(
+      `SELECT r.id, r.old_meter_number, r.new_meter_number, r.old_meter_final_reading, r.new_meter_start_reading,
+              r.replaced_on, r.reason, u.full_name AS replaced_by_name
+       FROM meter_replacements r LEFT JOIN users u ON u.id = r.replaced_by
+       WHERE r.connection_id = $1 ORDER BY r.replaced_on DESC`,
+      [id]
+    ),
   ]);
 
-  res.json({ data: { ...connection, readings: readings.rows, bills: bills.rows } });
+  res.json({ data: { ...connection, readings: readings.rows, bills: bills.rows, replacements: replacements.rows } });
 }
 
 // POST /api/connections
@@ -92,7 +109,8 @@ export async function createConnection(req, res) {
     meterNumber = await generateNumber({ query }, 'meter');
   }
 
-  const { rows } = await query(
+  const { rows } = await queryAs(
+    req.user.id,
     `INSERT INTO connections (customer_id, meter_number, connection_type, installation_date, status, notes)
      VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
     [customerId, meterNumber, connectionType, installationDate, status, notes]
@@ -118,7 +136,46 @@ export async function updateConnection(req, res) {
   if (keys.length === 0) throw new ApiError(400, 'Nothing to update');
 
   const setSql = keys.map((key, i) => `${key} = $${i + 1}`).join(', ');
-  await query(`UPDATE connections SET ${setSql} WHERE id = $${keys.length + 1}`, [...keys.map((k) => changes[k]), id]);
+  await queryAs(req.user.id, `UPDATE connections SET ${setSql} WHERE id = $${keys.length + 1}`, [
+    ...keys.map((k) => changes[k]),
+    id,
+  ]);
 
   res.json({ data: await findConnection(id) });
+}
+
+// POST /api/connections/:id/replace-meter
+// body: { new_meter_number (optional, auto if empty), old_meter_final_reading, new_meter_start_reading (default 0),
+//         replaced_on, reason }
+// The database function replace_meter() does all the steps in one go (see 11_extra_features.sql):
+// saves the old meter's final reading, writes the history row and puts the new number on the connection.
+export async function replaceMeter(req, res) {
+  const id = requireUuid(req.params.id, 'connection id');
+  const body = req.body || {};
+  const finalReading = requireWholeNumber(body.old_meter_final_reading, "Old meter's final reading");
+  const startReading = clean(body.new_meter_start_reading)
+    ? requireWholeNumber(body.new_meter_start_reading, "New meter's start reading")
+    : 0;
+  const replacedOn = requireDate(body.replaced_on, 'Replacement date');
+  const reason = optionalText(body.reason, 'Reason', 500);
+  await findConnection(id);
+
+  const replacementId = await withTransaction(async (client) => {
+    let newMeter = clean(body.new_meter_number);
+    newMeter = newMeter ? requireText(newMeter, 'New meter number', 20).toUpperCase() : await generateNumber(client, 'meter');
+
+    const { rows } = await client.query('SELECT replace_meter($1, $2, $3, $4, $5, $6, $7) AS id', [
+      id,
+      newMeter,
+      finalReading,
+      startReading,
+      replacedOn,
+      reason,
+      req.user.id,
+    ]);
+    return rows[0].id;
+  }, req.user.id);
+
+  const replacement = await query('SELECT * FROM meter_replacements WHERE id = $1', [replacementId]);
+  res.status(201).json({ data: { ...(await findConnection(id)), replacement: replacement.rows[0] } });
 }

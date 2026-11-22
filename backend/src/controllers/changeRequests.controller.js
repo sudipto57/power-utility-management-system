@@ -160,7 +160,7 @@ export async function approveChangeRequest(req, res) {
        WHERE id = $3`,
       [note, req.user.id, id]
     );
-  });
+  }, req.user.id);
 
   const result = await findChangeRequest(id);
   await tellCustomer(result, true);

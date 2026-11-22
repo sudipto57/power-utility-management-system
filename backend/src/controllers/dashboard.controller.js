@@ -15,9 +15,9 @@ export async function getStats(req, res) {
          (SELECT COUNT(*) FROM connections WHERE status = 'Active')      AS active_connections,
          (SELECT COUNT(*) FROM bills WHERE status = ANY($1))             AS unpaid_bills,
          (SELECT COUNT(*) FROM bills WHERE status = 'Overdue')           AS overdue_bills,
-         (SELECT COALESCE(SUM(b.total_amount - COALESCE(
-                    (SELECT SUM(p.amount) FROM payments p WHERE p.bill_id = b.id AND p.status = 'Completed'), 0)), 0)
-            FROM bills b WHERE b.status = ANY($1))                       AS outstanding_amount,
+         (SELECT COALESCE(SUM(bb.balance), 0)
+            FROM bills b JOIN bill_balance bb ON bb.bill_id = b.id
+            WHERE b.status = ANY($1))                                     AS outstanding_amount,
          (SELECT COUNT(*) FROM service_requests WHERE status IN ('Pending', 'In Progress')) AS open_requests,
          (SELECT COUNT(*) FROM service_requests WHERE status = 'Pending')                   AS pending_requests,
          (SELECT COUNT(*) FROM profile_change_requests WHERE status = 'Pending')            AS pending_change_requests,
@@ -60,7 +60,7 @@ export async function getRecentActivity(req, res) {
        SELECT 'request', r.id, r.request_number || ' - ' || r.category, c.full_name, NULL::numeric, r.status::text, r.created_at
        FROM service_requests r JOIN customers c ON c.id = r.customer_id
        UNION ALL
-       SELECT 'reading', co.id, co.meter_number, c.full_name,
+       SELECT 'reading', co.id, meter_number_on(co.id, mr.reading_date), c.full_name,
               (mr.current_reading - mr.previous_reading)::numeric, mr.status::text, mr.created_at
        FROM meter_readings mr JOIN connections co ON co.id = mr.connection_id JOIN customers c ON c.id = co.customer_id
        UNION ALL

@@ -79,7 +79,10 @@ export default function CustomerForm() {
     if (!isEdit && form.create_login) {
       if (!form.email.trim()) return setError('An email is required to create a login.');
       if (form.username.trim().length < 3) return setError('Username must be at least 3 characters.');
-      if (form.password.length < 6) return setError('Password must be at least 6 characters.');
+      // Same rule as the sign up form and the backend: 8+ characters with a letter and a number
+      if (form.password.length < 8 || !/[A-Za-z]/.test(form.password) || !/[0-9]/.test(form.password)) {
+        return setError('Password needs 8+ characters with at least one letter and one number.');
+      }
     }
 
     setSaving(true);
@@ -161,7 +164,7 @@ export default function CustomerForm() {
                 <Field label="Username" required hint="Letters, numbers, dot, dash or underscore">
                   <Input value={form.username} onChange={set('username')} placeholder="rahim.uddin" autoComplete="off" />
                 </Field>
-                <Field label="Password" required hint="At least 6 characters">
+                <Field label="Password" required hint="8+ characters with a letter and a number">
                   <Input type="password" value={form.password} onChange={set('password')} autoComplete="new-password" />
                 </Field>
               </div>

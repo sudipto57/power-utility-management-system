@@ -3,8 +3,10 @@ import AppLayout from './AppLayout';
 const CUSTOMER_MENU = [
   { to: '/my', label: 'My Dashboard', icon: 'dashboard', end: true },
   { to: '/my/bills', label: 'My Bills', icon: 'receipt' },
+  { to: '/my/statement', label: 'My Statement', icon: 'wallet' },
   { to: '/my/requests', label: 'My Requests', icon: 'complaint' },
   { to: '/my/profile', label: 'My Profile', icon: 'user' },
+  { to: '/my/feedback', label: 'Give Feedback', icon: 'send' },
 ];
 
 export default function CustomerLayout() {

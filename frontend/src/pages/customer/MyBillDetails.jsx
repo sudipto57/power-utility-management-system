@@ -22,7 +22,9 @@ export default function MyBillDetails() {
         subtitle={
           bill.status === 'Paid'
             ? 'This bill is fully paid. Thank you!'
-            : 'Please pay at the utility office or by mobile banking before the due date.'
+            : bill.late_fee > bill.waived
+              ? 'A late fee was added because the due date has passed. Please pay as soon as you can.'
+              : 'Please pay at the utility office or by mobile banking before the due date.'
         }
         actions={
           <Button variant="secondary" icon="printer" onClick={() => window.print()}>

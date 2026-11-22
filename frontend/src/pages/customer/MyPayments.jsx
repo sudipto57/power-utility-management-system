@@ -27,7 +27,7 @@ export default function MyPayments() {
     {
       key: 'payment_number',
       header: 'Payment',
-      render: (p) => <span className="font-mono font-bold text-slate-900">{p.payment_number}</span>,
+      render: (p) => <span className="font-mono font-bold text-sand-900">{p.payment_number}</span>,
     },
     { key: 'payment_date', header: 'Date', render: (p) => formatDate(p.payment_date) },
     {
@@ -35,8 +35,8 @@ export default function MyPayments() {
       header: 'Bill',
       render: (p) => (
         <div>
-          <p className="font-semibold text-slate-800">{p.bill_number}</p>
-          <p className="text-xs text-slate-500">Meter {p.meter_number}</p>
+          <p className="font-semibold text-sand-800">{p.bill_number}</p>
+          <p className="text-xs text-sand-500">Meter {p.meter_number}</p>
         </div>
       ),
     },
@@ -46,7 +46,7 @@ export default function MyPayments() {
       render: (p) => (
         <div>
           <p>{p.method}</p>
-          {p.reference && <p className="font-mono text-xs text-slate-500">{p.reference}</p>}
+          {p.reference && <p className="font-mono text-xs text-sand-500">{p.reference}</p>}
         </div>
       ),
     },
@@ -55,7 +55,7 @@ export default function MyPayments() {
       header: 'Amount',
       className: 'text-right',
       render: (p) => (
-        <span className={`font-bold ${p.status === 'Failed' ? 'text-slate-400 line-through' : 'text-slate-900'}`}>
+        <span className={`font-bold ${p.status === 'Failed' ? 'text-sand-500 line-through' : 'text-sand-900'}`}>
           {formatMoney(p.amount)}
         </span>
       ),
@@ -70,7 +70,7 @@ export default function MyPayments() {
             Receipt
           </Button>
         ) : (
-          <span className="text-xs text-slate-400">{p.status === 'Pending' ? 'After the office confirms' : '-'}</span>
+          <span className="text-xs text-sand-500">{p.status === 'Pending' ? 'After the office confirms' : '-'}</span>
         ),
     },
   ];

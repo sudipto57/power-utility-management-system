@@ -10,6 +10,31 @@
   /* Bold, techy font for the big project title (font-display) */
   --font-display: 'Sora', 'Plus Jakarta Sans', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
 
+  /* "Warm Sunrise" colours (docs: Colour Palette UI file)
+     sand = warm greys used for every page, card, border and text (they replace the cold slate greys) */
+  --color-sand-50: #fbf9f6; /* page background */
+  --color-sand-100: #f5f1eb; /* quiet tiles */
+  --color-sand-200: #e9e2d8; /* thin borders */
+  --color-sand-300: #d6ccbf;
+  --color-sand-400: #a89f92; /* only on dark panels (too light on white) */
+  --color-sand-500: #7a7064; /* muted text, placeholders, input borders */
+  --color-sand-600: #5c5348; /* secondary text */
+  --color-sand-700: #463e35;
+  --color-sand-800: #2e2822; /* body text */
+  --color-sand-900: #1f1a15; /* headings */
+  --color-sand-950: #15120f;
+
+  /* Deep sunrise shades: use them wherever WHITE text or icons sit on the brand colour.
+     They stay the same in dark mode. (Bright amber/orange behind white text is too hard to read.) */
+  --color-ember: #b45309;
+  --color-flame: #c2410c;
+  --color-flame-dark: #9a3412; /* hover */
+  --color-dusk: #be123c;
+  --color-leaf: #047857; /* "Success" button */
+
+  /* Keyboard focus ring (dark mode uses a lighter orange, set in the .dark block) */
+  --color-focus: #ea580c;
+
   --animate-fade-up: fade-up 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   --animate-fade-in: fade-in 0.35s ease-out both;
   --animate-scale-in: scale-in 0.25s cubic-bezier(0.2, 0.7, 0.2, 1) both;
@@ -17,7 +42,6 @@
   --animate-shimmer: shimmer 1.4s linear infinite;
   --animate-float: float 6s ease-in-out infinite;
   --animate-flow: flow 2.2s linear infinite;
-  --animate-glow: glow 2.4s ease-in-out infinite;
   --animate-grow: grow 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   --animate-gradient: gradient-move 6s ease-in-out infinite;
   --animate-draw: draw 0.7s ease-out 0.25s both; /* a line that draws itself (the "paid" tick) */
@@ -131,17 +155,6 @@
       stroke-dashoffset: -40;
     }
   }
-  @keyframes glow {
-    0%,
-    100% {
-      opacity: 0.55;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1.08);
-    }
-  }
   @keyframes grow {
     from {
       transform: scaleX(0);
@@ -157,12 +170,13 @@
 ---------------------------------------------------------------- */
 html {
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   scroll-behavior: smooth; /* menu links glide down the first page */
 }
 
 /* Every text is a little bolder (medium) for a strong, clean look */
 body {
-  @apply bg-slate-50 font-sans font-medium text-slate-800;
+  @apply bg-sand-50 font-sans font-medium text-sand-800;
 }
 
 /* Every page title, card title and section title uses the bold Sora font */
@@ -171,21 +185,27 @@ h2,
 h3 {
   font-family: var(--font-display);
   letter-spacing: -0.02em;
+  text-wrap: balance; /* no single word left alone on the last line */
+}
+
+/* Paragraphs break their lines more evenly too */
+p {
+  text-wrap: pretty;
 }
 
 /* Soft dotted "grid" behind the app pages */
 .app-backdrop {
-  background-image: radial-gradient(rgb(15 23 42 / 0.06) 1px, transparent 1px);
+  background-image: radial-gradient(rgb(31 26 21 / 0.06) 1px, transparent 1px);
   background-size: 22px 22px;
 }
 
-/* Inside the app: the dotted grid + soft colour glows (orange, pink, blue) that stay in place */
+/* Inside the app: the dotted grid + soft, warm glows (orange, rose, a little sky blue) that stay in place */
 .app-colorful {
   background-image:
-    radial-gradient(rgb(15 23 42 / 0.05) 1px, transparent 1px),
-    radial-gradient(40rem 26rem at 100% 0%, rgb(251 146 60 / 0.12), transparent 70%),
-    radial-gradient(36rem 26rem at 0% 30%, rgb(232 121 249 / 0.1), transparent 70%),
-    radial-gradient(40rem 30rem at 60% 100%, rgb(56 189 248 / 0.1), transparent 70%);
+    radial-gradient(rgb(31 26 21 / 0.05) 1px, transparent 1px),
+    radial-gradient(40rem 26rem at 100% 0%, rgb(251 146 60 / 0.1), transparent 70%),
+    radial-gradient(36rem 26rem at 0% 30%, rgb(244 63 94 / 0.06), transparent 70%),
+    radial-gradient(40rem 30rem at 60% 100%, rgb(56 189 248 / 0.06), transparent 70%);
   background-size:
     22px 22px,
     100% 100%,
@@ -194,9 +214,9 @@ h3 {
   background-attachment: fixed;
 }
 
-/* Text filled with the brand gradient (orange -> pink) */
+/* Text filled with the brand gradient. These deep shades stay readable on white (each stop is 4.7:1 or more). */
 .text-brand {
-  @apply bg-gradient-to-r from-amber-500 via-orange-500 to-fuchsia-600 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-ember via-flame to-fuchsia-600 bg-clip-text text-transparent;
 }
 
 /* "Shine on hover": a soft light sweeps across stat cards and buttons.
@@ -220,9 +240,31 @@ h3 {
   }
 }
 
+/* First page: blocks rise into place once, the first time they scroll into view (hooks/useReveal.js) */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* First page tagline: each word starts faint and lights up while you scroll (TaglineSection) */
+.tagline-word {
+  opacity: 0.3;
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tagline-word.is-lit {
+  opacity: 1;
+}
+
 /* Skeleton loading bars */
 .skeleton {
-  background: linear-gradient(90deg, rgb(226 232 240) 0%, rgb(241 245 249) 50%, rgb(226 232 240) 100%);
+  background: linear-gradient(90deg, #e9e2d8 0%, #f5f1eb 50%, #e9e2d8 100%);
   background-size: 800px 100%;
   @apply animate-shimmer rounded-md;
 }
@@ -230,14 +272,14 @@ h3 {
 /* Thin, quiet scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgb(203 213 225) transparent;
+  scrollbar-color: #d6ccbf transparent;
 }
 
 /* ---------------------------------------------------------------
    Dark mode (#18)
    ThemeProvider puts class="dark" on <html> when the sun/moon switch is on.
    Instead of changing every page, the colour VALUES are swapped here:
-   Tailwind classes like bg-white or text-slate-900 read these values,
+   Tailwind classes like bg-white or text-sand-900 read these values,
    so every page, card, table, form and pop-up turns dark together.
    Only on screen: a printed bill always stays light.
 ---------------------------------------------------------------- */
@@ -248,21 +290,23 @@ h3 {
   .dark {
     color-scheme: dark; /* dark scrollbars, date pickers and dropdown lists */
 
-    /* "White" surfaces (cards, inputs, pop-ups) become dark navy */
-    --color-white: #0f172a;
+    /* "White" surfaces (cards, inputs, pop-ups) become a warm near-black (not pure black) */
+    --color-white: #1f1b17;
 
-    /* The grey scale is turned around: light greys become dark, dark text becomes light */
-    --color-slate-50: #0b1120; /* page background */
-    --color-slate-100: #1e293b;
-    --color-slate-200: #334155;
-    --color-slate-300: #475569;
-    --color-slate-400: #64748b;
-    --color-slate-500: #94a3b8;
-    --color-slate-600: #cbd5e1;
-    --color-slate-700: #e2e8f0;
-    --color-slate-800: #f1f5f9;
-    --color-slate-900: #f8fafc;
-    --color-slate-950: #ffffff;
+    /* The sand scale is turned around: light sand becomes dark, dark text becomes light */
+    --color-sand-50: #15120f; /* page background */
+    --color-sand-100: #2a251f; /* quiet tiles, a step lighter than the cards */
+    --color-sand-200: #3a332b; /* borders */
+    --color-sand-300: #4a4238;
+    --color-sand-400: #8a8174;
+    --color-sand-500: #a89f92; /* muted text, input borders */
+    --color-sand-600: #d6ccbf; /* secondary text */
+    --color-sand-700: #e9e2d8;
+    --color-sand-800: #f5f1eb; /* body text */
+    --color-sand-900: #fbf9f6; /* headings */
+    --color-sand-950: #ffffff;
+
+    --color-focus: #fdba74; /* the focus ring is light orange on dark */
 
     /* Pale colour boxes (bg-orange-50, ring-emerald-200 ...) become see-through tints,
        and the coloured text on them (text-emerald-700 ...) becomes lighter */
@@ -340,27 +384,32 @@ h3 {
 
   /* Parts that are already dark in light mode keep their normal colours:
      the sidebar, meter cards, dark buttons and chips, toasts, the "Units used" box ...
-     (any element whose own background is bg-slate-900 / 950 or a from-slate-800 / 900 / 950 gradient,
+     (any element whose own background is bg-sand-900 / 950 or a from-sand-800 / 900 / 950 gradient,
      or that has the class "keep-dark") */
   .dark .keep-dark,
-  .dark [class^='bg-slate-9'],
-  .dark [class*=' bg-slate-9'],
-  .dark [class^='from-slate-8'],
-  .dark [class*=' from-slate-8'],
-  .dark [class^='from-slate-9'],
-  .dark [class*=' from-slate-9'] {
+  .dark [class^='bg-sand-9'],
+  .dark [class*=' bg-sand-9'],
+  .dark [class^='from-sand-8'],
+  .dark [class*=' from-sand-8'],
+  .dark [class^='from-sand-9'],
+  .dark [class*=' from-sand-9'] {
     --color-white: #ffffff;
-    --color-slate-50: #f8fafc;
-    --color-slate-100: #f1f5f9;
-    --color-slate-200: #e2e8f0;
-    --color-slate-300: #cbd5e1;
-    --color-slate-400: #94a3b8;
-    --color-slate-500: #64748b;
-    --color-slate-600: #475569;
-    --color-slate-700: #334155;
-    --color-slate-800: #1e293b;
-    --color-slate-900: #0f172a;
-    --color-slate-950: #020617;
+    --color-sand-50: #fbf9f6;
+    --color-sand-100: #f5f1eb;
+    --color-sand-200: #e9e2d8;
+    --color-sand-300: #d6ccbf;
+    --color-sand-400: #a89f92;
+    --color-sand-500: #7a7064;
+    --color-sand-600: #5c5348;
+    --color-sand-700: #463e35;
+    --color-sand-800: #2e2822;
+    --color-sand-900: #1f1a15;
+    --color-sand-950: #15120f;
+  }
+
+  /* The gradient headline gets light, warm stops on the dark page */
+  .dark .text-brand {
+    background-image: linear-gradient(to right, #fcd34d, #fdba74, #f0abfc);
   }
 
   /* Background patterns and loading bars in dark colours */
@@ -371,19 +420,24 @@ h3 {
     background-image:
       radial-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
       radial-gradient(40rem 26rem at 100% 0%, rgb(251 146 60 / 0.1), transparent 70%),
-      radial-gradient(36rem 26rem at 0% 30%, rgb(232 121 249 / 0.08), transparent 70%),
-      radial-gradient(40rem 30rem at 60% 100%, rgb(56 189 248 / 0.08), transparent 70%);
+      radial-gradient(36rem 26rem at 0% 30%, rgb(244 63 94 / 0.06), transparent 70%),
+      radial-gradient(40rem 30rem at 60% 100%, rgb(56 189 248 / 0.05), transparent 70%);
   }
   .dark .skeleton {
-    background-image: linear-gradient(90deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+    background-image: linear-gradient(90deg, #2a251f 0%, #3a332b 50%, #2a251f 100%);
   }
   .dark * {
-    scrollbar-color: #334155 transparent;
+    scrollbar-color: #3a332b transparent;
   }
 }
 
 /* Respect people who prefer less motion */
 @media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .tagline-word {
+    opacity: 1;
+    transform: none;
+  }
   *,
   *::before,
   *::after {

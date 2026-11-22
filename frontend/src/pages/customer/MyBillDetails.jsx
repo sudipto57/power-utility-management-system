@@ -31,7 +31,7 @@ export default function MyBillDetails() {
         title={`Bill ${bill.bill_number}`}
         subtitle={
           bill.status === 'Paid'
-            ? 'This bill is fully paid. Thank you!'
+            ? 'This bill is fully paid. Thank you.'
             : bill.late_fee > bill.waived
               ? 'A late fee was added because the due date has passed. Please pay as soon as you can (Pay now).'
               : 'Pay online with Pay now, or at the utility office before the due date.'
@@ -56,8 +56,8 @@ export default function MyBillDetails() {
             <Icon name="clock" className="h-5 w-5" />
           </span>
           <div>
-            <p className="font-extrabold text-slate-900">Your payment of {formatMoney(waiting.amount)} is being checked</p>
-            <p className="text-sm text-slate-600">
+            <p className="font-extrabold text-sand-900">Your payment of {formatMoney(waiting.amount)} is being checked</p>
+            <p className="text-sm text-sand-600">
               {waiting.method} · reference <b className="font-mono">{waiting.reference}</b>. The office confirms it soon, then
               this bill shows as Paid and your receipt is ready.
             </p>

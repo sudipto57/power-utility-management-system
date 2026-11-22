@@ -10,12 +10,12 @@ import { homePathFor } from '../../utils/routes';
 // Colours for each role: the whole card changes colour when you switch
 const THEME = {
   customer: {
-    gradient: 'from-amber-400 via-orange-500 to-rose-500',
+    gradient: 'from-ember via-flame to-dusk',
     shadow: 'shadow-orange-200',
     soft: 'bg-orange-50 text-orange-600',
   },
   admin: {
-    gradient: 'from-indigo-500 via-violet-500 to-fuchsia-500',
+    gradient: 'from-indigo-600 via-violet-600 to-fuchsia-600',
     shadow: 'shadow-violet-200',
     soft: 'bg-violet-50 text-violet-600',
   },
@@ -154,13 +154,13 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
   const updateSignup = (key) => (event) => setSignupForm({ ...signupForm, [key]: event.target.value });
 
   return (
-    <div className={`relative overflow-hidden rounded-3xl bg-white shadow-2xl ${theme.shadow} ring-1 ring-slate-200/70`}>
+    <div className={`relative overflow-hidden rounded-3xl bg-white shadow-2xl ${theme.shadow} ring-1 ring-sand-200/70`}>
       {/* Coloured strip on top (changes with the role) */}
       <div className={`h-1.5 bg-gradient-to-r ${theme.gradient} bg-[length:200%_100%] animate-gradient`} />
 
       <div className="p-7 sm:p-8">
         {/* ---------- Customer / Admin slide switch bar ---------- */}
-        <div className="relative grid grid-cols-2 rounded-full bg-slate-100 p-1" role="tablist" aria-label="Choose login type">
+        <div className="relative grid grid-cols-2 rounded-full bg-sand-100 p-1" role="tablist" aria-label="Choose login type">
           <span
             className={`absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-gradient-to-r ${theme.gradient} shadow-md transition-transform duration-300 ease-out ${
               role === 'admin' ? 'translate-x-full' : 'translate-x-0'
@@ -177,7 +177,7 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
               aria-selected={role === tab.value}
               onClick={() => switchRole(tab.value)}
               className={`relative z-10 flex items-center justify-center gap-2 rounded-full py-2.5 text-sm font-bold transition-colors duration-300 ${
-                role === tab.value ? 'text-white' : 'text-slate-500 hover:text-slate-800'
+                role === tab.value ? 'text-white' : 'text-sand-500 hover:text-sand-800'
               }`}
             >
               <Icon name={tab.icon} className="h-4 w-4" />
@@ -202,7 +202,7 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
                     ? 'Account help'
                     : 'Customer area'}
           </span>
-          <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900">
+          <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-sand-900">
             {role === 'admin'
               ? 'Admin sign in'
               : step === 'login_code'
@@ -215,7 +215,7 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
                     ? 'Create your account'
                     : 'Welcome back'}
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-sand-500">
             {role === 'admin'
               ? 'Manage customers, meters, bills and requests.'
               : step === 'login_code'
@@ -359,7 +359,7 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
         )}
 
         {/* ---------- Bottom line: switch between log in and sign up ---------- */}
-        <div className="mt-6 border-t border-slate-100 pt-5 text-center text-sm text-slate-500">
+        <div className="mt-6 border-t border-sand-100 pt-5 text-center text-sm text-sand-500">
           {role === 'admin' ? (
             <p className="flex items-center justify-center gap-2 text-xs">
               <Icon name="info" className="h-4 w-4 text-violet-500" />

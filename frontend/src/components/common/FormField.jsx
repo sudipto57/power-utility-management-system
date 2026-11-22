@@ -6,14 +6,14 @@ import { inputClass } from '../../utils/ui';
 export function Field({ label, hint, error, required, children, className = '' }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-1.5 block text-xs font-bold text-slate-700">
+      <span className="mb-1.5 block text-xs font-bold text-sand-700">
         {label} {required && <span className="text-rose-500">*</span>}
       </span>
       {children}
       {error ? (
         <span className="mt-1 block text-xs font-medium text-rose-600">{error}</span>
       ) : (
-        hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>
+        hint && <span className="mt-1 block text-xs text-sand-500">{hint}</span>
       )}
     </label>
   );
@@ -32,7 +32,7 @@ export function PasswordInput({ className = '', ...props }) {
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
-        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 hover:text-slate-700"
+        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-sand-500 hover:text-sand-700"
         aria-label={visible ? 'Hide password' : 'Show password'}
       >
         <Icon name={visible ? 'eyeOff' : 'eye'} className="h-4 w-4" />

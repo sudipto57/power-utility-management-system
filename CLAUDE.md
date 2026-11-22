@@ -51,7 +51,7 @@ API changes: run the Postman collection in `postman/` (or the matching request) 
 frontend/src/
   api/          one file per backend area; all go through api/client.js (adds the token, turns errors into messages)
   context/      AuthProvider (who is logged in), ToastProvider (pop-up messages), ThemeProvider (light / dark mode)
-  hooks/        useAuth, useToast, useTheme, useFetch, useDebounce, useCountUp, useNow (live clock), useNotifications (top-bar bell: admin to-dos, customer inbox)
+  hooks/        useAuth, useToast, useTheme, useFetch, useDebounce, useCountUp, useNow (live clock), useNotifications (top-bar bell: admin to-dos, customer inbox), useReveal (first page scroll reveal)
   routes/       ProtectedRoute (login + role check)
   layouts/      AppLayout, AdminLayout, CustomerLayout (the menus)
   components/   common/ (Button, Card, StatCard, StatusBadge, DataTable, Modal, FormField ...)
@@ -59,7 +59,7 @@ frontend/src/
   pages/        auth/Login.jsx   admin/...   customer/...   NotFound.jsx
   utils/        format.js (money, dates)  options.js (dropdown values)  ui.js (shared class strings)  routes.js
   App.jsx       every route in one place
-  index.css     Tailwind @theme: fonts + animations
+  index.css     Tailwind @theme: fonts, Warm Sunrise colours (sand, ember, flame, dusk, focus), animations, dark mode
 
 backend/src/
   config/       env.js (reads .env), db.js (pool, query(), withTransaction(), connection tips)
@@ -101,11 +101,15 @@ Work one feature end to end, in this order. Do not start the next step until the
 ### Frontend conventions
 
 - Follow the design system: https://claude.ai/artifact/U6q3eGG593W9Z4hpZmJLnm (colours, type, spacing, components, wording).
-- Reuse `components/common/` and the class strings in `utils/ui.js` before writing new styles. One brand gradient (`from-amber-400 via-orange-500 to-rose-500`) for customer screens, the cool one (`from-indigo-500 via-violet-500 to-fuchsia-500`) for admin.
+- Reuse `components/common/` and the class strings in `utils/ui.js` before writing new styles.
+- Colours ("Warm Sunrise", 23 Nov 2026, tokens in `index.css`): warm **sand** greys (`bg-sand-50` page, `text-sand-900` headings, `text-sand-600` secondary, `text-sand-500` muted, placeholders and input borders); never the old slate greys. `text-sand-400` only on dark panels.
+- White text or icons on the brand colour use the deep sunrise gradient `from-ember via-flame to-dusk` (customer) or `from-indigo-600 via-violet-600 to-fuchsia-600` (admin). The bright `from-amber-400 via-orange-500 to-rose-500` is for decoration only (thin bars, lines). Gradient headline text: `.text-brand`. Keyboard focus: `ring-focus`. Cards are solid white (`cardClass`).
+- Charts use `CHART_COLORS` from `components/charts/colors.js` (colour-blind-safe Okabe-Ito colours: kWh = blue, billed = rose/vermilion, paid = emerald, unpaid = amber).
+- Pages are loaded with `React.lazy` in `App.jsx` (a new page: add a `lazy(() => import(...))` line). On the first page, add `reveal` to a block to let it rise into view on scroll (`hooks/useReveal.js`).
 - Every page handles three states: loading (`PageSkeleton` / `Skeleton`), empty (`EmptyState`), error (`ErrorState` with "Try again").
 - Load data with `useFetch`; show results of actions with `useToast`; format with `utils/format.js` (`formatMoney`, `formatDate`, `formatNumber`).
-- Status words always go through `StatusBadge`. Titles and buttons are sentence case; buttons are verbs.
-- Animations come from the classes in `index.css` (`animate-fade-up`, `animate-scale-in` ...). Do not add an animation library.
+- Status words always go through `StatusBadge` (word + icon, never colour alone). Titles and buttons are sentence case; buttons are verbs; no exclamation marks and no emoji in the interface (use `Icon`).
+- Animations come from the classes in `index.css` (`animate-fade-up`, `animate-scale-in` ...). Do not add an animation library, and no endless pulsing or pinging dots.
 - Role checks in React only hide things. The real check is always in the backend.
 
 ## Git

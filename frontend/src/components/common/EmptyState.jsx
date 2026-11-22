@@ -47,12 +47,12 @@ export default function EmptyState({ icon = 'search', title = 'Nothing here yet'
       <div className="relative">
         <SleepingMeter />
         {/* The page's own icon on a small badge */}
-        <span className="absolute -bottom-1 right-0 flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-white shadow-md ring-2 ring-white">
+        <span className="absolute -bottom-1 right-0 flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-ember via-flame to-dusk text-white shadow-md ring-2 ring-white">
           <Icon name={icon} className="h-4 w-4" />
         </span>
       </div>
-      <p className="mt-4 font-display text-sm font-extrabold text-slate-800">{title}</p>
-      {text && <p className="mt-1 max-w-sm text-sm text-slate-500">{text}</p>}
+      <p className="mt-4 font-display text-sm font-extrabold text-sand-800">{title}</p>
+      {text && <p className="mt-1 max-w-sm text-sm text-sand-500">{text}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   );

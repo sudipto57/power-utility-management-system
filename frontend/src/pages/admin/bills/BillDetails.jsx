@@ -119,8 +119,8 @@ export default function BillDetails() {
             <Icon name="wallet" className="h-5 w-5" />
           </span>
           <div className="min-w-56 flex-1">
-            <p className="font-extrabold text-slate-900">The customer paid {formatMoney(waiting.amount)} online</p>
-            <p className="text-sm text-slate-600">
+            <p className="font-extrabold text-sand-900">The customer paid {formatMoney(waiting.amount)} online</p>
+            <p className="text-sm text-sand-600">
               {waiting.method} · reference <b className="font-mono">{waiting.reference}</b> · {formatDate(waiting.payment_date)}.
               Check that the money arrived, then confirm it.
             </p>

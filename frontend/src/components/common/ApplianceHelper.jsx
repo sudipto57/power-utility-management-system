@@ -1,27 +1,28 @@
 import { useState } from 'react';
 import Modal from './Modal';
 import Button from './Button';
+import Icon from './Icon';
 import { formatNumber } from '../../utils/format';
 
 // Typical power (watts) and hours a day for common appliances in a Bangladeshi home.
 // Units (kWh) a month = watts x how many x hours a day x 30 days / 1000
 const APPLIANCES = [
-  { name: 'Ceiling fan', icon: '🌀', watts: 75, count: 3, hours: 10 },
-  { name: 'LED bulb', icon: '💡', watts: 10, count: 6, hours: 6 },
-  { name: 'Refrigerator', icon: '🧊', watts: 150, count: 1, hours: 12 }, // the motor runs about half the day
-  { name: 'Television', icon: '📺', watts: 100, count: 1, hours: 5 },
+  { name: 'Ceiling fan', icon: 'fan', watts: 75, count: 3, hours: 10 },
+  { name: 'LED bulb', icon: 'bulb', watts: 10, count: 6, hours: 6 },
+  { name: 'Refrigerator', icon: 'fridge', watts: 150, count: 1, hours: 12 }, // the motor runs about half the day
+  { name: 'Television', icon: 'tv', watts: 100, count: 1, hours: 5 },
   {
     name: 'Air conditioner (1.5 ton)',
-    icon: '❄️',
+    icon: 'snow',
     watts: 1500,
     count: 0,
     hours: 6,
   },
-  { name: 'Water pump', icon: '🚰', watts: 750, count: 0, hours: 1 },
-  { name: 'Iron', icon: '👔', watts: 1000, count: 1, hours: 0.5 },
-  { name: 'Rice cooker', icon: '🍚', watts: 700, count: 1, hours: 1 },
-  { name: 'Computer or laptop', icon: '💻', watts: 60, count: 1, hours: 6 },
-  { name: 'Washing machine', icon: '🫧', watts: 500, count: 0, hours: 1 },
+  { name: 'Water pump', icon: 'droplet', watts: 750, count: 0, hours: 1 },
+  { name: 'Iron', icon: 'shirt', watts: 1000, count: 1, hours: 0.5 },
+  { name: 'Rice cooker', icon: 'pot', watts: 700, count: 1, hours: 1 },
+  { name: 'Computer or laptop', icon: 'laptop', watts: 60, count: 1, hours: 6 },
+  { name: 'Washing machine', icon: 'washer', watts: 500, count: 0, hours: 1 },
 ];
 
 function monthlyUnits(item) {
@@ -36,16 +37,16 @@ function Stepper({ value, onChange, step = 1, max, label }) {
       <button
         type="button"
         onClick={() => change(-step)}
-        className="h-7 w-7 rounded-lg bg-slate-100 font-extrabold text-slate-600 hover:bg-slate-200"
+        className="h-7 w-7 rounded-lg bg-sand-100 font-extrabold text-sand-600 hover:bg-sand-200"
         aria-label={`Less ${label}`}
       >
         −
       </button>
-      <span className="w-8 text-center text-sm font-extrabold text-slate-900">{value}</span>
+      <span className="w-8 text-center text-sm font-extrabold text-sand-900">{value}</span>
       <button
         type="button"
         onClick={() => change(step)}
-        className="h-7 w-7 rounded-lg bg-slate-100 font-extrabold text-slate-600 hover:bg-slate-200"
+        className="h-7 w-7 rounded-lg bg-sand-100 font-extrabold text-sand-600 hover:bg-sand-200"
         aria-label={`More ${label}`}
       >
         +
@@ -82,23 +83,23 @@ export default function ApplianceHelper({ open, onClose, onUse }) {
         </>
       }
     >
-      <p className="text-sm text-slate-500">How many of each do you have, and for how many hours a day are they on?</p>
-      <div className="mt-4 max-h-[50vh] divide-y divide-slate-100 overflow-y-auto pr-1">
+      <p className="text-sm text-sand-500">How many of each do you have, and for how many hours a day are they on?</p>
+      <div className="mt-4 max-h-[50vh] divide-y divide-sand-100 overflow-y-auto pr-1">
         {items.map((item, index) => (
           <div key={item.name} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2.5">
-            <span className="text-xl" aria-hidden="true">
-              {item.icon}
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-700">
+              <Icon name={item.icon} className="h-5 w-5" />
             </span>
             <div className="min-w-36 flex-1">
-              <p className="text-sm font-bold text-slate-800">{item.name}</p>
-              <p className="text-xs text-slate-500">{formatNumber(item.watts)} W each</p>
+              <p className="text-sm font-bold text-sand-800">{item.name}</p>
+              <p className="text-xs text-sand-500">{formatNumber(item.watts)} W each</p>
             </div>
             <div className="text-center">
-              <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">How many</p>
+              <p className="text-[11px] font-extrabold uppercase tracking-wider text-sand-500">How many</p>
               <Stepper value={item.count} max={20} label={`${item.name} count`} onChange={(v) => update(index, 'count', v)} />
             </div>
             <div className="text-center">
-              <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Hours a day</p>
+              <p className="text-[11px] font-extrabold uppercase tracking-wider text-sand-500">Hours a day</p>
               <Stepper
                 value={item.hours}
                 step={0.5}
@@ -107,15 +108,15 @@ export default function ApplianceHelper({ open, onClose, onUse }) {
                 onChange={(v) => update(index, 'hours', v)}
               />
             </div>
-            <p className="w-20 text-right text-sm font-extrabold text-slate-900">
+            <p className="w-20 text-right text-sm font-extrabold text-sand-900">
               {formatNumber(Math.round(monthlyUnits(item)))} kWh
             </p>
           </div>
         ))}
       </div>
       <div className="mt-4 flex items-center justify-between rounded-2xl bg-orange-50 px-4 py-3 ring-1 ring-orange-100">
-        <span className="text-sm font-bold text-slate-600">About this much a month</span>
-        <span className="font-display text-2xl font-extrabold text-slate-900">{formatNumber(total)} kWh</span>
+        <span className="text-sm font-bold text-sand-600">About this much a month</span>
+        <span className="font-display text-2xl font-extrabold text-sand-900">{formatNumber(total)} kWh</span>
       </div>
     </Modal>
   );

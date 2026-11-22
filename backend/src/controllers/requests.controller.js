@@ -75,8 +75,8 @@ export async function updateRequestStatus(req, res) {
   const assignProvided = 'assigned_to' in body;
   if (assignProvided && clean(body.assigned_to)) {
     assignedTo = requireUuid(body.assigned_to, 'staff member');
-    const staff = await query("SELECT id FROM users WHERE id = $1 AND role = 'admin'", [assignedTo]);
-    if (!staff.rows[0]) throw new ApiError(400, 'Requests can only be assigned to staff (admin) users');
+    const staff = await query("SELECT id FROM users WHERE id = $1 AND role = 'admin' AND status = 'Active'", [assignedTo]);
+    if (!staff.rows[0]) throw new ApiError(400, 'Requests can only be assigned to active staff (admin) users');
   }
 
   const current = await findRequest(id);

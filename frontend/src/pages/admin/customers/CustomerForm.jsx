@@ -151,10 +151,10 @@ export default function CustomerForm() {
                 className="mt-1 h-4 w-4 accent-amber-500"
               />
               <span>
-                <span className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                <span className="flex items-center gap-2 text-sm font-bold text-sand-900">
                   <Icon name="key" className="h-4 w-4 text-amber-500" /> Create a login for this customer
                 </span>
-                <span className="mt-0.5 block text-xs text-slate-500">
+                <span className="mt-0.5 block text-xs text-sand-500">
                   They can then log in to see their bills and send service requests.
                 </span>
               </span>

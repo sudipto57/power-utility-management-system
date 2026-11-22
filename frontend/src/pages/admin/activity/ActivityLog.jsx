@@ -44,18 +44,18 @@ function show(value) {
 
 /** "status: Unpaid → Paid" lines for a change. */
 function ChangeList({ row }) {
-  if (row.action === 'DELETE') return <span className="text-slate-500">Row removed</span>;
+  if (row.action === 'DELETE') return <span className="text-sand-500">Row removed</span>;
   const fields = Object.keys(row.new_values || {}).filter((key) => !HIDDEN_FIELDS.includes(key));
   if (row.action === 'INSERT') {
-    return <span className="text-slate-500">New record ({fields.length} fields)</span>;
+    return <span className="text-sand-500">New record ({fields.length} fields)</span>;
   }
   return (
     <ul className="space-y-0.5 text-xs">
       {fields.map((key) => (
         <li key={key}>
-          <span className="font-bold text-slate-700">{key.replace(/_/g, ' ')}:</span>{' '}
-          <span className="text-slate-400 line-through">{show(row.old_values?.[key])}</span>{' '}
-          <span className="text-slate-400">→</span> <span className="text-slate-900">{show(row.new_values[key])}</span>
+          <span className="font-bold text-sand-700">{key.replace(/_/g, ' ')}:</span>{' '}
+          <span className="text-sand-500 line-through">{show(row.old_values?.[key])}</span>{' '}
+          <span className="text-sand-500">→</span> <span className="text-sand-900">{show(row.new_values[key])}</span>
         </li>
       ))}
     </ul>
@@ -79,8 +79,8 @@ export default function ActivityLog() {
       header: 'When',
       render: (r) => (
         <div>
-          <p className="font-semibold text-slate-800">{timeAgo(r.changed_at)}</p>
-          <p className="text-xs text-slate-500">{formatDateTime(r.changed_at)}</p>
+          <p className="font-semibold text-sand-800">{timeAgo(r.changed_at)}</p>
+          <p className="text-xs text-sand-500">{formatDateTime(r.changed_at)}</p>
         </div>
       ),
     },
@@ -90,11 +90,11 @@ export default function ActivityLog() {
       render: (r) =>
         r.changed_by_name ? (
           <div>
-            <p className="font-semibold text-slate-800">{r.changed_by_name}</p>
-            <p className="text-xs capitalize text-slate-500">{r.changed_by_role}</p>
+            <p className="font-semibold text-sand-800">{r.changed_by_name}</p>
+            <p className="text-xs capitalize text-sand-500">{r.changed_by_role}</p>
           </div>
         ) : (
-          <span className="text-slate-500" title="Done by the database itself (e.g. a bill turning Overdue) or in pgAdmin">
+          <span className="text-sand-500" title="Done by the database itself (e.g. a bill turning Overdue) or in pgAdmin">
             System
           </span>
         ),
@@ -113,8 +113,8 @@ export default function ActivityLog() {
       header: 'What',
       render: (r) => (
         <div>
-          <p className="font-semibold text-slate-900">{r.label || '-'}</p>
-          <p className="text-xs text-slate-500">{TABLE_LABELS[r.table_name] || r.table_name}</p>
+          <p className="font-semibold text-sand-900">{r.label || '-'}</p>
+          <p className="text-xs text-sand-500">{TABLE_LABELS[r.table_name] || r.table_name}</p>
         </div>
       ),
     },
@@ -128,7 +128,7 @@ export default function ActivityLog() {
         subtitle="Who added, changed or deleted what. Written by the database itself, so nothing is missed."
       />
       <Card bodyClassName="p-0" className="animate-fade-up" style={{ animationDelay: '80ms' }}>
-        <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 p-4">
+        <div className="flex flex-wrap items-center gap-3 border-b border-sand-100 p-4">
           <SearchBar
             value={search}
             onChange={setSearch}
@@ -138,7 +138,7 @@ export default function ActivityLog() {
           <FilterSelect value={table} onChange={setTable} options={Object.values(TABLE_LABELS)} allLabel="Everything" />
           <FilterSelect value={action} onChange={setAction} options={Object.keys(ACTION_BY_LABEL)} allLabel="All actions" />
           {data && (
-            <span className="text-xs font-semibold text-slate-500">
+            <span className="text-xs font-semibold text-sand-500">
               {data.length} change{data.length === 1 ? '' : 's'}
             </span>
           )}

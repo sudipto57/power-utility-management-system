@@ -112,19 +112,19 @@ export default function ReadingEntry() {
   if (saved) {
     return (
       <div className="mx-auto max-w-xl pt-6">
-        <div className="animate-scale-in rounded-3xl bg-white p-8 text-center shadow-xl shadow-slate-200/70 ring-1 ring-slate-200/70">
+        <div className="animate-scale-in rounded-3xl bg-white p-8 text-center shadow-xl shadow-sand-200/70 ring-1 ring-sand-200/70">
           <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
             <Icon name="check" className="h-8 w-8" strokeWidth={2.5} />
           </span>
-          <h2 className="mt-5 text-xl font-extrabold text-slate-900">Reading saved</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="mt-5 text-xl font-extrabold text-sand-900">Reading saved</h2>
+          <p className="mt-1 text-sm text-sand-500">
             {saved.meter_number} · {saved.customer_name} · {formatDate(saved.reading_date)}
           </p>
-          <p className="mt-6 text-5xl font-extrabold tracking-tight text-slate-900">
+          <p className="mt-6 text-5xl font-extrabold tracking-tight text-sand-900">
             {formatNumber(saved.consumption)}
-            <span className="ml-2 text-lg font-bold text-slate-400">kWh used</span>
+            <span className="ml-2 text-lg font-bold text-sand-500">kWh used</span>
           </p>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-sand-500">
             {formatNumber(saved.previous_reading)} → {formatNumber(saved.current_reading)}
           </p>
           {/* The database view unusual_readings flagged this reading: ask for a second look before billing */}
@@ -212,7 +212,7 @@ export default function ReadingEntry() {
           {/* Live consumption preview */}
           <div
             className={`mt-6 flex items-center justify-between rounded-2xl px-5 py-4 transition-colors ${
-              consumption !== null && consumption < 0 ? 'bg-rose-50 ring-1 ring-rose-100' : 'bg-slate-950 text-white'
+              consumption !== null && consumption < 0 ? 'bg-rose-50 ring-1 ring-rose-100' : 'bg-sand-950 text-white'
             }`}
           >
             <span className="flex items-center gap-3 text-sm font-semibold">

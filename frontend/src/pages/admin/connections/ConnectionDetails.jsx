@@ -35,7 +35,7 @@ export default function ConnectionDetails() {
       .reverse();
     return {
       labels: verified.map((r) => formatDate(r.reading_date)),
-      series: [{ label: 'kWh used', data: verified.map((r) => r.consumption), color: CHART_COLORS.amber }],
+      series: [{ label: 'kWh used', data: verified.map((r) => r.consumption), color: CHART_COLORS.blue }],
     };
   }, [co]);
 
@@ -55,7 +55,7 @@ export default function ConnectionDetails() {
       key: 'consumption',
       header: 'Used',
       className: 'text-right',
-      render: (r) => <span className="font-semibold text-slate-900">{formatNumber(r.consumption)} kWh</span>,
+      render: (r) => <span className="font-semibold text-sand-900">{formatNumber(r.consumption)} kWh</span>,
     },
     { key: 'status', header: 'Status', render: (r) => <StatusBadge status={r.status} /> },
     {
@@ -83,7 +83,7 @@ export default function ConnectionDetails() {
   ];
 
   const billColumns = [
-    { key: 'bill_number', header: 'Bill', render: (b) => <span className="font-semibold text-slate-900">{b.bill_number}</span> },
+    { key: 'bill_number', header: 'Bill', render: (b) => <span className="font-semibold text-sand-900">{b.bill_number}</span> },
     {
       key: 'period',
       header: 'Period',
@@ -100,8 +100,8 @@ export default function ConnectionDetails() {
       key: 'meters',
       header: 'Meter',
       render: (r) => (
-        <span className="font-mono font-bold text-slate-900">
-          {r.old_meter_number} <span className="text-slate-400">→</span> {r.new_meter_number}
+        <span className="font-mono font-bold text-sand-900">
+          {r.old_meter_number} <span className="text-sand-500">→</span> {r.new_meter_number}
         </span>
       ),
     },
@@ -147,20 +147,20 @@ export default function ConnectionDetails() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Meter card */}
-        <div className="relative animate-fade-up overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 p-6 text-white shadow-lg">
-          <div className="absolute -bottom-12 -right-12 h-44 w-44 animate-glow rounded-full bg-amber-500/25 blur-3xl" />
+        <div className="relative animate-fade-up overflow-hidden rounded-2xl bg-gradient-to-br from-sand-900 to-sand-950 p-6 text-white shadow-lg">
+          <div className="absolute -bottom-12 -right-12 h-44 w-44 rounded-full bg-amber-500/25 blur-3xl" />
           <div className="relative">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Meter</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-sand-400">Meter</span>
               <StatusBadge status={co.status} />
             </div>
             <p className="mt-3 font-mono text-3xl font-extrabold tracking-wider text-amber-300">{co.meter_number}</p>
             {/* Odometer-style last reading */}
             <div className="mt-5 flex items-end gap-2">
               <MeterDigits value={co.last_reading} />
-              <span className="text-xs text-slate-400">kWh</span>
+              <span className="text-xs text-sand-400">kWh</span>
             </div>
-            <p className="mt-2 text-xs text-slate-400">
+            <p className="mt-2 text-xs text-sand-400">
               {newMeterFitted
                 ? `New meter fitted on ${formatDate(co.replacements[0].replaced_on)}`
                 : co.last_reading_date

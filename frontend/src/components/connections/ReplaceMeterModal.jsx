@@ -53,11 +53,11 @@ export default function ReplaceMeterModal({ connection, onClose, onReplaced }) {
         </>
       }
     >
-      <p className="mb-5 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600 ring-1 ring-slate-100">
+      <p className="mb-5 rounded-xl bg-sand-50 px-4 py-3 text-sm text-sand-600 ring-1 ring-sand-100">
         The old meter&apos;s last reading is saved as a normal reading, so those units are still billed. Readings after
         today start from the new meter&apos;s start reading.
         {connection.last_reading !== null && connection.last_reading !== undefined && (
-          <span className="mt-1 block font-semibold text-slate-800">
+          <span className="mt-1 block font-semibold text-sand-800">
             Last reading of the old meter: {formatNumber(connection.last_reading)} kWh
           </span>
         )}

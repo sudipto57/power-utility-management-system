@@ -1,8 +1,15 @@
-// Extra feature: outage notices (planned power cuts posted by the office)
+// Extra feature: outage notices (planned power cuts posted by the office).
+// Customers in the area see them on My Dashboard and get a message in their inbox.
 // Table outage_notices and view current_outage_notices: database/11_extra_features.sql
 import { query, queryAs } from '../config/db.js';
 import ApiError from '../utils/ApiError.js';
 import { optionalText, requireText, requireUuid } from '../utils/validate.js';
+
+// Is customer c in the area of notice o? Yes when the area is "All areas", or when the first place
+// of the area (e.g. "Mirpur 10" in "Mirpur 10, Dhaka") is part of the customer's address.
+// Also used by My Dashboard (my.controller.js).
+export const NOTICE_FOR_CUSTOMER = `(o.area ILIKE 'All areas'
+       OR c.address ILIKE '%' || trim(split_part(o.area, ',', 1)) || '%')`;
 
 /** A date and time from the form, e.g. "2026-11-21T10:00:00.000Z". Returns a Date. */
 function requireDateTime(value, label) {
@@ -28,7 +35,8 @@ const NOTICE_SELECT = `
   SELECT o.id, o.title, o.area, o.starts_at, o.ends_at, o.details, o.created_at, u.full_name AS created_by_name,
          CASE WHEN o.ends_at <= NOW() THEN 'Ended'
               WHEN o.starts_at <= NOW() THEN 'Happening now'
-              ELSE 'Planned' END AS state
+              ELSE 'Planned' END AS state,
+         (SELECT COUNT(*) FROM customers c WHERE ${NOTICE_FOR_CUSTOMER}) AS customers_reached
   FROM outage_notices o LEFT JOIN users u ON u.id = o.created_by`;
 
 async function findNotice(id) {
@@ -57,6 +65,17 @@ export async function createOutage(req, res) {
     `INSERT INTO outage_notices (title, area, starts_at, ends_at, details, created_by)
      VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
     [n.title, n.area, n.startsAt, n.endsAt, n.details, req.user.id]
+  );
+  // A message in the inbox of every customer in the area (one SQL statement, table from 12_customer_inbox.sql)
+  await query(
+    `INSERT INTO notifications (customer_id, kind, title, message, link, ref_id)
+     SELECT c.id, 'notice', 'Power cut: ' || o.title,
+            o.area || ', ' || to_char(o.starts_at AT TIME ZONE 'Asia/Dhaka', 'DD Mon, HH12:MI AM') || ' to '
+              || to_char(o.ends_at AT TIME ZONE 'Asia/Dhaka', 'DD Mon, HH12:MI AM') || COALESCE('. ' || o.details, ''),
+            '/my', o.id
+     FROM outage_notices o JOIN customers c ON ${NOTICE_FOR_CUSTOMER}
+     WHERE o.id = $1`,
+    [rows[0].id]
   );
   res.status(201).json({ data: await findNotice(rows[0].id) });
 }

@@ -1,10 +1,18 @@
-// Chart colours shared by every page (Tailwind palette values)
+// Chart colours shared by every page.
+// Okabe-Ito colours: people with colour-blindness can still tell them apart.
+// The names say which family each colour belongs to (same meaning as the status badges).
 export const CHART_COLORS = {
-  amber: '#f59e0b',
-  sky: '#0ea5e9',
-  emerald: '#10b981',
-  rose: '#f43f5e',
-  violet: '#8b5cf6',
-  slate: '#94a3b8',
-  indigo: '#6366f1',
+  blue: '#0072b2', // units (kWh)
+  rose: '#d55e00', // vermilion: billed amounts, overdue
+  emerald: '#009e73', // paid, collected
+  violet: '#cc79a7', // reddish purple: other series
+  amber: '#e69f00', // unpaid, pending
+  sky: '#56b4e9', // partially paid
+  sand: '#5c5348', // totals and "other"
+};
+
+// The light colours get a darker edge, so every bar and slice stands out from the white card
+export const CHART_EDGES = {
+  [CHART_COLORS.amber]: '#b45309',
+  [CHART_COLORS.sky]: '#0369a1',
 };

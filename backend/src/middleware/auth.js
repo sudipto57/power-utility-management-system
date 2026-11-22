@@ -6,21 +6,6 @@ import env from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
 import { query } from '../config/db.js';
 
-export function requireLogin(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ message: 'Please log in' });
-  try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
-    next();
-  } catch {
-    res.status(401).json({ message: 'Session expired, log in again' });
-  }
-}
-
-export function requireRole(role) {
-  return (req, res, next) => (req.user.role === role ? next() : res.status(403).json({ message: 'Not allowed' }));
-}
-
 /**
  * A short "fingerprint" of the user's password hash. It goes inside the login token.
  * When the password changes (forgot password), the fingerprint changes too, so every
@@ -66,6 +51,7 @@ export async function requireAuth(req, res, next) {
     role: payload.role,
     customerId: payload.customerId || null,
     name: payload.name,
+    previousLogin: payload.pl || null, // the login BEFORE this one (for "new since you last logged in")
   };
   return next();
 }

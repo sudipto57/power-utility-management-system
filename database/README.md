@@ -3,7 +3,7 @@
 PostgreSQL scripts for the Power Utility Management System. They work on **Supabase** and on a **local PostgreSQL** (pgAdmin 4).
 
 **The original tables are exactly the team's schema.** No table or column was added, removed or renamed in them. Only functions, views, rules (constraints), indexes and sample data were fixed.
-For the account features the team asked for (email confirmation, forgot password, the customer login code, profile change requests), `09_account_security.sql` **adds two new tables**: `account_codes` and `profile_change_requests`. For the automatic copy of website sign-ups into `04`, `10_auto_save.sql` adds `sql_file_saves`. For the extra features (activity log, outage notices, meter replacement history), `11_extra_features.sql` adds `audit_log`, `outage_notices` and `meter_replacements`.
+For the account features the team asked for (email confirmation, forgot password, the customer login code, profile change requests), `09_account_security.sql` **adds two new tables**: `account_codes` and `profile_change_requests`. For the automatic copy of website sign-ups into `04`, `10_auto_save.sql` adds `sql_file_saves`. For the extra features (activity log, outage notices, meter replacement history), `11_extra_features.sql` adds `audit_log`, `outage_notices` and `meter_replacements`. For the customer inbox, `12_customer_inbox.sql` adds `notifications`.
 
 ## Run order (pgAdmin → right-click your database → Query Tool → open file → ▶ Execute)
 
@@ -20,7 +20,8 @@ For the account features the team asked for (email confirmation, forgot password
 | 08 | `08_update_existing_database.sql` | Only for a database built **before 17 Nov 2026**: adds the fixes from 03 and 07 without rebuilding. Then run `04`. | Both (old databases only) |
 | 09 | `09_account_security.sql` | **New (18 Nov 2026).** Adds `account_codes` (email codes, stored as hashes) and `profile_change_requests`, protects them on Supabase, and on an existing database changes the admin login to `PUMSadmin` and the sample customers' emails to `@example.com` | Both (**every** database) |
 | 10 | `10_auto_save.sql` | **New (20 Nov 2026).** Adds `sql_file_saves` (when the laptop last copied sign-ups into `04`), the view `customers_in_order`, and writes all phone numbers as `+880…` | Both (**every** database) |
-| 11 | `11_extra_features.sql` | **New (20 Nov 2026).** Extra features: activity log (`audit_log` + trigger), account statement (view with running balance), usage alerts (view), automatic 5 % late fees (`bill_adjustments`), outage notices, meter replacement history, and bills use the tariff of the billing date | Both (**every** database, last) |
+| 11 | `11_extra_features.sql` | **New (20 Nov 2026).** Extra features: activity log (`audit_log` + trigger), account statement (view with running balance), usage alerts (view), automatic 5 % late fees (`bill_adjustments`), outage notices, meter replacement history, and bills use the tariff of the billing date | Both (**every** database) |
+| 12 | `12_customer_inbox.sql` | **New (21 Nov 2026).** Adds `notifications` (the customer inbox: new bill, payment confirmed / not received, reading accepted / rejected, office reply, outage notice, due reminder), protects it on Supabase | Both (**every** database, last) |
 
 Run each file once, top to bottom. If anything fails halfway, run `00_reset.sql` and start again from `01`.
 
@@ -28,6 +29,7 @@ Run each file once, top to bottom. If anything fails halfway, run `00_reset.sql`
 **Then run `09_account_security.sql`** (Supabase → SQL Editor → paste → Run). The backend will not start without it.
 **Then run `10_auto_save.sql`** (safe to run more than once).
 **Then run `11_extra_features.sql`** (safe to run more than once). The backend will not start without it.
+**Then run `12_customer_inbox.sql`** (safe to run more than once). The backend will not start without it.
 
 **See the customers in order:** `SELECT * FROM customers` has **no fixed order** in PostgreSQL. A row that was changed (for example when a login was linked to it) is stored again at the end of the table, so CUST-005 can appear after CUST-201. Nothing is missing. Use `SELECT * FROM customers_in_order;` or add `ORDER BY customer_number`.
 **Ran it before 18 Nov 2026, 5 PM? Run it once more:** the newer copy lets `account_codes` store the customer **login codes**. Running it again is safe: it never undoes a password you changed yourself.

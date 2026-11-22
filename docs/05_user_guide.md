@@ -32,12 +32,12 @@ All money is shown in Bangladeshi Taka, for example **৳2,095.80**; big totals 
 
 ### Dashboard (feature 3)
 
-Four live numbers (customers, active services, unpaid bills, open complaints), a **billed vs collected** chart for the last 6 months, bills by status, the **latest 10 activities**, quick-action buttons and **Needs attention** (overdue bills, complaints waiting, money to collect — click one to open the filtered list).
+Four live numbers (customers, active services, unpaid bills, open complaints), a **billed vs collected** chart for the last 6 months, bills by status, the **latest 10 activities**, quick-action buttons and **Needs attention** (online payments to confirm, customer readings to check, overdue bills, complaints waiting, money to collect — click one to open the filtered list).
 
 On every page (Admin and Customer):
 
 - The greeting and the dashboard banner follow the clock: morning, afternoon, evening (sunset) and night (moon and stars).
-- The **bell** in the top bar lists what needs attention (admins: overdue bills and new complaints; customers: bills to pay and open requests).
+- The **bell** in the top bar: admins see what needs attention (online payments to confirm, readings customers sent, overdue bills, new complaints, profile changes). Customers see their **inbox**: new bills, due reminders, payments confirmed or not received, readings accepted or not, office replies, power notices and profile answers. Unread messages have an orange dot; opening one marks it read, **Mark all as read** clears the count. The browser tab shows the unread count, e.g. *(2) My Bills*.
 - The thin **News** strip at the top scrolls announcements. Edit them in `frontend/src/components/layout/announcements.js`. The **X** hides it.
 
 ![Dashboard](images/02_dashboard.png)
@@ -70,6 +70,7 @@ On every page (Admin and Customer):
 - After saving, click **Generate bill now**.
 - The *Waiting for a bill* tab lists readings that have no bill yet.
 - A reading far from the meter's usual use shows a warning after saving. **Usage alerts** (button on *Meter Readings*) lists every reading whose use per day is more than double or less than a third of usual. Check them before billing.
+- The **Sent by customers** tab lists readings customers typed in themselves (*Pending*). **Verify** makes it count (it can be billed straight away); **Reject** asks for an optional note. Either way the customer gets an inbox message. A Pending reading is never billed.
 
 ![Reading entry](images/05_reading_entry.png)
 
@@ -81,6 +82,8 @@ On every page (Admin and Customer):
 - **Mark paid** → choose the method (cash, mobile banking …) → the bill becomes **Paid** (a green tick and confetti confirm it).
   **Mark unpaid** removes the payment again.
 - A bill that becomes **Overdue** gets a **5 % late fee** once, automatically. The bill shows it under the total. **Waive late fee** (on the bill, with a reason) cancels it.
+- **Paid online:** when a customer uses *Pay now*, the bill shows **Check** and a green box *The customer paid … online* with the method and transaction reference. Check the money arrived, then **Confirm payment** (the bill becomes Paid, the customer gets the receipt) or **Not received** (optional note; the bill stays unpaid). The **Paid online** chip lists every bill waiting for this.
+- **Send due reminders** puts a message in the inbox of every customer whose bill is overdue or due in the next 3 days (and emails them). Pressing it again within 3 days does not remind the same bill twice.
 - Open a bill to see the printable invoice → **Print** (or *Save as PDF* in the print window). The printed copy keeps the logo and colours.
 
 ![Generate bill](images/06_generate_bill.png)
@@ -92,7 +95,7 @@ On a customer profile → **View statement**: every bill, late fee and payment i
 
 ### Outage notices
 
-**Outage Notices** (menu) → **New notice**: title, area, when the power goes off and comes back. Notices that have not ended yet scroll in the news strip at the top for staff **and** customers. Click a notice to edit it.
+**Outage Notices** (menu) → **New notice**: title, area, when the power goes off and comes back. Notices that have not ended yet scroll in the news strip at the top for staff **and** customers. Customers whose address contains the **first place of the area** (e.g. *Mirpur 10* in *Mirpur 10, Dhaka*) also see it on **My Dashboard** and get an inbox message; type **All areas** to tell everyone. The list shows how many customers each notice reaches. Click a notice to edit it.
 
 ### Activity log
 
@@ -120,10 +123,12 @@ Totals (billed, collected, outstanding, VAT), customers by type, **top customers
 
 ## Customer
 
-- **My Dashboard**: amount due, overdue bills, open requests, active services, kWh used per month, latest bill, a **usage gauge** for the latest month (green / amber / red) with a *compared to last month* badge, and **energy-saving tips**.
-- **My Bills**: every bill with its payment status; open one for the full printable bill. The browser tab shows how many bills are still unpaid, e.g. *(1) My Bills*. A late bill shows its 5 % late fee.
+- **My Dashboard**: amount due, overdue bills, open requests, active services, **Alerts** (a bill overdue or due in 3 days, a new bill since your last visit, an office reply, a payment being checked: click one to open it), **Power notices** (outage notices for your area), kWh used per month, latest bill, a **usage gauge** for the latest month (green / amber / red) with a *compared to last month* badge, and **energy-saving tips**.
+- **Meter & Usage**: type the number on your meter (**Send reading**). It waits as *Pending* until the office checks it. You see **this month so far** (kWh since the last official reading), how much a full month will be at this pace and the **bill it is heading for**, plus a warning before the price per kWh goes up (home tariffs have price bands). Below: your last readings and a **bill calculator** with **Count my appliances** (fans, lights, fridge, AC … × hours a day → kWh a month). The calculator and the appliance helper are also on the first page, no login needed.
+- **My Bills**: every bill with its payment status; open one for the full printable bill. A late bill shows its 5 % late fee. **Pay now** (demo): choose *Mobile Banking* or *Card*, pay, then type the **transaction reference** from your payment message. You never type a card number or PIN. The full balance is paid; the bill says *Your payment is being checked* until the office confirms it.
+- **My Payments**: every payment (being checked, completed, not received) with totals. **Receipt** opens a printable receipt with a *PAID* stamp (*Print / Save as PDF*).
 - **My Statement**: all your bills and payments in date order with the balance after each one.
-- **My Requests → New request**: choose what it is about, how urgent, describe it. Follow the progress bar (Pending → In Progress → Resolved) and staff replies.
+- **My Requests → New request**: choose what it is about, how urgent, describe it. Follow the progress bar (Pending → In Progress → Resolved) and staff replies. While it is open you can **reply** to the office at the bottom of *Updates*.
 - **My Profile**: contact details and meters (the meter numbers roll up like a real meter).
 - **Give Feedback** (also at the bottom of the first page, no login needed): choose 1-5 stars and a topic, write what you think. Each message is emailed to the team.
   - **Edit my details**: change your **name and address** straight away.

@@ -21,6 +21,8 @@ export async function getStats(req, res) {
          (SELECT COUNT(*) FROM service_requests WHERE status IN ('Pending', 'In Progress')) AS open_requests,
          (SELECT COUNT(*) FROM service_requests WHERE status = 'Pending')                   AS pending_requests,
          (SELECT COUNT(*) FROM profile_change_requests WHERE status = 'Pending')            AS pending_change_requests,
+         (SELECT COUNT(*) FROM meter_readings WHERE status = 'Pending')                     AS pending_readings,
+         (SELECT COUNT(*) FROM payments WHERE status = 'Pending')                           AS pending_payments,
          (SELECT COALESCE(SUM(amount), 0) FROM payments
             WHERE status = 'Completed' AND date_trunc('month', payment_date) = date_trunc('month', CURRENT_DATE)) AS collected_this_month`,
       [OPEN_BILL_STATUSES]

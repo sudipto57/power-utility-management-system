@@ -56,6 +56,11 @@ export function errorHandler(err, req, res, next) {
       return res.status(400).json({ message: `${err.column || 'A required field'} is required` });
     case '22P02': // invalid_text_representation (e.g. bad UUID)
       return res.status(400).json({ message: 'Invalid id or value format' });
+    case '22003': // numeric_value_out_of_range (a number too big for its column)
+      return res.status(400).json({ message: 'A number is too big' });
+    case '22007': // invalid_datetime_format
+    case '22008': // datetime_field_overflow (e.g. 2026-02-30)
+      return res.status(400).json({ message: 'A date is not valid. Use a real date like 2026-11-05' });
     case 'P0001': // RAISE EXCEPTION from our triggers/functions
       return res.status(400).json({ message: err.message });
     default:

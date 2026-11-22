@@ -21,6 +21,7 @@ Base URL: `http://localhost:5000/api`
 | Method | URL | Who | What |
 | --- | --- | --- | --- |
 | GET | `/health` | everyone | API + database check |
+| GET | `/admin/ping` | admin | `{ "message": "Hello <name>" }`: a quick "am I logged in as an admin?" test |
 
 ## Auth (features 1, 2)
 

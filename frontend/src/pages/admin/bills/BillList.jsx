@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import useFetch from '../../../hooks/useFetch';
 import useDebounce from '../../../hooks/useDebounce';
 import useToast from '../../../hooks/useToast';
-import { getBills, markBillUnpaid } from '../../../api/bills';
+import { getBills, markBillUnpaid, sendDueReminders } from '../../../api/bills';
 import PageHeader from '../../../components/common/PageHeader';
 import Card from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
@@ -17,6 +17,9 @@ import PaidCelebration from '../../../components/bills/PaidCelebration';
 import { BILL_STATUSES } from '../../../utils/options';
 import { formatDate, formatMoney, formatNumber } from '../../../utils/format';
 
+// "Paid online" = a customer used Pay now and staff still have to confirm it
+const WAITING = 'waiting';
+
 export default function BillList() {
   const navigate = useNavigate();
   const toast = useToast();
@@ -27,13 +30,31 @@ export default function BillList() {
   const [celebrate, setCelebrate] = useState(null); // bill number to celebrate after "Mark paid"
   const closeCelebration = useCallback(() => setCelebrate(null), []);
   const { data, loading, error, reload } = useFetch(
-    () => getBills({ search: debouncedSearch, status }),
+    () => getBills({ search: debouncedSearch, ...(status === WAITING ? { waiting: 'yes' } : { status }) }),
     [debouncedSearch, status]
   );
 
   const [payBill, setPayBill] = useState(null);
   const [unpayBill, setUnpayBill] = useState(null);
   const [working, setWorking] = useState(false);
+  const [reminding, setReminding] = useState(false);
+
+  // Inbox message (and email) for every bill that is overdue or due in the next 3 days
+  const remind = async () => {
+    setReminding(true);
+    try {
+      const result = await sendDueReminders();
+      toast.success(
+        result.reminded === 0
+          ? 'Everyone was already reminded in the last 3 days'
+          : `Reminded ${formatNumber(result.reminded)} bill(s), ${formatNumber(result.emailed)} by email`
+      );
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setReminding(false);
+    }
+  };
 
   const confirmUnpaid = async () => {
     setWorking(true);
@@ -102,7 +123,11 @@ export default function BillList() {
       className: 'text-right',
       render: (b) => (
         <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-          {b.status === 'Paid' ? (
+          {b.waiting_payments > 0 ? (
+            <Button size="sm" variant="secondary" icon="wallet" to={`/admin/bills/${b.id}`}>
+              Check
+            </Button>
+          ) : b.status === 'Paid' ? (
             <Button size="sm" variant="ghost" onClick={() => setUnpayBill(b)}>
               Mark unpaid
             </Button>
@@ -122,9 +147,14 @@ export default function BillList() {
         title="Bills & payments"
         subtitle="All bills with amount, due date and payment status."
         actions={
-          <Button variant="accent" icon="plus" to="/admin/bills/generate">
-            Generate bill
-          </Button>
+          <>
+            <Button variant="secondary" icon="bell" loading={reminding} onClick={remind}>
+              Send due reminders
+            </Button>
+            <Button variant="accent" icon="plus" to="/admin/bills/generate">
+              Generate bill
+            </Button>
+          </>
         }
       />
 
@@ -149,6 +179,15 @@ export default function BillList() {
                 {s || 'All'}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => setStatus(WAITING)}
+              className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                status === WAITING ? 'bg-emerald-600 text-white shadow' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+              }`}
+            >
+              Paid online
+            </button>
           </div>
         </div>
         {data && data.length > 0 && (

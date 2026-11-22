@@ -29,14 +29,14 @@ export default function AppLayout({ menu, roleLabel, role }) {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  // Browser tab title, e.g. "(1) My Bills · Power Utility Management System"
-  // Customers see how many bills they still have to pay.
-  const unpaidBills = notifications.filter((item) => item.unpaidBill).length;
+  // Browser tab title, e.g. "(2) My Bills · Power Utility Management System"
+  // Customers see how many unread messages are in their inbox.
+  const unread = role === 'customer' ? notifications.count : 0;
   const pageLabel = currentMenuLabel(menu, location.pathname);
   useEffect(() => {
-    const count = role === 'customer' && unpaidBills > 0 ? `(${unpaidBills}) ` : '';
+    const count = unread > 0 ? `(${unread}) ` : '';
     document.title = `${count}${pageLabel ? `${pageLabel} · ` : ''}${SITE_NAME}`;
-  }, [role, unpaidBills, pageLabel]);
+  }, [unread, pageLabel]);
 
   // Put the normal title back after logging out
   useEffect(() => {

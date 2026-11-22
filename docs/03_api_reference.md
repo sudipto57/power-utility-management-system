@@ -21,6 +21,7 @@ Base URL: `http://localhost:5000/api`
 | Method | URL | Who | What |
 | --- | --- | --- | --- |
 | GET | `/health` | everyone | API + database check |
+| GET | `/admin/ping` | admin | `{ "message": "Hello <name>" }`: a quick "am I logged in as an admin?" test |
 
 ## Auth (features 1, 2)
 
@@ -51,7 +52,7 @@ Base URL: `http://localhost:5000/api`
 
 | Method | URL | Answer |
 | --- | --- | --- |
-| GET | `/dashboard/stats` | totals (customers, active services, unpaid bills, open complaints, outstanding, collected this month), `monthly` (6 months billed vs collected), `bill_status` |
+| GET | `/dashboard/stats` | totals (customers, active services, unpaid bills, open complaints, outstanding, collected this month, `pending_readings` sent by customers, `pending_payments` paid online), `monthly` (6 months billed vs collected), `bill_status` |
 | GET | `/dashboard/recent-activity` | latest 10 bills, payments, requests, readings, customers |
 
 ## Customers (features 4, 5, 14) - admin
@@ -71,28 +72,37 @@ Base URL: `http://localhost:5000/api`
 | Method | URL | Body / query | Notes |
 | --- | --- | --- | --- |
 | GET | `/connections` | `?search=&status=&type=&customer_id=` | includes last reading |
-| GET | `/connections/:id` | | + readings + bills |
+| GET | `/connections/:id` | | + readings + bills + `replacements` (meter replacement history) |
 | POST | `/connections` | `customer_id, meter_number (empty = auto MET-####), connection_type, installation_date, status, notes` | |
 | PUT | `/connections/:id` | any of `meter_number, connection_type, installation_date, status, notes` | |
-| GET | `/connections/:id/last-reading` | | `{ previous_reading, last_reading_date, is_first_reading }` |
+| GET | `/connections/:id/last-reading` | | `{ previous_reading, last_reading_date, is_first_reading }` (after a meter replacement: the new meter's start reading) |
+| POST | `/connections/:id/replace-meter` | `new_meter_number` (empty = auto MET-####), `old_meter_final_reading`, `new_meter_start_reading` (default 0), `replaced_on`, `reason` | **New (file 11).** Saves the old meter's final reading, keeps the history, puts the new number on the connection (`replace_meter()`). **400** if the date is not after the last reading or the final reading is too low |
 
 ## Meter readings (feature 8) - admin
 
 | Method | URL | Body / query | Notes |
 | --- | --- | --- | --- |
-| GET | `/readings` | `?connection_id=&search=&billed=yes|no` | `billed=no` = waiting for a bill |
-| POST | `/readings` | `connection_id, current_reading, reading_date, notes` (+ `previous_reading` only for a meter's first reading) | previous = last verified reading; date must be after it and not in the future; connection must be Active |
+| GET | `/readings` | `?connection_id=&search=&billed=yes|no&status=Pending` | `billed=no` = waiting for a bill; `status=Pending` = readings customers sent (`recorded_by_role: customer`) |
+| POST | `/readings` | `connection_id, current_reading, reading_date, notes` (+ `previous_reading` only for a meter's first reading) | previous = last verified reading; date must be after it and not in the future; connection must be Active; **409** if a customer reading for that day is waiting |
+| GET | `/readings/unusual` | `?alert=Very high\|Very low` | **New (file 11).** Usage alerts: use per day more than 2× or less than ⅓ of the meter's last 3 readings (view `unusual_readings`), with the bill if there is one |
+| POST | `/readings/:id/verify` | | a customer's Pending reading → Verified (previous = last verified reading), can be billed now; inbox message to the customer; **409** if not Pending, **400** if a newer reading is verified or the number is lower |
+| POST | `/readings/:id/reject` | `{ "note" }` (optional, shown to the customer) | Pending → Rejected (never billed); inbox message to the customer |
 
 ## Bills & payments (features 9, 10, 11, 14) - admin
 
 | Method | URL | Body / query | Notes |
 | --- | --- | --- | --- |
-| GET | `/bills` | `?search=&status=Overdue&customer_id=` | runs `check_overdue_bills()` first |
-| GET | `/bills/:id` | | + reading, payments, paid amount, balance |
+| GET | `/bills` | `?search=&status=Overdue&customer_id=&waiting=yes` | runs `check_overdue_bills()` first; `waiting=yes` = a customer paid online and staff must confirm; every bill has `waiting_payments` |
+| GET | `/bills/:id` | | + reading, payments, adjustments, `late_fee`, `waived`, `amount_due`, paid amount, balance (from the view `bill_balance`), `waiting_payments` |
 | POST | `/bills/preview` | `{ "reading_id": "..." }` | calculates, saves nothing |
 | POST | `/bills/generate` | `{ "reading_id": "...", "due_date": "2026-11-25" }` | due date optional (today + 20); **409** if already billed |
-| POST | `/bills/:id/mark-paid` | `{ "method": "Cash", "reference": "", "payment_date": "" }` (all optional) | records a payment for the balance → status Paid; **409** if already paid |
-| POST | `/bills/:id/mark-unpaid` | | deletes the payments → Unpaid / Overdue |
+| POST | `/bills/:id/mark-paid` | `{ "method": "Cash", "reference": "", "payment_date": "" }` (all optional) | records a payment for the balance (late fee included) → status Paid; **409** if already paid, or while an online payment waits |
+| POST | `/bills/:id/mark-unpaid` | | deletes the Completed payments → Unpaid / Overdue (Failed ones stay as history) |
+| POST | `/bills/:id/waive-late-fee` | `{ "reason": "..." }` | **New (file 11).** Cancels the 5% late fee (a `Waiver` row in `bill_adjustments`). **409** if the bill has no late fee or it is already waived |
+| POST | `/bills/:id/payments/:paymentId/confirm` | | an online payment (Pending) → Completed; the trigger marks the bill Paid; inbox message with the receipt link |
+| POST | `/bills/:id/payments/:paymentId/reject` | `{ "note" }` (optional) | Pending → Failed (money not received); the bill stays unpaid; inbox message to the customer |
+| POST | `/bills/send-reminders` | | inbox message (+ email when the customer has one) for every bill overdue or due in the next 3 days; one reminder per bill every 3 days. Answer `{ reminded, emailed }` |
+| POST | `/bills/generate` (also) | | adds a "New bill" inbox message for the customer |
 
 ## Complaint management (feature 13) - admin
 
@@ -102,7 +112,7 @@ Base URL: `http://localhost:5000/api`
 | GET | `/requests/staff` | | admin users for the "Assigned to" list |
 | GET | `/requests/:id` | | + comments |
 | PATCH | `/requests/:id/status` | `status` + optional `priority, assigned_to, resolution_notes` | Resolved needs a resolution note; adds a "Status changed" comment |
-| POST | `/requests/:id/comments` | `{ "comment": "..." }` | |
+| POST | `/requests/:id/comments` | `{ "comment": "..." }` | inbox message to the customer (a status change sends one too) |
 
 ## Reports (feature 15) - admin
 
@@ -111,6 +121,18 @@ Base URL: `http://localhost:5000/api`
 | GET | `/reports/customers` | by type, by status, connections by type, top 5 customers (view) |
 | GET | `/reports/bills` | totals, billed per month, by status |
 | GET | `/reports/payments` | totals, collected per month, by method, latest 10 |
+| GET | `/customers/:id/statement` | **New (file 11).** Account statement: `{ customer, lines, total_charged, total_paid, balance }`; each line has date, type (Bill / Late fee / Late fee waived / Payment), reference, debit, credit and the running balance (view `customer_statement`) |
+
+## Activity log and outage notices (file 11)
+
+| Method | URL | Who | Body / query | Notes |
+| --- | --- | --- | --- | --- |
+| GET | `/activity` | admin | `?table=bills&action=UPDATE&search=BILL-2026-013&limit=200` (limit 1-500) | Who changed what and when (table `audit_log`, filled by the trigger `log_change()`). `search` = a bill / customer / meter / payment / request number, or the name of who made the change |
+| GET | `/outages/current` | logged in | | Outage notices that have not ended yet (state `Planned` or `Happening now`), for the news strip |
+| GET | `/outages` | admin | | Every notice, with state `Planned` / `Happening now` / `Ended` |
+| POST | `/outages` | admin | `{ "title", "area", "starts_at", "ends_at", "details" }` (times as ISO, e.g. `2026-11-25T04:00:00.000Z`) | **400** if the end is not after the start |
+| PUT | `/outages/:id` | admin | same as POST | |
+| DELETE | `/outages/:id` | admin | | |
 
 ## Customer portal (features 3, 5, 10, 11, 12) - customer
 
@@ -119,12 +141,21 @@ Every query uses the customer id inside the login token, so a customer only ever
 | Method | URL | Body | Answer |
 | --- | --- | --- | --- |
 | GET | `/my/profile` | | profile + connections |
-| GET | `/my/dashboard` | | amount due, overdue, open requests, latest bill, kWh per month |
+| GET | `/my/dashboard` | | amount due, overdue, open requests, latest bill, kWh per month, `alerts` (overdue / due in 3 days / new since the last login / office replies / payment being checked: `{ tone, text, link, amount }`) and `notices`: outage notices for the customer's area (the first place of the notice area is in their address, or the area is *All areas*) |
 | GET | `/my/bills` | `?status=` | own bills |
 | GET | `/my/bills/:id` | | one own bill (404 for other people's bills) |
+| GET | `/my/statement` | | own account statement (same shape as `/customers/:id/statement`) |
 | GET | `/my/requests` | | own requests |
 | GET | `/my/requests/:id` | | one own request + updates |
 | POST | `/my/requests` | `{ "category": "Power Outage", "priority": "High", "description": "..." }` | new request (Pending) |
+| POST | `/my/requests/:id/comments` | `{ "comment": "..." }` | reply to the office; **400** when the request is Resolved or Cancelled |
+| GET | `/my/usage` | | per meter: `official_reading`, `own_reading` (Pending), `units_so_far`, `days_so_far`, `projected_units` (30 days), `projected_bill` (from `calculate_bill_amount()`), `last_month_units`, `slabs`, `warning` (price band warning), last 12 `readings` |
+| POST | `/my/readings` | `{ "connection_id", "current_reading", "reading_date" (optional, default today) }` | own meter reading, saved as **Pending** until staff verify it; the same day again replaces the own Pending one (200); **400** lower than the official reading, **404** another customer's meter |
+| POST | `/my/bills/:id/pay` | `{ "method": "Mobile Banking" \| "Card", "reference": "TRX8K2M4P9" }` | **Pay now (demo):** the full balance as a Pending payment (no card number is ever sent); **409** if one already waits or the bill is paid |
+| GET | `/my/payments` | | every payment for own bills (Pending / Completed / Failed) |
+| GET | `/my/payments/:id` | | one own payment (the receipt page) |
+| GET | `/my/notifications` | | inbox: newest 30 `items` + `unread` count |
+| POST | `/my/notifications/:id/read` | | marks one message read (`:id` = `all` marks every message); answers like GET |
 | PUT | `/my/profile` | `{ "full_name", "address" }` | saved straight away (email / phone / type here → 400) |
 | GET | `/my/change-requests` | | own profile change requests + the office's answer |
 | POST | `/my/change-requests` | `{ "field": "email" \| "phone" \| "customer_type" \| "connection_type", "new_value", "connection_id" (only for connection_type), "reason" }` | new request (Pending); 409 if one is already waiting for the same thing |
@@ -137,7 +168,7 @@ Every query uses the customer id inside the login token, so a customer only ever
 | POST | `/change-requests/:id/approve` | `{ "note" }` (optional) | makes the change + marks Approved (one transaction), emails the customer |
 | POST | `/change-requests/:id/reject` | `{ "note" }` (optional, shown to the customer) | marks Rejected, emails the customer |
 
-**Emails:** a new bill (`POST /bills/generate`, answer has `email_sent`), codes and change answers are emailed through Brevo. Without `BREVO_API_KEY` they are printed in the backend terminal.
+**Emails:** a new bill (`POST /bills/generate`, answer has `email_sent`), due reminders, codes and change answers are emailed through Brevo. Without `BREVO_API_KEY` they are printed in the backend terminal.
 
 ## Allowed values
 
@@ -148,7 +179,10 @@ Every query uses the customer id inside the login token, so a customer only ever
 | connection_type | Single Phase, Three Phase |
 | connection status | Active, Inactive, Disconnected |
 | bill status | Unpaid, Partially Paid, Paid, Overdue |
-| payment method | Cash, Bank Transfer, Mobile Banking, Cheque, Card, Other |
+| payment method | Cash, Bank Transfer, Mobile Banking, Cheque, Card, Other (Pay now: Mobile Banking, Card) |
+| payment status | Pending (paid online, waiting), Completed, Failed (not received), Refunded |
+| reading status | Pending (sent by the customer), Verified, Rejected |
+| notice type | Outage, Maintenance |
 | request category | Power Outage, Meter Issue, Connection Issue, Billing Inquiry, General Complaint, New Connection Request, Disconnection Request |
 | request priority | Low, Medium, High, Critical |
 | request status | Pending, In Progress, Resolved, Cancelled |

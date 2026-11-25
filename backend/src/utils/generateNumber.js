@@ -1,4 +1,4 @@
-// Creates the next human-friendly number, e.g. CUST-009, MET-0902, BILL-2026-013.
+// Creates the next human-friendly number, e.g. CUST-009, MET-0902, BILL-2026-013, SUP-2026-004.
 // It looks at the highest number already in the table and adds 1.
 // (The UNIQUE constraint in the database is the final safety net.)
 
@@ -8,11 +8,12 @@ const SOURCES = {
   bill: { table: 'bills', column: 'bill_number', prefix: (year) => `BILL-${year}-`, digits: 3 },
   payment: { table: 'payments', column: 'payment_number', prefix: (year) => `PAY-${year}-`, digits: 3 },
   request: { table: 'service_requests', column: 'request_number', prefix: (year) => `REQ-${year}-`, digits: 3 },
+  support: { table: 'support_tickets', column: 'ticket_number', prefix: (year) => `SUP-${year}-`, digits: 3 },
 };
 
 /**
  * @param {object} db   - anything with .query() (the pool, or a transaction client)
- * @param {'customer'|'meter'|'bill'|'payment'|'request'} kind
+ * @param {'customer'|'meter'|'bill'|'payment'|'request'|'support'} kind
  */
 export async function generateNumber(db, kind) {
   const source = SOURCES[kind];

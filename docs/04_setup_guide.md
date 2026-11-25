@@ -41,6 +41,7 @@ You already connected Supabase to pgAdmin. We run the SQL files there.
 | 8 | `database/10_auto_save.sql` (history of the laptop's copies into `04`, `customers_in_order` view) |
 | 9 | `database/11_extra_features.sql` (activity log, statement, usage alerts, late fees, outage notices, meter replacement) |
 | 10 | `database/12_customer_inbox.sql` (the customer inbox: messages and due reminders) |
+| 11 | `database/13_support_and_deletions.sql` (the Support form + Delete permanently) |
 
 *(Skip `05_roles_and_grants.sql` on Supabase. `06_report_queries.sql` is optional practice.)*
 
@@ -48,7 +49,7 @@ You already connected Supabase to pgAdmin. We run the SQL files there.
 
 ✅ **Check:** run `SELECT * FROM calculate_bill_amount('Residential', 'Single Phase', 250);`. The total should be **2095.80**.
 
-**Already set up before?** Run **`11_extra_features.sql`** and then **`12_customer_inbox.sql`** once (after 10). Also run **`10_auto_save.sql`** once, and **`09_account_security.sql`** again (it adds the tables for email codes and profile change requests, and the customer login codes). It is safe to run more than once. The backend will not start without it.
+**Already set up before?** Run **`11_extra_features.sql`**, **`12_customer_inbox.sql`** and **`13_support_and_deletions.sql`** once (after 10). Also run **`10_auto_save.sql`** once, and **`09_account_security.sql`** again (it adds the tables for email codes and profile change requests, and the customer login codes). It is safe to run more than once. The backend will not start without it.
 
 > "relation already exists" error? You skipped 00. Run `00_reset.sql`, then 01 → 07 again.
 
@@ -77,6 +78,7 @@ You already connected Supabase to pgAdmin. We run the SQL files there.
    2. **Senders, Domains & IPs → Senders → Add a sender** with your Gmail address, and click the link Brevo emails you.
    3. **SMTP & API → API Keys → Generate a new API key**. Put it in `BREVO_API_KEY=`, and your sender address in `EMAIL_FROM=`.
    4. `APP_URL=` is the website address used for the buttons in the emails (your Vercel address when the site is live).
+   5. `SUPPORT_EMAIL=pums.admins@gmail.com` is where new problems from the **Support** form are emailed (add the same line on Render under **Environment**).
 
 > `backend/.env` holds your passwords and keys. It is in `.gitignore`: **never** upload it to GitHub, and never paste real values into `.env.example`.
 
@@ -155,6 +157,7 @@ cd frontend && npm run dev
 | `[setup] These settings are missing: DB_HOST ...` | Step 2 not done / file named `.env.txt` | Create `backend/.env` (turn on "File name extensions" in Explorer to see `.txt`). On Render: add the settings on the Environment page |
 | `[database] ... tables for email codes and change requests are missing` | `09_account_security.sql` not run yet | Run it once in pgAdmin / Supabase SQL Editor |
 | `[database] ... table for the customer inbox is missing` | `12_customer_inbox.sql` not run yet | Run it once in pgAdmin / Supabase SQL Editor |
+| `[database] ... tables for Support and permanent deletes are missing` | `13_support_and_deletions.sql` not run yet | Run it once in pgAdmin / Supabase SQL Editor |
 | `[database] The database is missing the newest change for customer login codes` | An older copy of `09_account_security.sql` was run | Run the newest `09_account_security.sql` again |
 | No email arrives | `BREVO_API_KEY` / `EMAIL_FROM` empty or the sender not verified in Brevo | Without a key the email is printed in the backend terminal. With a key, check Brevo → Transactional → Logs |
 | `[setup] backend/.env still has the example values` | Example values left in `.env` | Put your real DB_USER / DB_PASSWORD |

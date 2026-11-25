@@ -23,7 +23,7 @@ export default function AppLayout({ menu, roleLabel, role }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const notifications = useNotifications(role);
+  const notifications = useNotifications(role, user?.id);
 
   // Opening another page starts at the top of it
   useEffect(() => {

@@ -65,6 +65,8 @@ const env = {
     fromName: (process.env.EMAIL_FROM_NAME || 'Power Utility Management System').trim(),
     // Where the website's feedback form sends messages (the sender inbox if empty)
     feedbackTo: (process.env.FEEDBACK_EMAIL || process.env.EMAIL_FROM || '').trim(),
+    // Where new Support problems are sent (the office inbox)
+    supportTo: (process.env.SUPPORT_EMAIL || 'pums.admins@gmail.com').trim(),
   },
   // Copy website sign-ups into database/04_sample_data.sql (see utils/saveCustomersToSql.js).
   // On your computer leave it on. On Render set SAVE_CUSTOMERS_TO_SQL_FILE=false (there is no project folder there).

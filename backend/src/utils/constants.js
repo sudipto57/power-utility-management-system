@@ -32,3 +32,7 @@ export const AUDITED_TABLES = [
 
 // Bills that still have money to collect
 export const OPEN_BILL_STATUSES = ['Unpaid', 'Partially Paid', 'Overdue'];
+
+// Support form on the first page (database/13_support_and_deletions.sql)
+export const SUPPORT_CATEGORIES = ['Billing', 'Meter or reading', 'Power outage', 'Account or login', 'Website problem', 'Other'];
+export const SUPPORT_STATUSES = ['Open', 'In Progress', 'Solved']; // 'Unverified' = email not confirmed yet (not shown to admins)

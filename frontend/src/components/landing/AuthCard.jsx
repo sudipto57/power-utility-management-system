@@ -4,7 +4,11 @@ import useAuth from '../../hooks/useAuth';
 import Icon from '../common/Icon';
 import FormError from '../common/FormError';
 import { Field, Input, PasswordInput, Select } from '../common/FormField';
+import PhoneInput from '../common/PhoneInput';
+import { phoneProblem } from '../../utils/phone';
+import RuleList from '../common/RuleList';
 import { ConfirmEmailForm, ForgotPasswordForm, FormNotice, LoginCodeForm, SubmitButton } from './AccountCodeForms';
+import { allRulesOk, emailProblem, passwordRules, usernameRules } from '../../utils/accountRules';
 import { homePathFor } from '../../utils/routes';
 
 // Colours for each role: the whole card changes colour when you switch
@@ -24,16 +28,16 @@ const THEME = {
 const EMPTY_SIGNUP = {
   full_name: '',
   email: '',
+  phone_country: 'BD', // Bangladesh first; the number is typed after +880
   phone: '',
   username: '',
   customer_type: 'Residential',
   password: '',
   confirm: '',
-  address: '',
+  house: '', // the address is: house / road (optional), area, city
+  area: '',
+  city: '',
 };
-
-// Same rule as the backend: 8+ characters with a letter and a number
-const isStrongPassword = (password) => password.length >= 8 && /[A-Za-z]/.test(password) && /[0-9]/.test(password);
 
 /**
  * Login + Sign up card with the Customer / Admin slide switch.
@@ -54,6 +58,7 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
   const [step, setStep] = useState(null); // null | 'login_code' | 'confirm' | 'forgot'
   const [loginResult, setLoginResult] = useState(null); // backend answer when a login code was emailed
   const [codeLogin, setCodeLogin] = useState(''); // email/username waiting for its confirmation code
+  const [emailTouched, setEmailTouched] = useState(false); // show the email problem after leaving the box
 
   const theme = THEME[role];
   const isSignup = role === 'customer' && mode === 'signup' && !step;
@@ -94,7 +99,7 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
     try {
       const result = await login(loginForm.login.trim(), loginForm.password, role);
       if (result.needs_code) {
-        // Customer: right password, now the 8-digit code from the email
+        // Customer: right password, now the 4-digit code from the email
         setLoginResult(result);
         setStep('login_code');
         setLoading(false);
@@ -118,16 +123,21 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
     event.preventDefault();
     setError('');
     const form = signupForm;
-    if (!form.full_name.trim() || !form.email.trim() || !form.phone.trim() || !form.username.trim() || !form.address.trim()) {
+    if (!form.full_name.trim() || !form.email.trim() || !form.phone.trim() || !form.username.trim()) {
       setError('Please fill in every field.');
       return;
     }
-    if (!isStrongPassword(form.password)) {
-      setError('Password needs 8+ characters with at least one letter and one number.');
-      return;
-    }
-    if (form.password !== form.confirm) {
-      setError('The two passwords do not match.');
+    // The same rules the backend checks (each list shows what is missing)
+    const problem =
+      emailProblem(form.email) ||
+      phoneProblem(form.phone_country, form.phone) ||
+      (!allRulesOk(usernameRules(form.username)) && 'The username does not follow the rules under the box.') ||
+      (!allRulesOk(passwordRules(form.password, aboutUser)) && 'The password does not follow the rules under the box.') ||
+      (form.password !== form.confirm && 'The two passwords do not match.') ||
+      ((!form.area.trim() || !form.city.trim()) && 'Please write your area and your city.');
+    if (problem) {
+      setEmailTouched(true);
+      setError(problem);
       return;
     }
     setLoading(true);
@@ -140,8 +150,8 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
       const number = result.customer_number ? ` Your customer number is ${result.customer_number}.` : '';
       setNotice(
         result.email_sent
-          ? `Account created!${number} We sent an 8-digit code to ${result.email}. Type it here to finish.`
-          : `Account created!${number} The email could not be sent just now. Press "Send a new code" in a minute.`
+          ? `Account created.${number} We sent a 4-digit code to ${result.email}. Type it here to finish.`
+          : `Account created.${number} The email could not be sent just now. Press "Send a new code" in a minute.`
       );
       setSignupForm(EMPTY_SIGNUP);
       setStep('confirm');
@@ -152,6 +162,14 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
   };
 
   const updateSignup = (key) => (event) => setSignupForm({ ...signupForm, [key]: event.target.value });
+  // Personal details that may not be part of the password
+  const aboutUser = {
+    username: signupForm.username,
+    email: signupForm.email,
+    fullName: signupForm.full_name,
+    phone: signupForm.phone,
+  };
+  const emailError = emailTouched && signupForm.email.trim() ? emailProblem(signupForm.email) : null;
 
   return (
     <div className={`relative overflow-hidden rounded-3xl bg-white shadow-2xl ${theme.shadow} ring-1 ring-sand-200/70`}>
@@ -221,7 +239,7 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
               : step === 'login_code'
                 ? 'For your security, every login needs the code we email to you.'
                 : step === 'confirm'
-                ? 'One last step: type the 8-digit code from your email.'
+                ? 'One last step: type the 4-digit code from your email.'
                 : step === 'forgot'
                   ? 'Use your email or phone number to get a reset code.'
                   : isSignup
@@ -255,38 +273,39 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
                 autoComplete="name"
               />
             </Field>
-            <Field label="Email" className="col-span-2">
+            <Field label="Email" className="col-span-2" error={emailError}>
               <Input
                 type="email"
                 value={signupForm.email}
                 onChange={updateSignup('email')}
+                onBlur={() => setEmailTouched(true)}
                 placeholder="you@email.com"
                 autoComplete="email"
               />
             </Field>
-            <Field label="Phone">
-              <Input value={signupForm.phone} onChange={updateSignup('phone')} placeholder="01XXXXXXXXX" autoComplete="tel" />
-            </Field>
-            <Field label="Customer type">
-              <Select
-                value={signupForm.customer_type}
-                onChange={updateSignup('customer_type')}
-                options={['Residential', 'Commercial']}
+            <Field label="Phone number" className="col-span-2" hint="Choose the country code, then type the number.">
+              <PhoneInput
+                country={signupForm.phone_country}
+                number={signupForm.phone}
+                onChange={({ country, number }) => setSignupForm({ ...signupForm, phone_country: country, phone: number })}
               />
             </Field>
-            <Field label="Username" className="col-span-2" hint="You can log in with this or your email.">
-              <Input
-                value={signupForm.username}
-                onChange={updateSignup('username')}
-                placeholder="e.g. rahim.uddin"
-                autoComplete="username"
-              />
-            </Field>
+            <div className="col-span-2">
+              <Field label="Username" hint={signupForm.username ? '' : 'You can log in with this or your email.'}>
+                <Input
+                  value={signupForm.username}
+                  onChange={updateSignup('username')}
+                  placeholder="e.g. rahim.uddin"
+                  autoComplete="username"
+                />
+              </Field>
+              {signupForm.username && <RuleList rules={usernameRules(signupForm.username)} />}
+            </div>
             <Field label="Password">
               <PasswordInput
                 value={signupForm.password}
                 onChange={updateSignup('password')}
-                placeholder="8+ letters & numbers"
+                placeholder="A strong password"
                 autoComplete="new-password"
               />
             </Field>
@@ -298,12 +317,31 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
                 autoComplete="new-password"
               />
             </Field>
-            <Field label="Address" className="col-span-2">
+            {signupForm.password && (
+              <div className="col-span-2 -mt-2">
+                <RuleList rules={passwordRules(signupForm.password, aboutUser)} />
+                <p className="mt-1 text-xs text-sand-500">Use a password you do not use on any other website.</p>
+              </div>
+            )}
+            <Field label="House / road" className="col-span-2" hint="Optional">
               <Input
-                value={signupForm.address}
-                onChange={updateSignup('address')}
-                placeholder="House, road, area, city"
-                autoComplete="street-address"
+                value={signupForm.house}
+                onChange={updateSignup('house')}
+                placeholder="e.g. House 12, Road 5"
+                autoComplete="address-line1"
+              />
+            </Field>
+            <Field label="Area" required>
+              <Input value={signupForm.area} onChange={updateSignup('area')} placeholder="e.g. Khilkhet" />
+            </Field>
+            <Field label="City" required>
+              <Input value={signupForm.city} onChange={updateSignup('city')} placeholder="e.g. Dhaka" autoComplete="address-level2" />
+            </Field>
+            <Field label="Customer type" className="col-span-2">
+              <Select
+                value={signupForm.customer_type}
+                onChange={updateSignup('customer_type')}
+                options={['Residential', 'Commercial']}
               />
             </Field>
 

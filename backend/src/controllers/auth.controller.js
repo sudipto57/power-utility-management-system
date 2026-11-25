@@ -1,6 +1,6 @@
 // Feature 1 (Login System) + Feature 2 (Roles) + Customer Sign Up
 // + email confirmation, forgot password and a login code for customers
-//   (8-digit codes sent by email, like GitHub's "Please verify your identity" emails)
+//   (4-digit codes sent by email, like GitHub's "Please verify your identity" emails)
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -11,13 +11,17 @@ import { generateNumber } from '../utils/generateNumber.js';
 import { CUSTOMER_TYPES } from '../utils/constants.js';
 import { codeEmail, sendEmail } from '../utils/email.js';
 import { passwordVersion } from '../middleware/auth.js';
+import { COUNTRY_LIST } from '../utils/countries.js';
 import {
   optionalOneOf,
+  optionalText,
   requireEmail,
+  requireNewPassword,
   requireOneOf,
-  requirePassword,
   requirePhone,
+  requirePhoneFor,
   requireText,
+  requireUsername,
 } from '../utils/validate.js';
 
 // Finds the customer profile that belongs to a login (checks both link columns).
@@ -61,15 +65,16 @@ function makeToken(user) {
 }
 
 // ---------------------------------------------------------------------
-// 8-digit codes (stored only as a SHA-256 hash, like a password)
+// 4-digit codes (stored only as a SHA-256 hash, like a password).
+// A 4-digit code is short, so it only works for 15 minutes and is blocked after 5 wrong tries.
 // ---------------------------------------------------------------------
 function hashCode(userId, code) {
   return crypto.createHash('sha256').update(`${userId}:${code}`).digest('hex');
 }
 
-/** Makes a new 8-digit code for the user (old unused codes for the same purpose stop working). */
+/** Makes a new 4-digit code for the user (old unused codes for the same purpose stop working). */
 async function createCode(db, userId, purpose) {
-  const code = String(crypto.randomInt(0, 100000000)).padStart(8, '0');
+  const code = String(crypto.randomInt(0, 10000)).padStart(4, '0');
   await db.query('DELETE FROM account_codes WHERE user_id = $1 AND purpose = $2 AND used_at IS NULL', [userId, purpose]);
   const { rows } = await db.query(
     `INSERT INTO account_codes (user_id, purpose, code_hash, expires_at)
@@ -82,7 +87,7 @@ async function createCode(db, userId, purpose) {
 /** Throws a clear 400 error unless the code is right, then marks it as used. */
 async function useCode(userId, purpose, typedCode) {
   const code = String(typedCode ?? '').trim();
-  if (!/^\d{8}$/.test(code)) throw new ApiError(400, 'Please enter the 8-digit code from the email');
+  if (!/^\d{4}$/.test(code)) throw new ApiError(400, 'Please enter the 4-digit code from the email');
 
   const { rows } = await query(
     `SELECT id, code_hash, attempts, expires_at < NOW() AS expired FROM account_codes
@@ -136,7 +141,7 @@ function maskEmail(email) {
 }
 
 /**
- * Customers: after the right password, email an 8-digit login code.
+ * Customers: after the right password, email a 4-digit login code.
  * - Logging in again while the last code still works does NOT send another email
  *   (no email flood); that same code is still the right one.
  * - "Send a new code" (resend = true) makes a new code, at most once a minute.
@@ -187,7 +192,7 @@ async function findCustomerLogin(login) {
 // POST /api/auth/login
 // body: { login: "email or username", password: "...", role: "admin" | "customer", resend: true (optional: new code) }
 // role comes from the Customer / Admin switch on the login page (optional, so Postman still works without it)
-// Admin: answer { token, user }.  Customer: answer { needs_code: true, email, expires_at } and an 8-digit
+// Admin: answer { token, user }.  Customer: answer { needs_code: true, email, expires_at } and a 4-digit
 // code is emailed; POST /api/auth/verify-login with that code gives the token.
 export async function login(req, res) {
   const loginName = requireText(req.body?.login ?? req.body?.email ?? req.body?.username, 'Email or username');
@@ -219,7 +224,7 @@ export async function login(req, res) {
     throw new ApiError(403, 'This login is not linked to a customer profile yet');
   }
   if (user.role === 'customer' && (await needsEmailConfirmation(user.id))) {
-    throw new ApiError(403, `Please confirm your email first. Enter the 8-digit code we sent to ${user.email}.`, 'EMAIL_NOT_CONFIRMED');
+    throw new ApiError(403, `Please confirm your email first. Enter the 4-digit code we sent to ${user.email}.`, 'EMAIL_NOT_CONFIRMED');
   }
 
   // Customers: the password is right, now prove it is really you with the code from your email
@@ -236,22 +241,30 @@ export async function login(req, res) {
   res.json({ data: { token: makeToken(user), user: publicUser(user) } });
 }
 
+// GET /api/auth/countries   (public) -> the country list for the phone number box
+export function listCountries(req, res) {
+  res.json({ data: COUNTRY_LIST });
+}
+
 // POST /api/auth/signup   (CUSTOMERS ONLY - admin accounts are never created here)
-// body: { full_name, phone, email, address, customer_type, username, password }
-// The account works after the customer types the 8-digit code from the email (confirm-email).
+// body: { full_name, email, phone_country: "BD", phone: "1712345678", house (optional), area, city,
+//         customer_type, username, password }
+// The account works after the customer types the 4-digit code from the email (confirm-email).
 export async function signup(req, res) {
   const body = req.body || {};
   const fullName = requireText(body.full_name, 'Full name', 100);
-  const phone = requirePhone(body.phone);
+  // phone_country + the number after the country code; a full "+8801712345678" also works
+  const phone = body.phone_country ? requirePhoneFor(body.phone_country, body.phone) : requirePhone(body.phone);
   const email = requireEmail(body.email);
-  const address = requireText(body.address, 'Address', 500);
+  // The address must say at least the area and the city: "House 12, Road 5, Khilkhet, Dhaka"
+  const house = optionalText(body.house, 'House / road', 200);
+  const area = requireText(body.area, 'Area', 100);
+  const city = requireText(body.city, 'City', 100);
+  const address = [house, area, city].filter(Boolean).join(', ');
   const customerType = requireOneOf(body.customer_type, CUSTOMER_TYPES, 'Customer type');
 
-  const username = requireText(body.username, 'Username', 50).toLowerCase();
-  if (!/^[a-z0-9._-]{3,50}$/.test(username)) {
-    throw new ApiError(400, 'Username must be 3-50 characters: letters, numbers, dot, dash or underscore');
-  }
-  const password = requirePassword(body.password);
+  const username = requireUsername(body.username);
+  const password = requireNewPassword(body.password, { username, email, fullName, phone });
   const passwordHash = await bcrypt.hash(password, 10);
 
   // Create the login + the customer profile + the code together (all succeed or nothing is saved)
@@ -283,7 +296,7 @@ export async function signup(req, res) {
   });
 }
 
-// POST /api/auth/confirm-email   body: { login: "email or username", code: "12345678" }
+// POST /api/auth/confirm-email   body: { login: "email or username", code: "1234" }
 // Right code -> the email is confirmed and the customer is logged in.
 export async function confirmEmail(req, res) {
   const loginName = requireText(req.body?.login, 'Email or username');
@@ -327,15 +340,19 @@ export async function forgotPassword(req, res) {
     const { code } = await createCode({ query }, user.id, 'reset_password');
     await emailCode(user, 'reset_password', code);
   }
-  res.json({ data: { message: 'If an account matches, we sent an 8-digit code to the email address saved on it.' } });
+  res.json({ data: { message: 'If an account matches, we sent a 4-digit code to the email address saved on it.' } });
 }
 
 // POST /api/auth/reset-password   body: { login, code, password }
 export async function resetPassword(req, res) {
   const loginName = requireText(req.body?.login, 'Email or phone number');
-  const password = requirePassword(req.body?.password, 'New password');
   const user = await findCustomerLogin(loginName);
   if (!user) throw new ApiError(400, 'Wrong or old code. Ask for a new code');
+  const password = requireNewPassword(
+    req.body?.password,
+    { username: user.username, email: user.email, fullName: user.full_name },
+    'New password'
+  );
 
   await useCode(user.id, 'reset_password', req.body?.code);
 
@@ -347,7 +364,7 @@ export async function resetPassword(req, res) {
   res.json({ data: { message: 'Your password was changed. You can log in now.' } });
 }
 
-// POST /api/auth/verify-login   body: { login: "email or username", code: "12345678" }
+// POST /api/auth/verify-login   body: { login: "email or username", code: "1234" }
 // Step 2 of a customer login: the right code from the email -> logged in.
 export async function verifyLogin(req, res) {
   const loginName = requireText(req.body?.login, 'Email or username');

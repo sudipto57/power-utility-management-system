@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import useFetch from '../../../hooks/useFetch';
-import { getCustomer } from '../../../api/customers';
+import useToast from '../../../hooks/useToast';
+import { deleteCustomerForever, getCustomer } from '../../../api/customers';
+import DeleteForeverDialog from '../../../components/common/DeleteForeverDialog';
 import PageHeader from '../../../components/common/PageHeader';
 import Card from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
@@ -16,7 +19,15 @@ import { formatDate, formatDateTime, formatMoney, formatNumber, initials } from 
 export default function CustomerProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const { data: c, loading, error, reload } = useFetch(() => getCustomer(id), [id]);
+  const [deleting, setDeleting] = useState(false); // the "Delete permanently" pop-up is open
+
+  const deleteForever = async (typedNumber) => {
+    await deleteCustomerForever(c.id, typedNumber);
+    toast.success(`${c.customer_number} was deleted permanently`);
+    navigate('/admin/customers', { replace: true });
+  };
 
   if (loading && !c) return <PageSkeleton />;
   if (error) return <ErrorState message={error} onRetry={reload} />;
@@ -48,6 +59,9 @@ export default function CustomerProfile() {
             </Button>
             <Button variant="accent" icon="edit" to={`/admin/customers/${c.id}/edit`}>
               Edit
+            </Button>
+            <Button variant="danger" icon="trash" onClick={() => setDeleting(true)}>
+              Delete permanently
             </Button>
           </>
         }
@@ -205,6 +219,8 @@ export default function CustomerProfile() {
           </ul>
         )}
       </Card>
+
+      <DeleteForeverDialog open={deleting} customer={c} onCancel={() => setDeleting(false)} onDelete={deleteForever} />
     </div>
   );
 }

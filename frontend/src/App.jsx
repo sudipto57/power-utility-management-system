@@ -32,6 +32,8 @@ const CustomerStatement = lazy(() => import('./pages/admin/customers/CustomerSta
 const UsageAlerts = lazy(() => import('./pages/admin/readings/UsageAlerts'));
 const ActivityLog = lazy(() => import('./pages/admin/activity/ActivityLog'));
 const OutageNotices = lazy(() => import('./pages/admin/outages/OutageNotices'));
+const SupportList = lazy(() => import('./pages/admin/support/SupportList'));
+const SupportDetails = lazy(() => import('./pages/admin/support/SupportDetails'));
 
 const MyDashboard = lazy(() => import('./pages/customer/MyDashboard'));
 const MyProfile = lazy(() => import('./pages/customer/MyProfile'));
@@ -84,6 +86,8 @@ export default function App() {
           <Route path="reports" element={<Reports />} />
           <Route path="outages" element={<OutageNotices />} />
           <Route path="activity" element={<ActivityLog />} />
+          <Route path="support" element={<SupportList />} />
+          <Route path="support/:id" element={<SupportDetails />} />
         </Route>
       </Route>
 

@@ -19,6 +19,18 @@ Run on a **fresh copy** of the project with a **fresh database** (PostgreSQL 16,
 
 Run the API tests yourself: Postman → collection → **Run collection** (see `postman/README.md`).
 
+### 25 Nov 2026: Delete permanently, sign-up rules, Support, live clock, 4-digit codes, notification bell
+
+| Check | How | Result |
+| --- | --- | --- |
+| New SQL file | `13_support_and_deletions.sql` after `00 → 04, 09 → 12`, then 13 and 09 again on top | ✅ no errors, both times; `npm run db:test` finds 22 tables |
+| API | Postman collection with newman: 146 requests, 258 checks (folder **17** is new: 13 requests) | ✅ every check in folders 13 and 17 passed. The same 3 older checks as before need things a test laptop may not have (`SAVE_CUSTOMERS_TO_SQL_FILE`, `BREVO_API_KEY`) |
+| Rules | reserved / too short / `..` usernames refused; bad emails (`a..b@x.com`, `-x@y.com`, `x@-y.com`, no ending) refused; weak passwords (`Password1!`, name inside, `1234`, `qwerty`) refused; a wrong-length phone for its country refused; sign-up without Area or City refused; an 8-digit code refused, the 4-digit code accepted | ✅ |
+| Support | a fake PNG refused; a wrong code counts down the tries; the right code gives SUP-2026-001 and emails the office with the file; Solved without a reply refused; Solved emails the reply; the file downloads only for admins | ✅ |
+| Delete permanently | wrong customer number refused; the customer, login, meters, readings, bills, payments, requests and their activity-log rows are gone; the customer also leaves `04_sample_data.sql`, and the file still loads into an empty database | ✅ |
+| Frontend | `npm run lint` + `npm run build` | ✅ 0 warnings, builds |
+| Every page in Chrome | admin, customer and first page, light + dark + phone size (390 px), plus the new Support, sign-up and delete screens | ✅ no JavaScript errors, nothing wider than the screen; the greeting stays on one line with the name under it; the bell empties after opening a message |
+
 ### 21 Nov 2026: meter readings from customers, Pay now, receipts, outage notices per area, inbox
 
 | Check | How | Result |

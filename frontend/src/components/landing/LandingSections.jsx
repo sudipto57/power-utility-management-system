@@ -167,12 +167,13 @@ export function TaglineSection() {
 
   useEffect(() => {
     // (People who prefer less motion see the whole sentence at once: see .tagline-word in index.css)
-    const words = [...textRef.current.querySelectorAll('.tagline-word')];
+    const text = textRef.current; // kept here: React clears the ref when the page closes
+    const words = [...text.querySelectorAll('.tagline-word')];
 
     const scroll = { lit: 0, frame: 0 }; // lit = how many words are lit (they never go dark again)
     function update() {
       scroll.frame = 0;
-      const box = textRef.current.getBoundingClientRect();
+      const box = text.getBoundingClientRect();
       const screen = window.innerHeight;
       // 0 when the text enters the lower part of the screen, 1 when its end reaches the middle
       const progress = (screen * 0.85 - box.top) / (screen * 0.35 + box.height);
@@ -265,7 +266,7 @@ export function HowItWorks({ onSignUp }) {
             onClick={onSignUp}
             className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-sand-900 shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
           >
-            Get started — it's free
+            Get started for free
             <Icon name="arrowRight" className="h-4 w-4" />
           </button>
           <WatchDemoButton dark />
@@ -278,14 +279,14 @@ export function HowItWorks({ onSignUp }) {
 /* ---------------- Feedback (emailed to the team) ---------------- */
 export function FeedbackSection() {
   return (
-    <section id="feedback" className="scroll-mt-20 bg-sand-50 py-20">
+    <section id="feedback" className="scroll-mt-20 bg-white py-20">
       <div className="reveal mx-auto max-w-2xl px-5">
         <SectionTitle
           eyebrow="Feedback"
           title="Help us make Power Utility better"
           text="Tell us what you like, what is hard to use, or what we should add next. It takes one minute."
         />
-        <div className="mt-10 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-sand-200/70 sm:p-8">
+        <div className="mt-10 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-sand-200 sm:p-8">
           <FeedbackForm />
         </div>
       </div>

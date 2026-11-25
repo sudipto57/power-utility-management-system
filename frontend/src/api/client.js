@@ -86,3 +86,14 @@ export async function apiRequest(path, { method = 'GET', body, params } = {}) {
 
   return payload.data;
 }
+
+/** Downloads a file (e.g. a Support attachment) and returns it as a Blob. */
+export async function apiDownload(path) {
+  const token = tokenStore.get();
+  const response = await fetch(API_URL + path, { headers: token ? { Authorization: `Bearer ${token}` } : {} }).catch(() => null);
+  if (!response || !response.ok) {
+    const payload = response ? await response.json().catch(() => ({})) : {};
+    throw new ApiRequestError(payload.message || 'The file could not be downloaded. Please try again', response?.status || 0);
+  }
+  return response.blob();
+}

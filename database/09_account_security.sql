@@ -2,9 +2,9 @@
 -- Power Utility Management System - 09_account_security.sql   (18 Nov 2026)
 --
 -- For the new account features:
---   * email confirmation after sign up   (8-digit code sent by email)
---   * forgot password                    (8-digit code sent by email)
---   * login code for customers           (8-digit code at every login, like GitHub)  - 18 Nov 2026
+--   * email confirmation after sign up   (4-digit code sent by email)
+--   * forgot password                    (4-digit code sent by email)
+--   * login code for customers           (4-digit code at every login, like GitHub)  - 18 Nov 2026
 --   * profile change requests            (customer asks, admin approves)
 --
 -- It ADDS 2 new tables. The original tables are NOT changed.
@@ -16,7 +16,7 @@
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
--- 1. account_codes: the 8-digit codes we email to customers
+-- 1. account_codes: the 4-digit codes we email to customers
 --    We store only a SHA-256 hash of the code (like a password), never the code.
 --    A customer who still has an unused 'confirm_email' code has NOT confirmed
 --    their email yet, so they cannot log in until they do.

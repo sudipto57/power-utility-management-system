@@ -9,13 +9,20 @@ Open http://localhost:5173. The first page has the login card on the right.
 1. Pick **Customer** or **Admin** on the slide switch (Role Based Login: an account only works on its own tab).
 2. Type your **email or username** and password (demo logins: `PUMSadmin` / `<staff password>` on the Admin tab, `sumaiya.khanam` / `customer123` on the Customer tab). The eye button shows or hides the password.
 3. New customers can press **Create an account** (or **Sign up** in the top bar). Sign up is for customers only; admin accounts are made by the system administrator.
-   The password needs **8+ characters with a letter and a number** (both password boxes have an eye button).
-   **Customers: every login has a second step, like GitHub.** After the right password, the card shows **Verify your identity**: an **8-digit code** is emailed to you (subject *[Power Utility] Sudo email verification code*), valid for 15 minutes and usable once. Type it and press **Verify**. No email? Check spam, or press **Send a new code** (once a minute). Admins log in with the password only.
-4. After signing up, an **8-digit code** arrives by email. Type it in the box to confirm the email; you are then logged in. No email? Check spam, or press **Send a new code** (once a minute). The code works for 15 minutes.
-5. **Forgot password?** (under the password box, Customer tab): type your **email or phone number** → an 8-digit code goes to the email saved on your account → type the code and a new password. Anyone still logged in with the old password is logged out.
+   The sign-up form checks everything while you type (a green tick for each rule that is met):
+   - **Username:** 3 to 20 characters, only letters, numbers, `.` and `_`, starting and ending with a letter or number, no `..` or `__`, not a system word like `admin` or `support`.
+   - **Email:** a real-looking address such as `jane.doe@company.com` (no `..`, no spaces, an ending like `.com`).
+   - **Password:** 8 to 64 characters with a capital and a small letter, a number and a symbol (or a passphrase of 3+ words), without your name, username, email or phone, and without easy patterns like `1234` or `qwerty`. Use a password you do not use anywhere else.
+   - **Phone number:** pick the country code first (Bangladesh +880 is at the top), then the number. Bangladeshi numbers must be mobile numbers (013 to 019).
+   - **Address:** House / road is optional, but **Area** and **City** are both required.
+   **Customers: every login has a second step, like GitHub.** After the right password, the card shows **Verify your identity**: a **4-digit code** is emailed to you (subject *[Power Utility] Sudo email verification code*), valid for 15 minutes and usable once. Type it and press **Verify**. No email? Check spam, or press **Send a new code** (once a minute). Admins log in with the password only.
+4. After signing up, a **4-digit code** arrives by email. Type it in the box to confirm the email; you are then logged in. No email? Check spam, or press **Send a new code** (once a minute). The code works for 15 minutes.
+5. **Forgot password?** (under the password box, Customer tab): type your **email or phone number** → a 4-digit code goes to the email saved on your account → type the code and a new password. Anyone still logged in with the old password is logged out.
 
 Admins land on the **Admin panel**; customers land on the **Customer portal**. Each role only sees its own menu.
-Scroll down the first page for the Vision, the Overview (search box + category buttons), the **Bill estimator**, How it works, the FAQ and contact details.
+The top of the first page shows a **live clock** (today's date and the time). Scroll down for the Vision, the Overview (search box + category buttons), the **Bill estimator**, How it works, the FAQ, **Support** and contact details.
+
+- **Support** (also in the top menu and under Explore at the bottom): anybody can describe a problem and attach one photo or PDF (2 MB). Press **Send my problem**, type the 4-digit code from the email, and the problem goes to the office (`pums.admins@gmail.com` and the admin **Support** page) with a ticket number like SUP-2026-001. When the office solves it, the reply arrives by email.
 
 - **Bill estimator**: pick Residential / Commercial and Single / Three Phase, type the units (or use the slider). The estimate comes from the database bill function, slab by slab.
 - **▶ Watch demo** (next to *Explore services* and in *How it works*): a one-minute video tour of the website.

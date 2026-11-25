@@ -47,7 +47,7 @@ Academic DBMS project, built by beginners as a simple and finishable full-stack 
 | Role | Username | Password |
 | --- | --- | --- |
 | Admin (Admin tab) | `PUMSadmin` (or `admin@powerutility.com`) | the staff password (ask the team: it is shared privately, never written in GitHub) |
-| Customer (Customer tab) | `sumaiya.khanam` (or `sumaiya_khanam1988@example.com`) | `customer123`, then the 8-digit code from the email (on your computer it is printed in the backend terminal) |
+| Customer (Customer tab) | `sumaiya.khanam` (or `sumaiya_khanam1988@example.com`) | `customer123`, then the 4-digit code from the email (on your computer it is printed in the backend terminal) |
 
 Other demo logins: `tech.john`, `billing.officer` (staff password) · `nayeem.sheikh`, `khadija.yasmin`, `rafiqul.islam`, `sohag.howlader`, `sadia.sultana`, `tapas.saha` (customer123).
 

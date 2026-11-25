@@ -7,6 +7,7 @@ const ADMIN_MENU = [
   { to: '/admin/readings', label: 'Meter Readings', icon: 'gauge' },
   { to: '/admin/bills', label: 'Bills & Payments', icon: 'receipt' },
   { to: '/admin/requests', label: 'Complaints', icon: 'complaint' },
+  { to: '/admin/support', label: 'Support', icon: 'mail' },
   { to: '/admin/reports', label: 'Reports', icon: 'chart' },
   { to: '/admin/outages', label: 'Outage Notices', icon: 'megaphone' },
   { to: '/admin/activity', label: 'Activity Log', icon: 'activity' },

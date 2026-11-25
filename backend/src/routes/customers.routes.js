@@ -3,6 +3,7 @@ import { Router } from 'express';
 import {
   createCustomer,
   deleteCustomer,
+  deleteCustomerForever,
   getCustomer,
   getSqlFileStatus,
   listCustomers,
@@ -24,6 +25,7 @@ router.post('/sql-file', saveSqlFileNow);
 router.get('/:id', getCustomer);
 router.put('/:id', updateCustomer);
 router.delete('/:id', deleteCustomer);
+router.delete('/:id/permanent', deleteCustomerForever); // for ever, everywhere (type the customer number to confirm)
 router.get('/:id/statement', getCustomerStatement); // bills, late fees and payments with a running balance
 
 export default router;

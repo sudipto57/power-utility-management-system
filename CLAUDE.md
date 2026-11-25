@@ -17,8 +17,8 @@ An academic DBMS project: a web app where an electricity company manages custome
    - Frontend: React 19 + Vite + Tailwind CSS v4 + Chart.js + React Router. Plain JavaScript (no TypeScript). `fetch` for API calls. No Redux, no UI kit, no icon library.
    - Backend: Node.js + Express 5, plain SQL through `pg`. No ORM.
    - Database: PostgreSQL on Supabase (also runs on local PostgreSQL), managed with pgAdmin 4.
-4. **Do not change the tables.** `database/01_create_tables.sql` and `database/02_billing_tables.sql` are the team's schema. Never add, remove or rename a table or column unless the team asks for exactly that. New logic goes in functions, triggers, views or the API. The team asked for email codes (sign-up confirmation, forgot password, an 8-digit code at every customer login like GitHub) and profile change requests, so `database/09_account_security.sql` **adds** two new tables (`account_codes`, `profile_change_requests`); for the automatic copy of sign-ups the team asked for, `database/10_auto_save.sql` adds `sql_file_saves`; for the extra features the team chose (20 Nov 2026), `database/11_extra_features.sql` adds `audit_log`, `outage_notices` and `meter_replacements`; for the customer inbox the team asked for (21 Nov 2026), `database/12_customer_inbox.sql` adds `notifications`. The original tables are unchanged.
-5. **Build only what was asked.** The scope is the 15 features (plus customer sign-up and role-based login) the six extra features of file 11 (activity log, account statement, usage alerts, late fees, outage notices, meter replacement) and the customer features of 21 Nov 2026 (own meter readings + this month so far, price-band warning, bill calculator with appliance helper, dashboard alerts, replies on requests, Pay now, payment history + receipts, outage notices per area, inbox + due reminders). Prepaid meters are a future idea. `bill_adjustments` is used only for late fees and their waivers; `bill_installments` and `meter_reading_schedules` exist in the database but have no API or UI on purpose.
+4. **Do not change the tables.** `database/01_create_tables.sql` and `database/02_billing_tables.sql` are the team's schema. Never add, remove or rename a table or column unless the team asks for exactly that. New logic goes in functions, triggers, views or the API. The team asked for email codes (sign-up confirmation, forgot password, a 4-digit code at every customer login like GitHub) and profile change requests, so `database/09_account_security.sql` **adds** two new tables (`account_codes`, `profile_change_requests`); for the automatic copy of sign-ups the team asked for, `database/10_auto_save.sql` adds `sql_file_saves`; for the extra features the team chose (20 Nov 2026), `database/11_extra_features.sql` adds `audit_log`, `outage_notices` and `meter_replacements`; for the customer inbox the team asked for (21 Nov 2026), `database/12_customer_inbox.sql` adds `notifications`; for the Support form and "Delete permanently" (25 Nov 2026), `database/13_support_and_deletions.sql` adds `support_tickets` and `deleted_customers`. The original tables are unchanged.
+5. **Build only what was asked.** The scope is the 15 features (plus customer sign-up and role-based login) the six extra features of file 11 (activity log, account statement, usage alerts, late fees, outage notices, meter replacement) and the customer features of 21 Nov 2026 (own meter readings + this month so far, price-band warning, bill calculator with appliance helper, dashboard alerts, replies on requests, Pay now, payment history + receipts, outage notices per area, inbox + due reminders) and the changes of 25 Nov 2026 (Delete permanently, sign-up rules for username / email / password, phone numbers with a country code, address with area + city, 4-digit codes, the Support form + admin Support page, live clock on the first page, the bell shows only new things). Prepaid meters are a future idea. `bill_adjustments` is used only for late fees and their waivers; `bill_installments` and `meter_reading_schedules` exist in the database but have no API or UI on purpose.
 6. **Secrets stay out of git.** Never print, copy or commit `backend/.env`. Only `.env.example` files (with fake values) are committed. `.gitignore` blocks every `.env*` file except `.env.example`.
 
 ## Run it
@@ -34,13 +34,13 @@ cd frontend && npm install && npm run dev
 Demo logins (from `database/04_sample_data.sql`): `PUMSadmin` / staff password (ask the team: it is shared privately and never written in GitHub), `sumaiya.khanam` / `customer123` (Bangladesh sample data: 200 customers CUST-001 … CUST-200, emails end in `@example.com` so test emails never reach real people).
 Website sign-ups (and customers added by an admin) are saved in the database and then copied by the backend into the marked "WEBSITE CUSTOMERS" part at the end of `database/04_sample_data.sql` (`backend/src/utils/saveCustomersToSql.js`; by hand: `npm run db:save-customers`). Never edit that part by hand. When the laptop is off, sign-ups wait in Supabase; the laptop's background job (`npm run auto-save:on`, starts with Windows, runs every 10 minutes) copies them in. On Render `SAVE_CUSTOMERS_TO_SQL_FILE=false`.
 `SELECT * FROM customers` has no fixed order: use the view `customers_in_order` or `ORDER BY`.
-Database setup order: `00_reset` → `01` → `02` → `03` → `04` → `07` (Supabase only) → `09` → `10` → `11` → `12`. `05` is local-only, `06` is practice queries. Full steps: `docs/04_setup_guide.md`.
+Database setup order: `00_reset` → `01` → `02` → `03` → `04` → `07` (Supabase only) → `09` → `10` → `11` → `12` → `13`. `05` is local-only, `06` is practice queries. Full steps: `docs/04_setup_guide.md`.
 
 ## Check your work (before saying something is done)
 
 ```bash
 cd frontend && npm run lint && npm run build     # must show no errors
-cd backend  && npm run db:test                   # database reachable, 20 tables
+cd backend  && npm run db:test                   # database reachable, 22 tables
 ```
 
 API changes: run the Postman collection in `postman/` (or the matching request) against the running backend. UI changes: open the page in the browser as admin **and** as customer.
@@ -58,6 +58,7 @@ frontend/src/
                 charts/ (Chart.js wrappers)  bills/  layout/ (Sidebar, Topbar)  landing/ (first page, AuthCard)
   pages/        auth/Login.jsx   admin/...   customer/...   NotFound.jsx
   utils/        format.js (money, dates)  options.js (dropdown values)  ui.js (shared class strings)  routes.js
+                accountRules.js (username / email / password rules)  phone.js (country codes)
   App.jsx       every route in one place
   index.css     Tailwind @theme: fonts, Warm Sunrise colours (sand, ember, flame, dusk, focus), animations, dark mode
 
@@ -96,7 +97,8 @@ Work one feature end to end, in this order. Do not start the next step until the
 - Bill amounts are **never** typed or calculated in JavaScript: call `calculate_bill_amount()`. Balances come from the view `bill_balance` (total + late fee − waiver − payments). "Mark paid" inserts a payment row (the trigger sets the status); "Mark unpaid" deletes it.
 - Customer readings and "Pay now" payments are saved as **Pending** (the original status columns) and only count after staff verify / confirm them. Pay now never asks for a card number, only the transaction reference.
 - Tell the customer about a change with `notifyCustomer()` (`utils/notify.js`, the inbox), after the change is saved.
-- A customer with bills is never deleted: answer 409 and offer "Inactive".
+- A customer with bills is never deleted by the normal Delete: answer 409 and offer "Inactive". Only **Delete permanently** (`DELETE /customers/:id/permanent`, the admin types the customer number) removes a customer for ever, everywhere, also from `04_sample_data.sql` (table `deleted_customers`).
+- New usernames, emails, passwords and phone numbers follow the rules in `utils/validate.js` and `utils/countries.js` (the frontend shows the same rules in `utils/accountRules.js` and `utils/phone.js`). Phones are saved as `+<country code><number>`.
 
 ### Frontend conventions
 

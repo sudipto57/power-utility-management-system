@@ -20,6 +20,7 @@ import changeRequestRoutes from './routes/changeRequests.routes.js';
 import feedbackRoutes from './routes/feedback.routes.js';
 import activityRoutes from './routes/activity.routes.js';
 import outageRoutes from './routes/outages.routes.js';
+import supportRoutes from './routes/support.routes.js';
 import { saveAfterChanges } from './utils/saveCustomersToSql.js';
 
 const app = express();
@@ -39,6 +40,8 @@ app.use(
     },
   })
 );
+// The Support form may carry one picture or PDF (up to 2 MB, sent as base64 text), so it gets a bigger limit
+app.use('/api/support', express.json({ limit: '3mb' }));
 app.use(express.json({ limit: '100kb' }));
 
 // Small request logger:  GET /api/customers 200 12ms
@@ -84,6 +87,7 @@ app.use('/api/tariffs', tariffRoutes); // public bill estimator
 app.use('/api/feedback', feedbackRoutes); // public feedback form (emailed to the team)
 app.use('/api/activity', activityRoutes); // activity log (admin)
 app.use('/api/outages', outageRoutes); // planned power cuts (news strip + admin page)
+app.use('/api/support', supportRoutes); // Support form (public) + the admin Support page
 
 app.use(notFound);
 app.use(errorHandler);

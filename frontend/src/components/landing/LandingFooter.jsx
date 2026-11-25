@@ -12,7 +12,7 @@ export default function LandingFooter({ onOpenAuth }) {
         <div>
           <Logo />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-sand-500">
-            Customers, meters, bills and complaints — managed in one simple online system.
+            Manage customers, meters, bills and complaints in one simple online system.
           </p>
           <div className="mt-5 flex gap-2">
             {SOCIALS.map((social) => (
@@ -37,6 +37,7 @@ export default function LandingFooter({ onOpenAuth }) {
             <li><a href="#vision" className={linkClass}>Vision</a></li>
             <li><a href="#how" className={linkClass}>How it works</a></li>
             <li><a href="#faq" className={linkClass}>FAQ</a></li>
+            <li><a href="#support" className={linkClass}>Support</a></li>
           </ul>
         </div>
 

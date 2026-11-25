@@ -7,6 +7,8 @@ import { homePathFor } from '../../utils/routes';
 import LandingNavbar from '../../components/landing/LandingNavbar';
 import AuthCard from '../../components/landing/AuthCard';
 import WatchDemoButton from '../../components/landing/WatchDemo';
+import SupportSection from '../../components/landing/SupportSection';
+import LiveClock from '../../components/common/LiveClock';
 import LandingFooter from '../../components/landing/LandingFooter';
 import {
   EstimatorSection,
@@ -87,10 +89,17 @@ export default function Login() {
           <div className="relative mx-auto max-w-7xl px-5 pb-24 pt-12 lg:pt-16">
             {/* Project name: one line, bold, sunrise gradient */}
             <div className="text-center">
-              <span className="inline-flex animate-fade-up items-center gap-2 rounded-full bg-white/80 px-4 py-1.5 text-xs font-bold text-orange-600 shadow-sm ring-1 ring-orange-100">
-                <Icon name="bolt" className="h-3.5 w-3.5" />
-                Smart electricity billing &amp; service
-              </span>
+              <div className="flex animate-fade-up flex-wrap items-center justify-center gap-2">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-1.5 text-xs font-bold text-orange-600 shadow-sm ring-1 ring-orange-100">
+                  <Icon name="bolt" className="h-3.5 w-3.5" />
+                  Smart electricity billing &amp; service
+                </span>
+                {/* Live clock: today's date and the time, ticking every second */}
+                <LiveClock
+                  className="rounded-full bg-sand-900 px-4 py-1.5 text-xs font-bold text-white shadow-sm"
+                  iconClassName="text-amber-300"
+                />
+              </div>
               <h1
                 className="mt-5 animate-fade-up whitespace-nowrap font-display text-[clamp(1.1rem,4.3vw,4rem)] font-extrabold leading-tight tracking-tight"
                 style={{ animationDelay: '80ms' }}
@@ -185,6 +194,7 @@ export default function Login() {
         <EstimatorSection />
         <HowItWorks onSignUp={() => openAuth('customer', 'signup')} />
         <FaqSection />
+        <SupportSection />
         <FeedbackSection />
       </main>
 

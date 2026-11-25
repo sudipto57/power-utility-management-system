@@ -5,9 +5,10 @@ import Icon from '../common/Icon';
 /**
  * Bell with a red count. Clicking it opens the list (built by hooks/useNotifications.js).
  * items = [{ id, icon, tone, title, text, to, time?, unread? }]
- * count = the red number; openItem(item) runs when an item is clicked; readAll = "Mark all as read" (customers)
+ * count = the red number; openItem(item) runs when an item is clicked (it then disappears from the list);
+ * readAll = "Mark all as read" (empties the list); isInbox = true for customers (their inbox)
  */
-export default function NotificationBell({ items = [], count = 0, openItem, readAll }) {
+export default function NotificationBell({ items = [], count = 0, openItem, readAll, isInbox = false }) {
   const [open, setOpen] = useState(false);
   const boxRef = useRef(null);
 
@@ -21,10 +22,9 @@ export default function NotificationBell({ items = [], count = 0, openItem, read
     return () => document.removeEventListener('mousedown', onClick);
   }, [open]);
 
-  const isInbox = items.some((item) => 'unread' in item); // customers: the inbox keeps read messages too
 
   return (
-    <div ref={boxRef} className="relative">
+    <div ref={boxRef} className="sm:relative">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -40,11 +40,12 @@ export default function NotificationBell({ items = [], count = 0, openItem, read
       </button>
 
       {open && (
-        <div className="absolute right-0 top-12 z-40 w-80 max-w-[calc(100vw-2rem)] animate-scale-in overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-sand-200">
+        // Phones: the list is as wide as the screen, just under the top bar. Bigger screens: under the bell.
+        <div className="absolute inset-x-3 top-full z-40 mt-2 animate-scale-in overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-sand-200 sm:inset-x-auto sm:right-0 sm:top-12 sm:mt-0 sm:w-80">
           <div className="flex items-center justify-between border-b border-sand-100 px-4 py-3">
             <p className="font-display text-sm font-extrabold text-sand-900">{isInbox ? 'Inbox' : 'Notifications'}</p>
             {readAll ? (
-              <button type="button" onClick={readAll} className="text-[11px] font-extrabold text-orange-600 hover:underline">
+              <button type="button" onClick={readAll} className="text-[11px] font-extrabold text-orange-700 hover:underline">
                 Mark all as read
               </button>
             ) : (

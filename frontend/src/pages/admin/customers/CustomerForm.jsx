@@ -10,10 +10,15 @@ import FormError from '../../../components/common/FormError';
 import ErrorState from '../../../components/common/ErrorState';
 import { PageSkeleton } from '../../../components/common/Skeleton';
 import { Field, Input, Select, Textarea } from '../../../components/common/FormField';
+import PhoneInput from '../../../components/common/PhoneInput';
+import RuleList from '../../../components/common/RuleList';
+import { fullPhone, loadCountries, phoneProblem, splitPhone } from '../../../utils/phone';
+import { allRulesOk, emailProblem, passwordRules, usernameRules } from '../../../utils/accountRules';
 import { CUSTOMER_STATUSES, CUSTOMER_TYPES } from '../../../utils/options';
 
 const EMPTY = {
   full_name: '',
+  phone_country: 'BD', // the phone number is saved with its country code: +8801712345678
   phone: '',
   email: '',
   address: '',
@@ -41,13 +46,16 @@ export default function CustomerForm() {
   useEffect(() => {
     if (!isEdit) return;
     let active = true;
-    getCustomer(id)
-      .then((c) => {
+    // The country list is needed to split "+8801712345678" into +880 and 1712345678
+    Promise.all([getCustomer(id), loadCountries()])
+      .then(([c, countries]) => {
         if (!active) return;
+        const phone = splitPhone(c.phone, countries);
         setForm({
           ...EMPTY,
           full_name: c.full_name,
-          phone: c.phone,
+          phone_country: phone.country,
+          phone: phone.number,
           email: c.email || '',
           address: c.address,
           customer_type: c.customer_type,
@@ -76,12 +84,15 @@ export default function CustomerForm() {
       setError('Name, phone and address are required.');
       return;
     }
+    const phoneError = phoneProblem(form.phone_country, form.phone);
+    if (phoneError) return setError(phoneError);
+    if (form.email.trim() && emailProblem(form.email)) return setError(emailProblem(form.email));
     if (!isEdit && form.create_login) {
+      // Same rules as the sign up form and the backend
       if (!form.email.trim()) return setError('An email is required to create a login.');
-      if (form.username.trim().length < 3) return setError('Username must be at least 3 characters.');
-      // Same rule as the sign up form and the backend: 8+ characters with a letter and a number
-      if (form.password.length < 8 || !/[A-Za-z]/.test(form.password) || !/[0-9]/.test(form.password)) {
-        return setError('Password needs 8+ characters with at least one letter and one number.');
+      if (!allRulesOk(usernameRules(form.username))) return setError('The username does not follow the rules under the box.');
+      if (!allRulesOk(passwordRules(form.password, aboutLogin))) {
+        return setError('The password does not follow the rules under the box.');
       }
     }
 
@@ -89,7 +100,7 @@ export default function CustomerForm() {
     try {
       const payload = {
         full_name: form.full_name,
-        phone: form.phone,
+        phone: await fullPhone(form.phone_country, form.phone), // +880 and 1712345678 -> +8801712345678
         email: form.email,
         address: form.address,
         customer_type: form.customer_type,
@@ -105,6 +116,9 @@ export default function CustomerForm() {
       setSaving(false);
     }
   };
+
+  // Personal details that may not be part of the password
+  const aboutLogin = { username: form.username, email: form.email, fullName: form.full_name, phone: form.phone };
 
   if (loading) return <PageSkeleton />;
   if (loadError) return <ErrorState message={loadError} />;
@@ -123,14 +137,23 @@ export default function CustomerForm() {
             <Field label="Full name" required className="sm:col-span-2">
               <Input value={form.full_name} onChange={set('full_name')} placeholder="e.g. Rahim Uddin" maxLength={100} />
             </Field>
-            <Field label="Phone" required>
-              <Input value={form.phone} onChange={set('phone')} placeholder="01712345678" maxLength={20} />
+            <Field label="Phone" required className="sm:col-span-2">
+              <PhoneInput
+                country={form.phone_country}
+                number={form.phone}
+                onChange={({ country, number }) => setForm((f) => ({ ...f, phone_country: country, phone: number }))}
+              />
             </Field>
-            <Field label="Email" required={form.create_login || hasLogin} hint={hasLogin ? 'Also used to log in.' : undefined}>
+            <Field
+              label="Email"
+              required={form.create_login || hasLogin}
+              hint={hasLogin ? 'Also used to log in.' : undefined}
+              className="sm:col-span-2"
+            >
               <Input type="email" value={form.email} onChange={set('email')} placeholder="name@email.com" />
             </Field>
-            <Field label="Address" required className="sm:col-span-2">
-              <Textarea rows={2} value={form.address} onChange={set('address')} placeholder="Street, city" />
+            <Field label="Address" required className="sm:col-span-2" hint="House / road, area, city">
+              <Textarea rows={2} value={form.address} onChange={set('address')} placeholder="House 12, Road 5, Khilkhet, Dhaka" />
             </Field>
             <Field label="Customer type" required>
               <Select value={form.customer_type} onChange={set('customer_type')} options={CUSTOMER_TYPES} />
@@ -161,12 +184,18 @@ export default function CustomerForm() {
             </label>
             {form.create_login && (
               <div className="mt-5 grid animate-fade-up gap-5 sm:grid-cols-2">
-                <Field label="Username" required hint="Letters, numbers, dot, dash or underscore">
-                  <Input value={form.username} onChange={set('username')} placeholder="rahim.uddin" autoComplete="off" />
-                </Field>
-                <Field label="Password" required hint="8+ characters with a letter and a number">
-                  <Input type="password" value={form.password} onChange={set('password')} autoComplete="new-password" />
-                </Field>
+                <div>
+                  <Field label="Username" required>
+                    <Input value={form.username} onChange={set('username')} placeholder="rahim.uddin" autoComplete="off" />
+                  </Field>
+                  {form.username && <RuleList rules={usernameRules(form.username)} />}
+                </div>
+                <div>
+                  <Field label="Password" required>
+                    <Input type="password" value={form.password} onChange={set('password')} autoComplete="new-password" />
+                  </Field>
+                  {form.password && <RuleList rules={passwordRules(form.password, aboutLogin)} />}
+                </div>
               </div>
             )}
           </Card>

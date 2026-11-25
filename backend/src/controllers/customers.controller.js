@@ -4,7 +4,7 @@ import { query, withTransaction } from '../config/db.js';
 import ApiError from '../utils/ApiError.js';
 import { generateNumber } from '../utils/generateNumber.js';
 import { CUSTOMER_STATUSES, CUSTOMER_TYPES } from '../utils/constants.js';
-import { readSqlFileStatus, saveCustomersToSqlFile } from '../utils/saveCustomersToSql.js';
+import { readSqlFileStatus, saveCustomersToSqlFile, scheduleSave } from '../utils/saveCustomersToSql.js';
 import env from '../config/env.js';
 import {
   clean,
@@ -12,9 +12,10 @@ import {
   optionalOneOf,
   requireEmail,
   requireOneOf,
-  requirePassword,
+  requireNewPassword,
   requirePhone,
   requireText,
+  requireUsername,
   requireUuid,
 } from '../utils/validate.js';
 
@@ -129,12 +130,9 @@ export async function createCustomer(req, res) {
   let username = null;
   let passwordHash = null;
   if (createLogin) {
-    username = requireText(body.username, 'Username', 50).toLowerCase();
-    if (!/^[a-z0-9._-]{3,50}$/.test(username)) {
-      throw new ApiError(400, 'Username must be 3-50 characters: letters, numbers, dot, dash or underscore');
-    }
-    // Same strong-password rule as the website sign up (8+ characters, a letter and a number)
-    const password = requirePassword(body.password);
+    // Same username and password rules as the website sign up
+    username = requireUsername(body.username);
+    const password = requireNewPassword(body.password, { username, email, fullName, phone });
     passwordHash = await bcrypt.hash(password, 10);
   }
 
@@ -226,4 +224,57 @@ export async function deleteCustomer(req, res) {
   }, req.user.id);
 
   res.json({ data: { id, deleted: true } });
+}
+
+// DELETE /api/customers/:id/permanent   body: { confirm: "CUST-207" }   (admin only)
+// Deletes the customer FOR EVER: profile, login, meters, readings, bills, payments, requests,
+// inbox messages and their activity-log history. The admin must type the customer number to confirm.
+// Afterwards the customer also leaves database/04_sample_data.sql (see utils/saveCustomersToSql.js).
+export async function deleteCustomerForever(req, res) {
+  const id = requireUuid(req.params.id, 'customer id');
+  const customer = await findCustomer(id);
+  if (clean(req.body?.confirm)?.toUpperCase() !== customer.customer_number) {
+    throw new ApiError(400, `Type the customer number ${customer.customer_number} to confirm`);
+  }
+
+  await withTransaction(async (client) => {
+    // Every row that belongs to this customer, so its old history can leave the activity log too
+    const { rows } = await client.query(
+      `SELECT id FROM customers WHERE id = $1
+       UNION ALL SELECT id FROM connections WHERE customer_id = $1
+       UNION ALL SELECT mr.id FROM meter_readings mr JOIN connections co ON co.id = mr.connection_id WHERE co.customer_id = $1
+       UNION ALL SELECT mp.id FROM meter_replacements mp JOIN connections co ON co.id = mp.connection_id WHERE co.customer_id = $1
+       UNION ALL SELECT b.id FROM bills b JOIN connections co ON co.id = b.connection_id WHERE co.customer_id = $1
+       UNION ALL SELECT p.id FROM payments p JOIN bills b ON b.id = p.bill_id JOIN connections co ON co.id = b.connection_id WHERE co.customer_id = $1
+       UNION ALL SELECT a.id FROM bill_adjustments a JOIN bills b ON b.id = a.bill_id JOIN connections co ON co.id = b.connection_id WHERE co.customer_id = $1
+       UNION ALL SELECT id FROM service_requests WHERE customer_id = $1`,
+      [id]
+    );
+    const rowIds = rows.map((r) => r.id);
+
+    // Switch the activity log off for this delete (it would copy all the personal data into audit_log)
+    await client.query("SELECT set_config('app.skip_audit', 'on', true)");
+    await client.query('DELETE FROM audit_log WHERE record_id = ANY($1::uuid[])', [rowIds]);
+    // Deleting the customer also deletes (ON DELETE CASCADE) meters, readings, bills, payments,
+    // late fees, requests, comments, change requests and inbox messages
+    await client.query('DELETE FROM customers WHERE id = $1', [id]);
+    // Their login (and its email codes)
+    await client.query("DELETE FROM users WHERE role = 'customer' AND (id = $1 OR customer_id = $2)", [customer.user_id, id]);
+    await client.query("SELECT set_config('app.skip_audit', 'off', true)");
+
+    // Remember only the number, so the customer also leaves 04_sample_data.sql
+    await client.query(
+      'INSERT INTO deleted_customers (customer_number, deleted_by) VALUES ($1, $2) ON CONFLICT (customer_number) DO NOTHING',
+      [customer.customer_number, req.user.id]
+    );
+    // One line in the activity log, without any personal details
+    await client.query(
+      `INSERT INTO audit_log (table_name, record_id, action, changed_by, old_values)
+       VALUES ('customers', $1, 'DELETE', $2, $3)`,
+      [id, req.user.id, JSON.stringify({ customer_number: customer.customer_number, deleted_for_ever: true })]
+    );
+  }, req.user.id);
+
+  scheduleSave(); // take the customer out of database/04_sample_data.sql as well
+  res.json({ data: { id, customer_number: customer.customer_number, deleted: true } });
 }

@@ -19,3 +19,7 @@ export const REQUEST_STATUSES = ['Pending', 'In Progress', 'Resolved', 'Cancelle
 
 // Feedback form topics (must match FEEDBACK_TOPICS in backend/src/controllers/feedback.controller.js)
 export const FEEDBACK_TOPICS = ['Website design', 'Bills and payments', 'Login and account', 'Service requests', 'New idea', 'Other'];
+
+// Support form categories and statuses (must match database/13_support_and_deletions.sql)
+export const SUPPORT_CATEGORIES = ['Billing', 'Meter or reading', 'Power outage', 'Account or login', 'Website problem', 'Other'];
+export const SUPPORT_STATUSES = ['Open', 'In Progress', 'Solved'];

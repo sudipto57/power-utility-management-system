@@ -6,8 +6,10 @@ import Icon from '../common/Icon';
 import Spinner from '../common/Spinner';
 import FormError from '../common/FormError';
 import { Field, Input, PasswordInput } from '../common/FormField';
+import RuleList from '../common/RuleList';
+import { allRulesOk, passwordRules } from '../../utils/accountRules';
 
-// The small forms that use an 8-digit code from an email (like GitHub's email codes):
+// The small forms that use a 4-digit code from an email (like GitHub's email codes):
 //   LoginCodeForm      - every customer login: password, then "Verify your identity"
 //   ConfirmEmailForm   - after signing up (the account works once the email is confirmed)
 //   ForgotPasswordForm - email or phone number -> code -> new password
@@ -25,16 +27,19 @@ export function FormNotice({ message }) {
   );
 }
 
-/** Big box for the 8 digits (numbers only). */
+const CODE_LENGTH = 4; // the codes in the emails have 4 digits
+
+/** Big box for the 4 digits (numbers only). */
 function CodeInput({ value, onChange }) {
   return (
     <Input
       value={value}
-      onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 8))}
+      onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, CODE_LENGTH))}
       inputMode="numeric"
       autoComplete="one-time-code"
-      placeholder="••••••••"
-      className="text-center font-mono text-2xl font-extrabold tracking-[0.35em]"
+      maxLength={CODE_LENGTH}
+      placeholder="••••"
+      className="text-center font-mono text-3xl font-extrabold tracking-[0.6em]"
     />
   );
 }
@@ -83,7 +88,7 @@ function loginCodeMessage(result) {
 }
 
 /**
- * Every customer login (like GitHub): the password was right, now type the 8-digit code
+ * Every customer login (like GitHub): the password was right, now type the 4-digit code
  * from the email. loginResult = what the backend answered: { email, expires_at, email_sent }.
  */
 export function LoginCodeForm({ loginName, password, role, loginResult, gradient, onDone }) {
@@ -97,8 +102,8 @@ export function LoginCodeForm({ loginName, password, role, loginResult, gradient
   const handleVerify = async (event) => {
     event.preventDefault();
     setError('');
-    if (code.length !== 8) {
-      setError('Please enter the 8-digit code from the email.');
+    if (code.length !== CODE_LENGTH) {
+      setError('Please enter the 4-digit code from the email.');
       return;
     }
     setLoading(true);
@@ -153,8 +158,8 @@ export function ConfirmEmailForm({ loginName, firstNotice, gradient, onDone }) {
   const handleConfirm = async (event) => {
     event.preventDefault();
     setError('');
-    if (code.length !== 8) {
-      setError('Please enter the 8-digit code from the email.');
+    if (code.length !== CODE_LENGTH) {
+      setError('Please enter the 4-digit code from the email.');
       return;
     }
     setLoading(true);
@@ -180,7 +185,7 @@ export function ConfirmEmailForm({ loginName, firstNotice, gradient, onDone }) {
   return (
     <form onSubmit={handleConfirm} className="mt-6 space-y-5" noValidate>
       <FormNotice message={notice} />
-      <Field label="8-digit code" hint="The code works for 15 minutes.">
+      <Field label="4-digit code" hint="The code works for 15 minutes.">
         <CodeInput value={code} onChange={setCode} />
       </Field>
       <FormError message={error} />
@@ -204,6 +209,9 @@ export function ForgotPasswordForm({ gradient, onDone }) {
   const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(false);
   const [sentAt, setSentAt] = useState(0);
+
+  // What was typed to find the account may not be part of the new password
+  const about = { username: loginName.trim(), email: loginName.trim(), phone: loginName };
 
   const sendCode = async () => {
     const result = await authApi.forgotPassword(loginName.trim());
@@ -231,12 +239,12 @@ export function ForgotPasswordForm({ gradient, onDone }) {
   const handleReset = async (event) => {
     event.preventDefault();
     setError('');
-    if (form.code.length !== 8) {
-      setError('Please enter the 8-digit code from the email.');
+    if (form.code.length !== CODE_LENGTH) {
+      setError('Please enter the 4-digit code from the email.');
       return;
     }
-    if (form.password.length < 8 || !/[A-Za-z]/.test(form.password) || !/[0-9]/.test(form.password)) {
-      setError('The new password needs 8+ characters with at least one letter and one number.');
+    if (!allRulesOk(passwordRules(form.password, about))) {
+      setError('The new password does not follow the rules under the box.');
       return;
     }
     if (form.password !== form.confirm) {
@@ -265,7 +273,7 @@ export function ForgotPasswordForm({ gradient, onDone }) {
   if (stage === 'ask') {
     return (
       <form onSubmit={handleAsk} className="mt-6 space-y-5" noValidate>
-        <Field label="Email or phone number" hint="We send an 8-digit code to the email saved on your account.">
+        <Field label="Email or phone number" hint="We send a 4-digit code to the email saved on your account.">
           <Input
             value={loginName}
             onChange={(e) => setLoginName(e.target.value)}
@@ -282,7 +290,7 @@ export function ForgotPasswordForm({ gradient, onDone }) {
   return (
     <form onSubmit={handleReset} className="mt-6 space-y-4" noValidate>
       <FormNotice message={notice} />
-      <Field label="8-digit code">
+      <Field label="4-digit code">
         <CodeInput value={form.code} onChange={(code) => setForm({ ...form, code })} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
@@ -290,7 +298,7 @@ export function ForgotPasswordForm({ gradient, onDone }) {
           <PasswordInput
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
-            placeholder="8+ letters & numbers"
+            placeholder="A strong password"
             autoComplete="new-password"
           />
         </Field>
@@ -303,6 +311,7 @@ export function ForgotPasswordForm({ gradient, onDone }) {
           />
         </Field>
       </div>
+      {form.password && <RuleList rules={passwordRules(form.password, about)} className="-mt-1" />}
       <FormError message={error} />
       <SubmitButton loading={loading} gradient={gradient} label="Save new password" busyLabel="Saving..." />
       <p className="text-center">

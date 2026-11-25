@@ -165,6 +165,74 @@ function buildSection({ customers, meters }, savedAt) {
   return lines.join('\n');
 }
 
+// ---------------------------------------------------------------------
+// 2b. Customers an admin deleted for ever ("Delete permanently", table deleted_customers)
+//     A sample customer (CUST-001 ... CUST-200) is written in the first part of the file, one line per
+//     row: their customer row, meters, readings, payments, requests, comments and demo login.
+//     We take exactly those lines out, so running the file again does not bring them back.
+//     (Website customers simply disappear from the marked part, because it is rebuilt from the database.)
+// ---------------------------------------------------------------------
+async function readDeletedSampleNumbers() {
+  const { rows: check } = await query("SELECT to_regclass('public.deleted_customers') IS NOT NULL AS ok");
+  if (!check[0].ok) return [];
+  const { rows } = await query(
+    "SELECT customer_number FROM deleted_customers WHERE COALESCE(substring(customer_number FROM '[0-9]+$')::int, 0) <= $1",
+    [SAMPLE_CUSTOMERS]
+  );
+  return rows.map((r) => r.customer_number);
+}
+
+/** One VALUES row of the file, e.g.  ('CUST-001', 'Md. Rafiqul Islam', ...),  */
+const isRow = (line) => /^\(.*\)[,;]?\s*$/.test(line.trim());
+// The value inside the first quotes of a row: ('46804560', ...) -> 46804560
+const firstValue = (line) => line.trim().match(/^\('([^']*)'/)?.[1];
+
+/** Returns the sample part of the file without the rows of the deleted customers. */
+function removeDeletedRows(text, numbers) {
+  if (numbers.length === 0) return text;
+  const lines = text.split('\n');
+
+  // 1. Collect everything that belongs to them: customer numbers, emails, meters and requests
+  const customers = new Set(numbers);
+  const emails = new Set();
+  const meters = new Set();
+  const requests = new Set();
+  for (const line of lines) {
+    if (!isRow(line)) continue;
+    const values = [...line.matchAll(/'([^']*)'/g)].map((m) => m[1]);
+    if (customers.has(values[0]) && values[3]?.includes('@')) emails.add(values[3]); // customer row: email is the 4th value
+    if (customers.has(values[0]) && /^([0-9]+|MET-[0-9]+)$/.test(values[1] || '')) meters.add(values[1]); // meter row
+    if (/^REQ-/.test(values[0]) && customers.has(values[1])) requests.add(values[0]); // request row
+  }
+
+  // 2. Drop their lines. If a dropped row was the LAST row of a list, the row before it gets its ending.
+  const kept = [];
+  for (const line of lines) {
+    const first = firstValue(line);
+    const values = [...line.matchAll(/'([^']*)'/g)].map((m) => m[1]);
+    const drop =
+      isRow(line) && (customers.has(first) || meters.has(first) || requests.has(first) || values.some((v) => emails.has(v)));
+    if (drop) {
+      const ending = line.trim().endsWith(');') ? ';' : line.trim().endsWith('),') ? ',' : '';
+      if (ending !== ',') {
+        const last = kept.length - 1;
+        if (last >= 0 && isRow(kept[last])) kept[last] = kept[last].replace(/,(\s*)$/, `${ending}$1`);
+      }
+      continue;
+    }
+    // The list of meters that keep an unbilled reading ('78144592', '6968506314', ...)
+    if (/^'[^']+'(, '[^']+')*\r?$/.test(line.trim()) && [...meters].some((m) => line.includes(`'${m}'`))) {
+      const list = [...line.matchAll(/'([^']*)'/g)].map((m) => m[1]).filter((m) => !meters.has(m));
+      kept.push(list.map((m) => `'${m}'`).join(', ') + (line.endsWith('\r') ? '\r' : ''));
+      continue;
+    }
+    // The comment that lists the demo logins:  --     rafiqul.islam   CUST-001 ...
+    if (line.startsWith('--') && numbers.some((n) => new RegExp(`\\s${n}\\s`).test(line))) continue;
+    kept.push(line);
+  }
+  return kept.join('\n');
+}
+
 // The "Last saved" line changes every time, so it is ignored when we check for real changes
 const withoutTime = (text) => text.replace(/^-- Last saved: .*$/m, '');
 
@@ -230,7 +298,16 @@ export async function saveCustomersToSqlFile() {
   const newline = fileText.includes('\r\n') ? '\r\n' : '\n'; // keep Windows line endings if the file has them
   const section = buildSection(data, new Date()).replace(/\n/g, newline);
 
-  const place = findSection(fileText);
+  // Sample customers deleted for ever leave the first part of the file
+  let place = findSection(fileText);
+  const samplePart = place ? fileText.slice(0, place.start) : fileText;
+  const cleanedSample = removeDeletedRows(samplePart, await readDeletedSampleNumbers());
+  if (cleanedSample !== samplePart) {
+    fileText = cleanedSample + fileText.slice(samplePart.length);
+    place = findSection(fileText);
+  }
+  const removedRows = cleanedSample !== samplePart;
+
   const oldSection = place ? fileText.slice(place.start, place.end) : '';
   const result = {
     file: `database/${FILE_NAME}`,
@@ -239,7 +316,7 @@ export async function saveCustomersToSqlFile() {
     meters: data.meters.length,
   };
 
-  if (place && withoutTime(oldSection) === withoutTime(section)) {
+  if (place && !removedRows && withoutTime(oldSection) === withoutTime(section)) {
     return { ...result, saved: true, changed: false }; // nothing new: leave the file alone
   }
 

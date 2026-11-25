@@ -3,6 +3,7 @@ import { Router } from 'express';
 import {
   confirmEmail,
   forgotPassword,
+  listCountries,
   login,
   me,
   resendCode,
@@ -21,7 +22,8 @@ const signupLimit = rateLimit({ max: 10, minutes: 60 });
 const codeLimit = rateLimit({ max: 15, minutes: 15 }); // typing a code
 const emailLimit = rateLimit({ max: 5, minutes: 15 }); // asking for a new email
 
-router.post('/login', loginLimit, login); // customers then get an 8-digit code by email
+router.get('/countries', listCountries); // country codes for the phone number box (public)
+router.post('/login', loginLimit, login); // customers then get a 4-digit code by email
 router.post('/verify-login', codeLimit, verifyLogin);
 router.post('/signup', signupLimit, signup); // customers only
 router.post('/confirm-email', codeLimit, confirmEmail);

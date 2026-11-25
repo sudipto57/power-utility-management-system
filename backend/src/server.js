@@ -71,6 +71,15 @@ async function checkDatabase() {
     console.error('           Run database/12_customer_inbox.sql once (pgAdmin or the Supabase SQL Editor).\n');
     return false;
   }
+  // 25 Nov 2026: the Support form and "Delete permanently"
+  const support = await pool.query(
+    "SELECT to_regclass('public.support_tickets') AS support_table, to_regclass('public.deleted_customers') AS deleted_table"
+  );
+  if (!support.rows[0].support_table || !support.rows[0].deleted_table) {
+    console.error('\n[database] Connected, but the tables for Support and permanent deletes are missing.');
+    console.error('           Run database/13_support_and_deletions.sql once (pgAdmin or the Supabase SQL Editor).\n');
+    return false;
+  }
   return true;
 }
 

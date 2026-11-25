@@ -1,5 +1,5 @@
-// Sends the project's emails: login codes, confirmation codes, password reset codes, new bills
-// and the answer to a profile change request.
+// Sends the project's emails: login codes, confirmation codes, password reset codes, new bills,
+// the answer to a profile change request and the Support emails (code, new problem, solved).
 //
 // We use Brevo's free email API (300 emails a day) over HTTPS. Normal Gmail sending (SMTP)
 // is blocked on Render's free plan, but HTTPS is not.
@@ -8,16 +8,18 @@
 import env from '../config/env.js';
 
 /**
- * sendEmail({ to, name, subject, html })
+ * sendEmail({ to, name, subject, html, replyTo, attachments })
+ * attachments (optional) = [{ name: 'photo.png', content: '<base64 text>' }]
  * Never throws: an email problem must not break signing up or generating a bill.
  * Returns true when the email was sent (or printed in the terminal on your computer), false if it failed.
  */
-export async function sendEmail({ to, name, subject, html, replyTo }) {
+export async function sendEmail({ to, name, subject, html, replyTo, attachments }) {
   if (!to) return false;
 
   if (!env.email.brevoApiKey || !env.email.from) {
     console.log(`\n[email] Not sent (no BREVO_API_KEY / EMAIL_FROM in .env). It would go to ${to}:`);
     console.log(`        Subject: ${subject}`);
+    if (attachments?.length) console.log(`        Attached: ${attachments.map((a) => a.name).join(', ')}`);
     console.log(`        ${htmlToText(html)}\n`);
     // On your computer, printing counts as "sent" (you read the code in the terminal).
     // On the live website nobody reads the terminal, so tell the page the email did not go out.
@@ -35,6 +37,7 @@ export async function sendEmail({ to, name, subject, html, replyTo }) {
         htmlContent: html,
         // Feedback: pressing "Reply" in the inbox answers the visitor directly
         ...(replyTo ? { replyTo: { email: replyTo } } : {}),
+        ...(attachments?.length ? { attachment: attachments } : {}),
       }),
       signal: AbortSignal.timeout(10000), // give up after 10 seconds
     });
@@ -75,7 +78,7 @@ const CODE_EMAILS = {
   },
 };
 
-/** 8-digit code email. purpose = 'login' | 'confirm_email' | 'reset_password' */
+/** 4-digit code email. purpose = 'login' | 'confirm_email' | 'reset_password' */
 export function codeEmail(username, code, purpose) {
   const text = CODE_EMAILS[purpose];
   return {
@@ -83,7 +86,7 @@ export function codeEmail(username, code, purpose) {
     html: layout(
       `${text.heading}, ${escapeHtml(username)}`,
       `<p>${text.intro}</p>
-       <p style="font-family:Consolas,'Courier New',monospace;font-size:34px;font-weight:800;letter-spacing:6px;margin:18px 0;color:#0f172a">${code}</p>
+       <p style="font-family:Consolas,'Courier New',monospace;font-size:34px;font-weight:800;letter-spacing:10px;margin:18px 0;color:#1f1a15">${code}</p>
        <p>This code is valid for 15 minutes and can only be used once.</p>
        <p><b>Please don't share this code with anyone:</b> we'll never ask for it on the phone or via email.</p>
        <p>Thanks,<br />The Power Utility Team</p>
@@ -169,6 +172,77 @@ export function feedbackEmail({ rating, topic, message, name, email }) {
        <p><b>Topic:</b> ${escapeHtml(topic)}</p>
        <p style="white-space:pre-wrap;background:#f8fafc;border-radius:10px;padding:12px">${escapeHtml(message)}</p>
        <p><b>From:</b> ${escapeHtml(name || 'Not given')} (${escapeHtml(email || 'no email')})</p>`
+    ),
+  };
+}
+
+// ---------------------------------------------------------------------
+// Support emails (the Support form on the first page)
+// ---------------------------------------------------------------------
+
+/** The 4-digit code that proves the email address is real */
+export function supportCodeEmail(name, code) {
+  return {
+    subject: '[Power Utility] Support email verification code',
+    html: layout(
+      `Please confirm your email, ${escapeHtml(name)}`,
+      `<p>Here is your code to send your problem to the Power Utility office:</p>
+       <p style="font-family:Consolas,'Courier New',monospace;font-size:34px;font-weight:800;letter-spacing:10px;margin:18px 0;color:#1f1a15">${code}</p>
+       <p>This code is valid for 15 minutes and can only be used once.</p>
+       <p style="margin-top:20px;color:#94a3b8;font-size:12px">You are receiving this email because this address was typed in the Support form. If this was not you, you can ignore it.</p>`
+    ),
+  };
+}
+
+const ticketTable = (ticket) =>
+  `<table style="width:100%;border-collapse:collapse;font-size:14px">
+     <tr><td style="padding:4px 0;color:#64748b;width:110px">Ticket</td><td style="padding:4px 0;font-weight:700">${escapeHtml(ticket.ticket_number)}</td></tr>
+     <tr><td style="padding:4px 0;color:#64748b">From</td><td style="padding:4px 0">${escapeHtml(ticket.name)} (${escapeHtml(ticket.email)})</td></tr>
+     <tr><td style="padding:4px 0;color:#64748b">Category</td><td style="padding:4px 0">${escapeHtml(ticket.category)}</td></tr>
+     <tr><td style="padding:4px 0;color:#64748b">Subject</td><td style="padding:4px 0;font-weight:700">${escapeHtml(ticket.subject)}</td></tr>
+   </table>
+   <p style="white-space:pre-wrap;background:#f8fafc;border-radius:10px;padding:12px">${escapeHtml(ticket.message)}</p>`;
+
+/** To the office: a new problem (the email address was confirmed with the code) */
+export function supportNewEmail(ticket) {
+  return {
+    subject: `[Power Utility support] ${ticket.ticket_number} - ${ticket.category}: ${ticket.subject}`,
+    html: layout(
+      'New support problem',
+      `<p>The sender confirmed this email address with a 4-digit code.</p>
+       ${ticketTable(ticket)}
+       ${ticket.attachment_name ? `<p>Attached file: <b>${escapeHtml(ticket.attachment_name)}</b></p>` : ''}`,
+      { label: 'Open in the admin panel', url: `${env.appUrl}/admin/support/${ticket.id}` }
+    ),
+  };
+}
+
+/** To the person: we received the problem */
+export function supportReceivedEmail(ticket) {
+  return {
+    subject: `We received your problem (${ticket.ticket_number})`,
+    html: layout(
+      'We received your problem',
+      `<p>Hello ${escapeHtml(ticket.name)},</p>
+       <p>Thank you for writing to us. Our office will look at it and email you when it is solved.</p>
+       ${ticketTable(ticket)}`
+    ),
+  };
+}
+
+/** To the person: the office solved the problem (with the admin's reply) */
+export function supportSolvedEmail(ticket) {
+  return {
+    subject: `Solved: ${ticket.subject} (${ticket.ticket_number})`,
+    html: layout(
+      'Your problem is solved',
+      `<p>Hello ${escapeHtml(ticket.name)},</p>
+       <p>Good news: the Power Utility office has solved the problem you sent us.</p>
+       <p><b>Reply from the office:</b></p>
+       <p style="white-space:pre-wrap;background:#ecfdf5;border-radius:10px;padding:12px">${escapeHtml(ticket.admin_reply)}</p>
+       ${ticketTable(ticket)}
+       <p>If anything is still wrong, please send us a new problem from the Support part of the website.</p>`,
+      { label: 'Open the website', url: `${env.appUrl}/login#support` }
     ),
   };
 }

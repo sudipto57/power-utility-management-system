@@ -33,7 +33,7 @@ export default function AuthProvider({ children }) {
   }, []);
 
   // Admins are logged in straight away. Customers get { needs_code: true, ... } back:
-  // an 8-digit code was emailed and verifyLogin() finishes the login.
+  // a 4-digit code was emailed and verifyLogin() finishes the login.
   const login = useCallback(async (loginName, password, role) => {
     const result = await authApi.login(loginName, password, role);
     if (result.needs_code) return result;
@@ -49,7 +49,7 @@ export default function AuthProvider({ children }) {
     return result.user;
   }, []);
 
-  // Customer sign up: the account is created and an 8-digit code is emailed (no login yet)
+  // Customer sign up: the account is created and a 4-digit code is emailed (no login yet)
   const signup = useCallback((data) => authApi.signup(data), []);
 
   // The right code from the email confirms the account and logs the customer in

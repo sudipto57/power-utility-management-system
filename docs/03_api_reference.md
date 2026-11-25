@@ -27,17 +27,24 @@ Base URL: `http://localhost:5000/api`
 
 | Method | URL | Who | Body / query | Answer |
 | --- | --- | --- | --- | --- |
-| POST | `/auth/login` | everyone | `{ "login": "PUMSadmin", "password": "<staff password>", "role": "admin" }` (email or username; `role` = `admin` or `customer`, optional) | **Admin:** `{ token, user }`. **Customer:** `{ needs_code: true, email: "s*****8@gmail.com", expires_at, email_sent }` and an 8-digit code is emailed (like GitHub). **403 `EMAIL_NOT_CONFIRMED`** for a customer who has not confirmed the sign up email yet |
-| POST | `/auth/verify-login` | customers | `{ "login": "email or username", "code": "12345678" }` | `{ token, user }` (step 2 of a customer login) |
-| POST | `/auth/signup` | everyone (creates **customers only**) | `{ "full_name", "email", "phone", "address", "customer_type": "Residential", "username", "password" }` (password: 8+ characters with a letter and a number) | `{ needs_confirmation: true, email, email_sent }` - an 8-digit code is emailed, no login yet |
-| POST | `/auth/confirm-email` | everyone | `{ "login": "email or username", "code": "12345678" }` | `{ token, user }` (email confirmed, logged in) |
+| POST | `/auth/login` | everyone | `{ "login": "PUMSadmin", "password": "<staff password>", "role": "admin" }` (email or username; `role` = `admin` or `customer`, optional) | **Admin:** `{ token, user }`. **Customer:** `{ needs_code: true, email: "s*****8@gmail.com", expires_at, email_sent }` and a 4-digit code is emailed (like GitHub). **403 `EMAIL_NOT_CONFIRMED`** for a customer who has not confirmed the sign up email yet |
+| POST | `/auth/verify-login` | customers | `{ "login": "email or username", "code": "1234" }` | `{ token, user }` (step 2 of a customer login) |
+| GET | `/auth/countries` | everyone | | every country: `{ code: "BD", name, dial: "880", min, max, example }` (Bangladesh first) for the phone number box |
+| POST | `/auth/signup` | everyone (creates **customers only**) | `{ "full_name", "email", "phone_country": "BD", "phone": "1712345678", "house"?, "area", "city", "customer_type": "Residential", "username", "password" }` (rules below) | `{ needs_confirmation: true, email, email_sent }` - a 4-digit code is emailed, no login yet. The address is saved as "house, area, city" |
+| POST | `/auth/confirm-email` | everyone | `{ "login": "email or username", "code": "1234" }` | `{ token, user }` (email confirmed, logged in) |
 | POST | `/auth/resend-code` | everyone | `{ "login" }` | always the same message (429 if asked again within a minute) |
 | POST | `/auth/forgot-password` | everyone (customers) | `{ "login": "email, username or phone" }` | always the same message; the code goes to the account's email |
 | POST | `/auth/reset-password` | everyone (customers) | `{ "login", "code", "password" }` | new password saved; every old login token stops working |
 | GET | `/auth/me` | logged in | | the current user |
 
-**Codes:** 8 digits, work for 15 minutes, used once, 5 wrong tries, stored only as a SHA-256 hash (table `account_codes`, purpose `login` / `confirm_email` / `reset_password`). Logging in again within a minute does not send a second email; the same code still works.
+**Codes:** 4 digits, work for 15 minutes, used once, 5 wrong tries, stored only as a SHA-256 hash (table `account_codes`, purpose `login` / `confirm_email` / `reset_password`). Logging in again within a minute does not send a second email; the same code still works.
 **Limits per visitor (IP):** login 20 / 15 min, sign up 10 / hour, typing a code 15 / 15 min, asking for an email 5 / 15 min → `429 "Too many tries"`.
+
+**Sign-up rules** (also for `POST /customers` with a login and for new passwords; `utils/validate.js`):
+- **Username:** 3 to 20 characters, only `a-z 0-9 . _`, starts and ends with a letter or number, no `..` / `__`, not a system word (`admin`, `support`, `root`, `api`, `login` ...). Saved in small letters.
+- **Email:** before the `@` letters, numbers and `. _ - +` (no dot at the start / end, no `..`, up to 64); after the `@` words of letters, numbers and `-` (no `-` at the start / end of a word) and an ending of 2+ letters (`.com`, `.co.uk`); 254 characters at most.
+- **Password:** 8 to 64 characters with a capital and a small letter, a number and a symbol (or a passphrase of 3+ words, 16+ characters); not containing the name, username, email or phone; no `password`, `qwerty`, `1234`, `abcd`, `aaaa`.
+- **Phone:** saved with the country code (`+8801712345678`); the number must have the right length for its country (`utils/countries.js`). Bangladesh: a mobile number `+880 1XXXXXXXXX` (013 to 019).
 
 **Role Based Login:** when `role` is sent, the account must have that role, otherwise the answer is `403` ("This is an admin account. Switch to the Admin tab to log in."). Sign up always creates a `customer` login + customer profile; admin accounts are never created here.
 
@@ -64,6 +71,7 @@ Base URL: `http://localhost:5000/api`
 | POST | `/customers` | `full_name, phone, email, address, customer_type, status` + optional `create_login: true, username, password` | number CUST-### is generated |
 | PUT | `/customers/:id` | any of the fields above | send only what changes; the linked login is kept in sync |
 | DELETE | `/customers/:id` | | **409 `HAS_BILLS`** if the customer has bills → set status Inactive instead |
+| DELETE | `/customers/:id/permanent` | `{ "confirm": "CUST-207" }` (the customer number) | **Delete permanently** (25 Nov 2026): removes the customer with the login, meters, readings, bills, payments, late fees, requests, inbox messages and their activity-log history; keeps only the number in `deleted_customers`, and the customer also leaves `database/04_sample_data.sql`. **400** if the number does not match |
 | GET | `/customers/sql-file` | | website sign-ups vs. `database/04_sample_data.sql`: `customers_in_database`, `customers_in_file`, `waiting`, `last_saved`, `computer`, `found` (file on this server), `auto_save`. On Render the numbers come from the last laptop copy (`sql_file_saves`) |
 | POST | `/customers/sql-file` | | **Save now** (laptop only): copies every customer after CUST-200 (with login and meters) into `04_sample_data.sql`; **409** on a server without the file (Render) |
 
@@ -159,6 +167,18 @@ Every query uses the customer id inside the login token, so a customer only ever
 | PUT | `/my/profile` | `{ "full_name", "address" }` | saved straight away (email / phone / type here → 400) |
 | GET | `/my/change-requests` | | own profile change requests + the office's answer |
 | POST | `/my/change-requests` | `{ "field": "email" \| "phone" \| "customer_type" \| "connection_type", "new_value", "connection_id" (only for connection_type), "reason" }` | new request (Pending); 409 if one is already waiting for the same thing |
+
+## Support (25 Nov 2026) - the Support form on the first page
+
+| Method | URL | Who | Body / query | Answer |
+| --- | --- | --- | --- | --- |
+| POST | `/support` | everyone (5 an hour per visitor) | `{ "name", "email", "category": "Billing" / "Meter or reading" / "Power outage" / "Account or login" / "Website problem" / "Other", "subject", "message" (20+ chars), "attachment"?: { "name", "type": "image/png" / "image/jpeg" / "application/pdf", "data": "<base64>" } }` (file up to 2 MB, checked by its first bytes) | `201 { id, email, email_sent }`: saved as **Unverified**, a 4-digit code is emailed |
+| POST | `/support/:id/verify` | everyone | `{ "code": "1234" }` | `{ ticket_number: "SUP-2026-001" }`: the ticket is **Open**, it is emailed (with the file) to `SUPPORT_EMAIL` (pums.admins@gmail.com) and a copy goes to the sender |
+| POST | `/support/:id/resend` | everyone | | a new code (429 within a minute) |
+| GET | `/support` | admin | `?status=Open` / `In Progress` / `Solved` `&search=` | tickets (never the Unverified ones), the unsolved first |
+| GET | `/support/:id` | admin | | one ticket (`attachment_name`, `attachment_size`) |
+| GET | `/support/:id/attachment` | admin | | the attached file itself |
+| PUT | `/support/:id` | admin | `{ "category"?, "subject"?, "message"?, "status"?, "admin_reply"? }` | edit / approve (`In Progress`) / solve. Changing to **Solved** needs `admin_reply`, which is emailed to the sender at once (`email_sent` in the answer) |
 
 ## Profile change requests - admin
 

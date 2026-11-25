@@ -1,12 +1,10 @@
 import Icon from '../common/Icon';
 import NotificationBell from './NotificationBell';
 import ThemeToggle from '../common/ThemeToggle';
+import LiveClock from '../common/LiveClock';
 import useNow from '../../hooks/useNow';
 import { dayPartFor } from '../../utils/time';
 import { firstName, initials } from '../../utils/format';
-
-const DATE_TEXT = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-const TIME_TEXT = new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
 // Role chip colours (same as the login page switch; deep shades behind the white initials)
 const ROLE_STYLE = {
@@ -14,17 +12,20 @@ const ROLE_STYLE = {
   customer: 'from-ember via-flame to-dusk',
 };
 
-/** Top bar: menu button (phones), greeting, live clock, notifications, user chip and logout. */
+/**
+ * Top bar: menu button (phones), greeting, live clock, notifications, user chip and logout.
+ * Greeting on two lines: "Good afternoon," then the name (admins: the full name, customers: the first name).
+ * On phones the live clock gets its own thin row under the bar.
+ */
 export default function Topbar({ user, notifications, onMenu, onLogout }) {
-  const now = useNow(1000); // live clock, ticks every second
-  // Uses the same live clock, so the greeting changes by itself (at 5 AM, 12 PM, 5 PM and 9 PM)
+  const now = useNow(60000); // the greeting changes by itself (at 5 AM, 12 PM, 5 PM and 9 PM)
   const greeting = dayPartFor(now.getHours());
-  const name = firstName(user?.full_name);
+  const name = user?.role === 'admin' ? user?.full_name : firstName(user?.full_name);
   const gradient = ROLE_STYLE[user?.role] || ROLE_STYLE.customer;
 
   return (
     <header className="sticky top-0 z-20 border-b border-sand-200/70 bg-white/75 backdrop-blur-lg print:hidden">
-      <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
+      <div className="flex h-16 items-center gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8">
         <button
           type="button"
           onClick={onMenu}
@@ -33,28 +34,35 @@ export default function Topbar({ user, notifications, onMenu, onLogout }) {
         >
           <Icon name="menu" className="h-5 w-5" />
         </button>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-base font-extrabold text-sand-900">
-            <Icon name={greeting.icon} className="mr-1.5 inline h-4 w-4 -translate-y-px text-amber-500" />
-            {greeting.greeting}, <span className="text-brand">{name}</span>
+        <div className="min-w-0 flex-1 leading-tight">
+          <p className="flex items-center gap-1.5 whitespace-nowrap text-xs font-bold text-sand-600 sm:text-sm">
+            <Icon name={greeting.icon} className="h-4 w-4 shrink-0 text-amber-500" />
+            {greeting.greeting},
           </p>
-          <p className="hidden truncate text-xs font-semibold text-sand-500 sm:block">{DATE_TEXT.format(now)}</p>
+          <p className="truncate font-display text-sm font-extrabold sm:text-base">
+            <span className="text-brand">{name}</span>
+          </p>
         </div>
-        {/* Live clock chip (hidden on small phones) */}
-        <div className="hidden items-center gap-2 rounded-full bg-sand-900 px-3 py-1.5 text-xs font-extrabold tabular-nums text-white shadow-md md:flex">
+        {/* Live clock chip (computers and tablets; phones get the row below) */}
+        <div className="hidden items-center gap-2 rounded-full bg-sand-900 px-3 py-1.5 text-xs font-extrabold text-white shadow-md md:flex">
           <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          <Icon name="clock" className="h-3.5 w-3.5 text-amber-300" />
-          {TIME_TEXT.format(now)}
+          <span className="lg:hidden">
+            <LiveClock withDate={false} iconClassName="text-amber-300" />
+          </span>
+          <span className="hidden lg:inline">
+            <LiveClock iconClassName="text-amber-300" />
+          </span>
         </div>
         <ThemeToggle />
         <NotificationBell {...notifications} />
-        <div className="flex items-center gap-3 rounded-full bg-white py-1 pl-1 pr-1 shadow-sm ring-1 ring-sand-200 sm:pr-3">
+        {/* User chip (hidden on phones: the greeting already shows the name) */}
+        <div className="hidden items-center gap-3 rounded-full bg-white py-1 pl-1 pr-3 shadow-sm ring-1 ring-sand-200 sm:flex">
           <span
             className={`flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-xs font-extrabold text-white shadow-md`}
           >
             {initials(user?.full_name)}
           </span>
-          <div className="hidden leading-tight sm:block">
+          <div className="leading-tight">
             <p className="text-xs font-extrabold text-sand-800">{user?.full_name}</p>
             <p className="text-[11px] font-bold capitalize text-sand-500">{user?.role}</p>
           </div>
@@ -62,11 +70,15 @@ export default function Topbar({ user, notifications, onMenu, onLogout }) {
         <button
           type="button"
           onClick={onLogout}
-          className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-sand-600 transition hover:bg-rose-50 hover:text-rose-600"
+          className="flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-bold text-sand-600 transition sm:px-3 hover:bg-rose-50 hover:text-rose-600"
         >
           <Icon name="logout" className="h-4 w-4" />
           <span className="hidden sm:inline">Log out</span>
         </button>
+      </div>
+      {/* Phones: the live clock with today's date */}
+      <div className="flex h-8 items-center justify-center border-t border-sand-200/70 text-xs font-bold text-sand-600 md:hidden">
+        <LiveClock iconClassName="text-orange-600" />
       </div>
     </header>
   );

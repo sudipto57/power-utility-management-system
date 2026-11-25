@@ -21,6 +21,9 @@ const STYLES = {
   // outage notices (state from the view current_outage_notices)
   'Happening now': 'bg-rose-50 text-rose-700 ring-rose-200',
   Planned: 'bg-amber-50 text-amber-700 ring-amber-200',
+  // support problems (first page Support form)
+  Open: 'bg-amber-50 text-amber-700 ring-amber-200',
+  Solved: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
   Low: 'bg-sand-100 text-sand-600 ring-sand-200',
   Medium: 'bg-sky-50 text-sky-700 ring-sky-200',
   High: 'bg-amber-50 text-amber-700 ring-amber-200',
@@ -38,9 +41,11 @@ const ICONS = {
   Verified: 'check',
   Approved: 'check',
   Completed: 'check',
+  Solved: 'check',
   Unpaid: 'clock',
   Pending: 'clock',
   Planned: 'clock',
+  Open: 'clock',
   'Partially Paid': 'refresh',
   'In Progress': 'refresh',
   Overdue: 'alert',

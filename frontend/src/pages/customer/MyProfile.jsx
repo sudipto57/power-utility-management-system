@@ -15,6 +15,9 @@ import ErrorState from '../../components/common/ErrorState';
 import EmptyState from '../../components/common/EmptyState';
 import FormError from '../../components/common/FormError';
 import { Field, Input, Select, Textarea } from '../../components/common/FormField';
+import PhoneInput from '../../components/common/PhoneInput';
+import { fullPhone, phoneProblem } from '../../utils/phone';
+import { emailProblem } from '../../utils/accountRules';
 import { PageSkeleton } from '../../components/common/Skeleton';
 import { formatDate, formatDateTime, initials } from '../../utils/format';
 
@@ -247,7 +250,7 @@ function EditDetailsModal({ open, profile, onClose, onSaved }) {
   );
 }
 
-const EMPTY_REQUEST = { field: 'email', new_value: '', connection_id: '', reason: '' };
+const EMPTY_REQUEST = { field: 'email', new_value: '', phone_country: 'BD', connection_id: '', reason: '' };
 
 /** Email, phone, customer type, connection type: sent to the office for approval. */
 function ChangeRequestModal({ open, profile, onClose, onSent }) {
@@ -274,11 +277,19 @@ function ChangeRequestModal({ open, profile, onClose, onSent }) {
       setError('Please enter the new value.');
       return;
     }
+    const problem =
+      (form.field === 'email' && emailProblem(form.new_value)) ||
+      (form.field === 'phone' && phoneProblem(form.phone_country, form.new_value));
+    if (problem) {
+      setError(problem);
+      return;
+    }
     setSending(true);
     try {
       await createMyChangeRequest({
         field: form.field,
-        new_value: form.new_value.trim(),
+        // A phone number is sent with its country code: +880 + 1712345678
+        new_value: form.field === 'phone' ? await fullPhone(form.phone_country, form.new_value) : form.new_value.trim(),
         connection_id: form.field === 'connection_type' ? form.connection_id : undefined,
         reason: form.reason.trim(),
       });
@@ -335,13 +346,14 @@ function ChangeRequestModal({ open, profile, onClose, onSent }) {
             <Select value={form.new_value} onChange={set('new_value')} placeholder="Choose…" options={['Residential', 'Commercial']} />
           ) : form.field === 'connection_type' ? (
             <Select value={form.new_value} onChange={set('new_value')} placeholder="Choose…" options={['Single Phase', 'Three Phase']} />
-          ) : (
-            <Input
-              type={form.field === 'email' ? 'email' : 'tel'}
-              value={form.new_value}
-              onChange={set('new_value')}
-              placeholder={form.field === 'email' ? 'new@email.com' : '01XXXXXXXXX'}
+          ) : form.field === 'phone' ? (
+            <PhoneInput
+              country={form.phone_country}
+              number={form.new_value}
+              onChange={({ country, number }) => setForm({ ...form, phone_country: country, new_value: number })}
             />
+          ) : (
+            <Input type="email" value={form.new_value} onChange={set('new_value')} placeholder="new@email.com" />
           )}
         </Field>
 

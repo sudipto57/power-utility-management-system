@@ -501,7 +501,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"full_name\": \"Test Customer\",\n  \"phone\": \"+8801711000000\",\n  \"email\": \"{{newEmail}}\",\n  \"address\": \"House 12, Road 5, Dhanmondi, Dhaka\",\n  \"customer_type\": \"Residential\",\n  \"status\": \"Active\",\n  \"create_login\": true,\n  \"username\": \"{{newUsername}}\",\n  \"password\": \"test12345\"\n}",
+              "raw": "{\n  \"full_name\": \"Test Customer\",\n  \"phone\": \"+8801711000000\",\n  \"email\": \"{{newEmail}}\",\n  \"address\": \"House 12, Road 5, Dhanmondi, Dhaka\",\n  \"customer_type\": \"Residential\",\n  \"status\": \"Active\",\n  \"create_login\": true,\n  \"username\": \"{{newUsername}}\",\n  \"password\": \"Sunrise#River9\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -515,8 +515,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const uniq = Date.now();",
-                  "pm.environment.set(\"newUsername\", \"test.user\" + uniq);",
+                  "// Usernames: 3 to 20 characters, so only the last 9 digits of the time are used",
+                  "const uniq = String(Date.now()).slice(-9);",
+                  "pm.environment.set(\"newUsername\", \"test\" + uniq);",
                   "pm.environment.set(\"newEmail\", \"test\" + uniq + \"@example.com\");"
                 ]
               }
@@ -2542,7 +2543,7 @@
       "name": "13. Account security & profile changes",
       "item": [
         {
-          "name": "Login code with 6 digits (expect 400: codes have 8)",
+          "name": "Login code with 6 digits (expect 400: codes have 4)",
           "request": {
             "method": "POST",
             "header": [
@@ -2582,7 +2583,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"Asks for 8 digits\", () => pm.expect(pm.response.json().message).to.include(\"8-digit\"));"
+                  "pm.test(\"Asks for 4 digits\", () => pm.expect(pm.response.json().message).to.include(\"4-digit\"));"
                 ]
               }
             }
@@ -2611,7 +2612,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"login\": \"PUMSadmin\",\n  \"code\": \"12345678\"\n}",
+              "raw": "{\n  \"login\": \"PUMSadmin\",\n  \"code\": \"1234\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2657,7 +2658,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"full_name\": \"Postman Test\",\n  \"email\": \"{{signupEmail}}\",\n  \"phone\": \"01711000000\",\n  \"address\": \"Road 1, Dhaka\",\n  \"customer_type\": \"Residential\",\n  \"username\": \"{{signupUsername}}\",\n  \"password\": \"Postman123\"\n}",
+              "raw": "{\n  \"full_name\": \"Postman Test\",\n  \"email\": \"{{signupEmail}}\",\n  \"phone_country\": \"BD\",\n  \"phone\": \"01711000000\",\n  \"house\": \"Road 1\",\n  \"area\": \"Khilkhet\",\n  \"city\": \"Dhaka\",\n  \"customer_type\": \"Residential\",\n  \"username\": \"{{signupUsername}}\",\n  \"password\": \"Sunrise#River9\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2674,8 +2675,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// A new username/email every run",
-                  "const n = Date.now();",
+                  "// A new username/email every run (usernames: 3 to 20 characters)",
+                  "const n = String(Date.now()).slice(-9);",
                   "pm.environment.set('signupUsername', 'postman' + n);",
                   "pm.environment.set('signupEmail', 'postman' + n + '@example.com');"
                 ]
@@ -2718,7 +2719,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"login\": \"{{signupUsername}}\",\n  \"password\": \"Postman123\",\n  \"role\": \"customer\"\n}",
+              "raw": "{\n  \"login\": \"{{signupUsername}}\",\n  \"password\": \"Sunrise#River9\",\n  \"role\": \"customer\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2765,7 +2766,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"login\": \"{{signupEmail}}\",\n  \"code\": \"000000\"\n}",
+              "raw": "{\n  \"login\": \"{{signupEmail}}\",\n  \"code\": \"0000\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2857,7 +2858,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"full_name\": \"Weak Password\",\n  \"email\": \"weak@example.com\",\n  \"phone\": \"01711000001\",\n  \"address\": \"Dhaka\",\n  \"customer_type\": \"Residential\",\n  \"username\": \"weak.password\",\n  \"password\": \"123456\"\n}",
+              "raw": "{\n  \"full_name\": \"Weak Password\",\n  \"email\": \"weak@example.com\",\n  \"phone_country\": \"BD\",\n  \"phone\": \"01711000001\",\n  \"area\": \"Mirpur\",\n  \"city\": \"Dhaka\",\n  \"customer_type\": \"Residential\",\n  \"username\": \"weak.password\",\n  \"password\": \"123456\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2875,7 +2876,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"Says what a strong password is\", () => pm.expect(pm.response.json().message).to.include(\"letter and one number\"));"
+                  "pm.test(\"Says what a strong password is\", () => pm.expect(pm.response.json().message).to.include(\"at least 8 characters\"));"
                 ]
               }
             }
@@ -2951,7 +2952,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"login\": \"sumaiya.khanam\",\n  \"code\": \"000000\",\n  \"password\": \"NewPass123\"\n}",
+              "raw": "{\n  \"login\": \"sumaiya.khanam\",\n  \"code\": \"0000\",\n  \"password\": \"Sunrise#River9\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5701,6 +5702,503 @@
         }
       ],
       "description": "Customer meter readings (Pending until verified), this month so far, Pay now + confirm / reject, payment history and receipts, replies on requests, outage notices on My Dashboard, due reminders and the inbox. Needs database/12_customer_inbox.sql."
+    },
+    {
+      "name": "17. Support, sign-up rules & permanent delete",
+      "item": [
+        {
+          "name": "Countries for the phone number box (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/countries",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "countries"
+              ]
+            },
+            "description": "Every country with its calling code and the length of its phone numbers (backend/src/utils/countries.js).",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const list = pm.response.json().data;",
+                  "pm.test(\"Bangladesh comes first (+880)\", () => pm.expect(list[0]).to.include({ code: \"BD\", dial: \"880\" }));",
+                  "pm.test(\"Every country is there\", () => pm.expect(list.length).to.be.above(190));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sign up with a wrong Bangladeshi number (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            },
+            "description": "Bangladesh numbers must be mobile numbers: +880 1XXXXXXXXX (013 to 019).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Wrong Phone\",\n  \"email\": \"wrong.phone@example.com\",\n  \"phone_country\": \"BD\",\n  \"phone\": \"01269696969\",\n  \"area\": \"Mirpur\",\n  \"city\": \"Dhaka\",\n  \"customer_type\": \"Residential\",\n  \"username\": \"wrong.phone\",\n  \"password\": \"Sunrise#River9\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Explains the Bangladeshi format\", () => pm.expect(pm.response.json().message).to.include(\"+880 1\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sign up with a reserved username (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Reserved Name\",\n  \"email\": \"reserved.name@example.com\",\n  \"phone_country\": \"BD\",\n  \"phone\": \"01711000002\",\n  \"area\": \"Mirpur\",\n  \"city\": \"Dhaka\",\n  \"customer_type\": \"Residential\",\n  \"username\": \"admin\",\n  \"password\": \"Sunrise#River9\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Says it is reserved\", () => pm.expect(pm.response.json().message).to.include(\"reserved\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sign up without the city (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"No City\",\n  \"email\": \"no.city@example.com\",\n  \"phone_country\": \"BD\",\n  \"phone\": \"01711000003\",\n  \"area\": \"Mirpur\",\n  \"customer_type\": \"Residential\",\n  \"username\": \"no.city\",\n  \"password\": \"Sunrise#River9\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Asks for the city\", () => pm.expect(pm.response.json().message).to.include(\"City\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Send a support problem (public)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/support",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "support"
+              ]
+            },
+            "description": "Saved as Unverified and a 4-digit code is emailed (printed in the backend terminal on your computer). Type it in the next request.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Tester\",\n  \"email\": \"postman.support@example.com\",\n  \"category\": \"Billing\",\n  \"subject\": \"Bill looks too high\",\n  \"message\": \"My bill for October is much higher than usual, please check it.\",\n  \"attachment\": {\n    \"name\": \"photo.png\",\n    \"type\": \"image/png\",\n    \"data\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4/58BAAT/Af9W7d0AAAAASUVORK5CYII=\"\n  }\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.environment.set(\"supportId\", pm.response.json().data.id);",
+                  "pm.test(\"A code was emailed\", () => pm.expect(pm.response.json().data.email_sent).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Support: a file that is not a real picture (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/support",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "support"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Tester\",\n  \"email\": \"postman.support@example.com\",\n  \"category\": \"Other\",\n  \"subject\": \"Fake file\",\n  \"message\": \"This file says PNG but it is not a picture at all.\",\n  \"attachment\": {\n    \"name\": \"virus.png\",\n    \"type\": \"image/png\",\n    \"data\": \"TVpoZWxsbw==\"\n  }\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Support: confirm with a wrong code (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/support/{{supportId}}/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "support",
+                "{{supportId}}",
+                "verify"
+              ]
+            },
+            "description": "With the real code from the email the answer is 200 and a ticket number like SUP-2026-001.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"0000\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Support list needs an admin (expect 401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/support",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "support"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: support problems",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/support",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "support"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Unconfirmed problems are hidden\", () => pm.expect(pm.response.json().data.every((t) => t.status !== \"Unverified\")).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create a customer to delete for ever",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Delete Me\",\n  \"phone\": \"+8801911999998\",\n  \"address\": \"House 1, Mirpur, Dhaka\",\n  \"customer_type\": \"Residential\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.environment.set(\"foreverId\", pm.response.json().data.id);",
+                  "pm.environment.set(\"foreverNumber\", pm.response.json().data.customer_number);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete permanently with the wrong number (expect 400)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{foreverId}}/permanent",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "{{foreverId}}",
+                "permanent"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirm\": \"CUST-000\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete permanently (type the customer number)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{foreverId}}/permanent",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "{{foreverId}}",
+                "permanent"
+              ]
+            },
+            "description": "Deletes the customer with every meter, reading, bill, payment, request and inbox message, and takes them out of database/04_sample_data.sql.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirm\": \"{{foreverNumber}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Deleted\", () => pm.expect(pm.response.json().data.deleted).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "The deleted customer is gone (expect 404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{foreverId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "{{foreverId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

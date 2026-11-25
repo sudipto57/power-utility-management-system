@@ -83,6 +83,9 @@ export default function LandingNavbar({ search, onSearch, onPickCategory, onOpen
           <a href="#how" className="rounded-full px-3 py-2 text-sm font-semibold text-sand-600 transition hover:bg-sand-100 hover:text-sand-900">
             How it works
           </a>
+          <a href="#support" className="rounded-full px-3 py-2 text-sm font-semibold text-sand-600 transition hover:bg-sand-100 hover:text-sand-900">
+            Support
+          </a>
           <Dropdown label="Help">
             {HELP_LINKS.map((link) => (
               <MenuItem key={link.title} {...link} />

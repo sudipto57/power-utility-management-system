@@ -185,12 +185,14 @@ h2,
 h3 {
   font-family: var(--font-display);
   letter-spacing: -0.02em;
-  text-wrap: balance; /* no single word left alone on the last line */
+  /* No single word left alone on the last line. Only the STYLE of wrapping is set,
+     so classes like truncate or whitespace-nowrap still keep a line in one piece. */
+  text-wrap-style: balance;
 }
 
 /* Paragraphs break their lines more evenly too */
 p {
-  text-wrap: pretty;
+  text-wrap-style: pretty;
 }
 
 /* Soft dotted "grid" behind the app pages */

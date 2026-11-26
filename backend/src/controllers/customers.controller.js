@@ -58,7 +58,7 @@ export async function listCustomers(req, res) {
   res.json({ data: rows });
 }
 
-// GET /api/customers/sql-file  -> is database/04_sample_data.sql up to date with the website sign-ups?
+// GET /api/customers/sql-file  -> is the private copy (database/private/website_customers.sql) up to date with the website sign-ups?
 export async function getSqlFileStatus(req, res) {
   res.json({ data: await readSqlFileStatus() });
 }
@@ -229,7 +229,7 @@ export async function deleteCustomer(req, res) {
 // DELETE /api/customers/:id/permanent   body: { confirm: "CUST-207" }   (admin only)
 // Deletes the customer FOR EVER: profile, login, meters, readings, bills, payments, requests,
 // inbox messages and their activity-log history. The admin must type the customer number to confirm.
-// Afterwards the customer also leaves database/04_sample_data.sql (see utils/saveCustomersToSql.js).
+// Afterwards the customer also leaves database/04_sample_data.sql or the private copy (see utils/saveCustomersToSql.js).
 export async function deleteCustomerForever(req, res) {
   const id = requireUuid(req.params.id, 'customer id');
   const customer = await findCustomer(id);
@@ -262,7 +262,7 @@ export async function deleteCustomerForever(req, res) {
     await client.query("DELETE FROM users WHERE role = 'customer' AND (id = $1 OR customer_id = $2)", [customer.user_id, id]);
     await client.query("SELECT set_config('app.skip_audit', 'off', true)");
 
-    // Remember only the number, so the customer also leaves 04_sample_data.sql
+    // Remember only the number, so the customer also leaves the SQL files
     await client.query(
       'INSERT INTO deleted_customers (customer_number, deleted_by) VALUES ($1, $2) ON CONFLICT (customer_number) DO NOTHING',
       [customer.customer_number, req.user.id]
@@ -275,6 +275,6 @@ export async function deleteCustomerForever(req, res) {
     );
   }, req.user.id);
 
-  scheduleSave(); // take the customer out of database/04_sample_data.sql as well
+  scheduleSave(); // take the customer out of the SQL files as well
   res.json({ data: { id, customer_number: customer.customer_number, deleted: true } });
 }

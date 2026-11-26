@@ -1,0 +1,73 @@
+# Runs on GitHub for every push and pull request.
+# 1. Privacy check: no real customers' data, password hashes or secrets (tools/privacy-check.mjs)
+# 2. Website: lint + build      3. API: install + every file parses
+# A red cross on the pull request means: fix it before merging.
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  privacy:
+    name: Privacy check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the whole history, so every new commit can be checked
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check the files as they are now
+        run: node tools/privacy-check.mjs
+      - name: Check every commit of the pull request
+        if: github.event_name == 'pull_request'
+        run: node tools/privacy-check.mjs --commits "${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+      - name: Check every commit of the push
+        if: github.event_name == 'push'
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          # BEFORE is missing for a new branch or after the history was cleaned (force-push):
+          # then the step above (every file as it is now) is the check.
+          if git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            node tools/privacy-check.mjs --commits "$BEFORE..$AFTER"
+          else
+            echo "No earlier commit to compare with: the files were checked in the step above."
+          fi
+
+  frontend:
+    name: Website lint and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  backend:
+    name: API install and syntax
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Every backend file parses
+        run: for f in $(git ls-files '*.js'); do node --check "$f" || exit 1; done

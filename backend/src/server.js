@@ -41,11 +41,11 @@ async function checkDatabase() {
   const loginCodes = await pool.query(
     "SELECT 1 FROM pg_constraint WHERE conname = 'account_codes_purpose_check' AND pg_get_constraintdef(oid) LIKE '%login%'"
   );
-  // 20 Nov 2026: history of copies into 04_sample_data.sql (not required, the API still works without it)
+  // 20 Nov 2026: history of copies into database/private/website_customers.sql (not required, the API still works without it)
   const saves = await pool.query("SELECT to_regclass('public.sql_file_saves') AS saves_table");
   if (!saves.rows[0].saves_table) {
     console.warn('\n[database] Tip: run database/10_auto_save.sql once, so the website can show when the');
-    console.warn('           laptop last copied new sign-ups into database/04_sample_data.sql.\n');
+    console.warn('           laptop last copied new sign-ups into database/private/website_customers.sql (private, not in GitHub).\n');
   }
   if (!loginCodes.rows[0]) {
     console.error('\n[database] The database is missing the newest change for customer login codes.');
@@ -99,7 +99,7 @@ const server = app.listen(env.port, () => {
       ? `  Emails       sent from ${env.email.from} (Brevo)\n`
       : '  Emails       NOT sent: printed here instead (add BREVO_API_KEY and EMAIL_FROM to send real emails)\n'
   );
-  // Catch up: copy any sign-ups made while the backend was off into database/04_sample_data.sql
+  // Catch up: copy any sign-ups made while the backend was off into database/private/website_customers.sql (private, not in GitHub)
   scheduleSave();
 });
 

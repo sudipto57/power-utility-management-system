@@ -1,0 +1,141 @@
+# Pictures, PDFs, Word / Excel files and videos that a person has looked at: they show no real
+# people (no real names, phone numbers or emails; screenshots of real customers are blurred).
+# tools/privacy-check.mjs cannot read inside these files, so it stops any NEW or CHANGED one
+# that is not in this list.
+#
+# Add a file after you looked at it:   node tools/privacy-check.mjs --mark-checked "path/to/file.png"
+# Each line is the file's git id (it changes when the file changes) and its path.
+#
+# 26 Nov 2026: every file below was checked (customer screenshots blurred, survey spreadsheet
+# uses made-up people with @example.com addresses).
+ecd834df80c9d1bddf33a2c17d38b65f721de8c0  Project Documents/Electricity Survey/Survey pictures/survey_00_header.png
+988beb8817288a727d8bc191fc981fca3362bea2  Project Documents/Electricity Survey/Survey pictures/survey_01_welcome.png
+e571e8db978abee19be4aa74d50b6ab41214156a  Project Documents/Electricity Survey/Survey pictures/survey_02_step1.png
+77b7973fdb281d383fc7897be2da47feb872e807  Project Documents/Electricity Survey/Survey pictures/survey_03_step2.png
+34439cf8f814e657f7a8fec3870c6a2eb01bd6c7  Project Documents/Electricity Survey/Survey pictures/survey_04_meter_types.png
+6667187b1f901123adbc49b23812c1af103b7300  Project Documents/Electricity Survey/Survey pictures/survey_05_step3.png
+f9273469963448d147f02408a1b4dddf9cc6949c  Project Documents/Electricity Survey/Survey pictures/survey_06_step4.png
+b1ac9b1b5b124e1f9819499ec3e0a67bf271947a  Project Documents/Electricity Survey/Survey pictures/survey_07_bill_guide.png
+3a8d4a656a7c503fbc53703a53f901836d098586  Project Documents/Electricity Survey/Survey pictures/survey_08_prepaid_guide.png
+ac98c21e8a0d155f8aec400db1af1fc6cd6bca3c  Project Documents/Electricity Survey/Survey pictures/survey_09_usage_estimate.png
+be5d8935659132b0507af223145a021099b0687d  Project Documents/Electricity Survey/Survey pictures/survey_10_step5.png
+06c330401affd7895dc53fd1c81f4712d168d1ba  Project Documents/Electricity Survey/Survey pictures/survey_11_problems.png
+15440bd249f0bc5acb9604cb361c8d00d0328cf1  Project Documents/How to Publish the Power Utility Website.docx
+09cb44c24bbc28bf557dbeafd608e8d2a0da2142  Project Documents/How to Publish the Power Utility Website.pdf
+01d119763d75bf03af99f6aa43e38b970fb85daf  Project Documents/Power Utility Management System - Viva Questions [1].pdf
+e0e52b40c133a0da6ac8aee4145bd9f81600d483  Project Documents/Project - Blueprint & Roadmap.docx
+34b168f447ccdd07a4e1cfabb33a1854e7adada2  Project Documents/Project - Blueprint & Roadmap.pdf
+8232ae1b451e61bb1f2e2954d400caffd9e5ba7e  Project Documents/Project - Blueprint Summary (2026-11-04).pdf
+275abf4aaf18aac61b5c02282061811a7326be5d  Project Documents/Project - Tech Stack Setup Guide.docx
+7b468617d7a3fb03175e7029a0c69a2bc284d6c8  Project Documents/Project - Tech Stack Setup Guide.pdf
+083f4776469bc77a48d00d87aad7d7bf38d57a41  Project Documents/Project's Logo/Power Utility Email Logo.jpeg
+36734400e3446239bb83bdd5ed98790d8175be94  Project Documents/Project's UI Interface/Change Files - 1/1.png
+3ce3a51d4dec87bf4d4e8c476a0903880f5cd781  Project Documents/Project's UI Interface/Change Files - 1/2.png
+c84a7103d5af0b066a858a08521deb78d71ed450  Project Documents/Project's UI Interface/Change Files - 1/3.png
+45d9e8d10e443983413f4e67c8daa71d8cdf2e4b  Project Documents/Project's UI Interface/Change Files - 1/4.png
+6134c24f2274cc90ccb39ed201cee122428aa452  Project Documents/Project's UI Interface/Change Files - 1/5.png
+75812e38e6f678a1c9b27e87bb9eb012c0e3b3b9  Project Documents/Project's UI Interface/Change Files - 1/6.png
+4b96f55c6df96006833d0716cefeaf8b957f86fb  Project Documents/Project's UI Interface/Change Files - 1/7.png
+89ff430f034f537092b7d455da1661b87ed2ab6e  Project Documents/Project's UI Interface/Change Files - 1/8.png
+23d5a1b85f5fbebeb2df2c0d3fde26de209f43fe  docs/data-collection/Survey_Sample_Data_200.xlsx
+ecd834df80c9d1bddf33a2c17d38b65f721de8c0  docs/data-collection/survey-images/survey_00_header.png
+988beb8817288a727d8bc191fc981fca3362bea2  docs/data-collection/survey-images/survey_01_welcome.png
+91c07f632c18d4156e7110219d66b2ada1aee186  docs/data-collection/survey-images/survey_01_welcome_v2.png
+e571e8db978abee19be4aa74d50b6ab41214156a  docs/data-collection/survey-images/survey_02_step1.png
+77b7973fdb281d383fc7897be2da47feb872e807  docs/data-collection/survey-images/survey_03_step2.png
+34439cf8f814e657f7a8fec3870c6a2eb01bd6c7  docs/data-collection/survey-images/survey_04_meter_types.png
+6667187b1f901123adbc49b23812c1af103b7300  docs/data-collection/survey-images/survey_05_step3.png
+aa7f2d8ed90d01be097fa9b8f49ad44847cf6642  docs/data-collection/survey-images/survey_05_step3_v2.png
+f9273469963448d147f02408a1b4dddf9cc6949c  docs/data-collection/survey-images/survey_06_step4.png
+fdd454f8760f404ad5db2c92854562d42eb51c12  docs/data-collection/survey-images/survey_06_step4_v2.png
+b1ac9b1b5b124e1f9819499ec3e0a67bf271947a  docs/data-collection/survey-images/survey_07_bill_guide.png
+3a8d4a656a7c503fbc53703a53f901836d098586  docs/data-collection/survey-images/survey_08_prepaid_guide.png
+ac98c21e8a0d155f8aec400db1af1fc6cd6bca3c  docs/data-collection/survey-images/survey_09_usage_estimate.png
+2492dc86a72debc0cb7ffad88c149e0beb8c224c  docs/data-collection/survey-images/survey_09_usage_v2.png
+be5d8935659132b0507af223145a021099b0687d  docs/data-collection/survey-images/survey_10_step5.png
+06c330401affd7895dc53fd1c81f4712d168d1ba  docs/data-collection/survey-images/survey_11_problems.png
+8f85371a5d680f1b1da5b4a7e3821ffbbf8c3899  docs/images/01_login.png
+59a4fdf72eacdaec7d86db0d60329f9f57442cf0  docs/images/02_dashboard.png
+9aaf176acf14df619cbfc0c2084c889e71fb9f8a  docs/images/03_customers.png
+b8d5474544351f2aee3651058e329654de98b5b7  docs/images/04_connection_details.png
+fed31a1747745c52935c4cb50635716d028e34d3  docs/images/05_reading_entry.png
+714b7c610f04c9722a2e893561afad3b0a0b9bee  docs/images/06_generate_bill.png
+1da0d9990a2f578f9504f2ee84dbbfbe6bca38a9  docs/images/07_bill_details.png
+6f28a73aee2b0e0a62c392f323c24f81d60a8bf2  docs/images/08_request_details.png
+aa0f22333241f5f8f738e5b33fd1143ebf2d4c61  docs/images/09_reports.png
+69fc6dd083754ac61cd4da1266c871e0e06b5751  docs/images/10_customer_dashboard.png
+71d282b9861d0f156bdc5c9d9f178a2217f5bc3c  docs/images/11_new_request.png
+d9eb1fdc134eb16057ba343900048813be75c146  docs/images/pages/00_all_pages_overview.png
+c7a9411b40e67cceb04209797e9b96b41e4ba3a7  docs/images/pages/01_home_login.png
+f9893fc43cf3d67db1b59aeba08650232062ce1a  docs/images/pages/02_home_full_page.png
+07052e4b2659d505e1ae91e0a21d7d4bfb0faf6b  docs/images/pages/03_signup_form.png
+fb86b255555784dabf4623fe1768c467e7aa63d5  docs/images/pages/04_signup_confirm_code.png
+0af3d377beb7f06672fc4cb47a8e735c357f62d5  docs/images/pages/05_new_customer_dashboard.png
+a3b19c0e0ed100248f7ddbd7da9329ece206df8e  docs/images/pages/06_new_customer_profile.png
+a2359b153ce6a4e079a91952c00a8843734dcbd8  docs/images/pages/07_customer_dashboard.png
+b13f133f548aeff42782942778b00bc318f0d5bf  docs/images/pages/08_customer_bills.png
+a78f2c3d9b57c31c494e6c3fa1914a1b03863421  docs/images/pages/09_customer_bill_details.png
+ca9de8634995dab9342fdf6ea33a3fc1123984ef  docs/images/pages/10_customer_requests.png
+e73e253b5212baf0b6af16b9e5b795408110e541  docs/images/pages/11_customer_request_details.png
+7daf4695bbaf3d4fdc680170b3cbe5592b508c2e  docs/images/pages/12_customer_new_request.png
+eae3d855976dc7ae4a7af1a75b6ce7423d2f4fe0  docs/images/pages/13_customer_profile.png
+39999f7a07cd76efaf608a9736f4d461fe3e9fba  docs/images/pages/14_admin_dashboard.png
+aca3d8a5a4b9dc38d08bbf116d923bb23fbb3540  docs/images/pages/15_admin_customers_signup_saved.png
+fd50a917e18c0db5040288106c6347f80bc5e7fe  docs/images/pages/16_admin_new_customer_profile.png
+4dee2c9793d43564fe0d07db90bd46e3b6d53865  docs/images/pages/17_admin_customer_profile.png
+d870a0b57efa64354b16e9e22629764484cdf2ab  docs/images/pages/18_admin_add_customer.png
+1bf43eb85ca858a58410bc0950f4c845528dcb22  docs/images/pages/19_admin_edit_customer.png
+1e63318d76d1dd4b8840d21b2888fa3765f0f7ad  docs/images/pages/20_admin_connections.png
+382bc9eb48697584e122c8401d88fa345e103390  docs/images/pages/21_admin_connection_details.png
+bd3608a8d0396e44a0d133bb746124363efe67dd  docs/images/pages/22_admin_add_connection.png
+8c14e92cd3562a0feba2804b50cce70adfb17a2a  docs/images/pages/23_admin_readings.png
+8b3b61ad97689a4390110e30d99f1e8a229d8862  docs/images/pages/24_admin_reading_entry.png
+47ea2caa2961058f51d6b461d398e7d5c71c19d7  docs/images/pages/25_admin_bills.png
+9d479374086913608d579a9ce0271d82e5258446  docs/images/pages/26_admin_generate_bill.png
+547be66d90806cac4fb7b5b33cf62cb29d912735  docs/images/pages/27_admin_bill_details.png
+2458294522ec2847ca35b25e2a52d0b50432aa92  docs/images/pages/28_admin_requests.png
+96bbad9d3eb69e4af598c176c6bea2d37a7df320  docs/images/pages/29_admin_request_details.png
+c24defae6d0697184aa979a926e3dabd0277d90e  docs/images/pages/30_admin_reports.png
+44cccee9db6feb7389d4acee80924077c74e687d  docs/images/pages/31_not_found.png
+8ad7045e1caa1cc8115f16e2e1689eb6539762e6  docs/images/pages/32_admin_customers_dark_mode.png
+1ea44e9da48a355de4f628614ba7363aaf938a52  docs/images/pages/33_admin_customers_laptop_off_waiting.png
+bf528ad52f2b84393d0da20fce919269d3b62eda  docs/screenshots/01_home.jpg
+496430482c82094e3201a58817b09b678e53cb61  docs/screenshots/03_not_found.jpg
+bffd97821b31c8461775631e0c2884cce043c5c6  docs/screenshots/10_admin_dashboard.jpg
+3b9cb8c53f342ac40c7bc22765f40d80f58f586c  docs/screenshots/11_customers.jpg
+458d49e5c9dfeaec7ece91c29154b3e050a33bc8  docs/screenshots/12_customer_new.jpg
+9311b6d0cc0849484ae351d67e230bd6b9d53cfe  docs/screenshots/13_customer_profile.jpg
+35bcb55e1aeac78fcc78dfe825688833c7c5c2fe  docs/screenshots/14_customer_edit.jpg
+0e892352493a39ac712e81cfa9fad672501993d5  docs/screenshots/15_customer_statement.jpg
+38f5758b7c4a171bd1b9171b64c3eb439c822937  docs/screenshots/16_connections.jpg
+2c9b5916f2908e5852553bd49e15eee59b890b07  docs/screenshots/17_connection_new.jpg
+0b4126b6d290a24df83368e5713f7ac91ec8ec16  docs/screenshots/18_connection_details.jpg
+6b3e503a146a51728c676cb940e2e60d288040ed  docs/screenshots/19_connection_edit.jpg
+d39ef1c1cfbc76f3411c565a066463a2027b5986  docs/screenshots/20_readings.jpg
+531589633162288951201dd0974df2f234f35a8e  docs/screenshots/21_reading_entry.jpg
+0ff5105a7174186a6d3c18baf453dfb21bc9b30b  docs/screenshots/22_usage_alerts.jpg
+65e7490fd449c62f889b14849f5ed30c66ae9fbb  docs/screenshots/23_bills.jpg
+5510752c103b850cf7cb61012c92c95db3aa4aa6  docs/screenshots/24_generate_bill.jpg
+4eecd7d5747b406c7d19bc3dea282fa902a36e36  docs/screenshots/25_bill_with_late_fee.jpg
+b2e5d3582cb709c551684f78d9a7e3d2f5b26f3f  docs/screenshots/26_bill_late_fee_waived.jpg
+8b2b3962a25f3a9e9b750f17586b2f1979dcc716  docs/screenshots/27_complaints.jpg
+aac4b8288a79741884f3e3bd42ef4d20d2b8bb10  docs/screenshots/28_complaint_details.jpg
+3a6a64f4d357bfe7e2072fa3a2130e16c4416282  docs/screenshots/29_reports.jpg
+bdf9c24cdc935262640534614f26acf774f99734  docs/screenshots/30_outage_notices.jpg
+d3db36919a3bb67fbd19dbb878b772e764326ba8  docs/screenshots/31_activity_log.jpg
+043c075c62f4f3a02bc8007dced02b9e585055c3  docs/screenshots/32_replace_meter_form.jpg
+181dc52ab5bf252d7c5350038389537cd398f49b  docs/screenshots/33_waive_late_fee_form.jpg
+aa4d7e038ba177527d9bc381d790c790c28e6abc  docs/screenshots/34_new_outage_notice_form.jpg
+7d0ce35420658e730ea9f53f9f202c1654dd8783  docs/screenshots/40_my_dashboard.jpg
+1ed4b0d4b00fb42e983bad9681567148fd8c79e1  docs/screenshots/41_my_profile.jpg
+ec17fbd88801e9cc6d716209ed7b9070c3e82c90  docs/screenshots/42_my_bills.jpg
+d8f1be02cc35dff55e7fa45aa53cce766bc5f0f5  docs/screenshots/43_my_bill.jpg
+07ef8ebb8bc1f1688ad7e83ed38e00c2dc8bc631  docs/screenshots/44_my_statement.jpg
+433b49778c9adce3abb2a9fd858f286c13a86a6a  docs/screenshots/45_my_requests.jpg
+e871be2780a8e4d601c636aca95cab63b6ca9e16  docs/screenshots/46_new_request.jpg
+c944578f9cf0ed2ece8c7a40bba965b2f7455ccb  docs/screenshots/47_my_request_details.jpg
+0894e7f1cf112ba0fb22479deb1bcff5a974d728  docs/screenshots/48_feedback.jpg
+c6c17aea43f719cf6cfa8820351a3a2fb0233c41  frontend/public/videos/demo-poster.jpg
+5bc206aac78bf32e10cf83d5bacf1c7c611c1b6b  frontend/public/videos/demo.mp4
+29b7aa3f6480cc79ded4ef6937910f6aa8cb1e38  frontend/public/videos/hero-loop.webm
+f9134c61784f8445671f8069e81909d3150828e6  frontend/public/videos/hero-poster.jpg

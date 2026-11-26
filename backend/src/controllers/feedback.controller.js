@@ -27,5 +27,5 @@ export async function sendFeedback(req, res) {
   const sent = await sendEmail({ to: env.email.feedbackTo, subject, html, replyTo: email });
   if (!sent) throw new ApiError(503, 'We could not send your feedback right now. Please try again in a minute');
 
-  res.status(201).json({ data: { message: 'Thank you! Your feedback reached our team.' } });
+  res.status(201).json({ data: { message: 'Thank you. Your feedback reached our team.' } });
 }

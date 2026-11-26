@@ -308,7 +308,7 @@ export async function confirmPayment(req, res) {
   await notifyCustomer(payment.customer_id, {
     kind: 'payment',
     title: `Payment ${payment.payment_number} confirmed`,
-    message: `Thank you! ${formatTaka(payment.amount)} for ${payment.bill_number} is received. Your receipt is ready.`,
+    message: `Thank you. ${formatTaka(payment.amount)} for ${payment.bill_number} is received. Your receipt is ready.`,
     link: `/my/payments/${paymentId}`,
     refId: paymentId,
   });

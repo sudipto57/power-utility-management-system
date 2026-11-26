@@ -25,7 +25,7 @@ src/
 ├── api/          one file per backend area; all use api/client.js (adds the login token, handles errors)
 ├── context/      AuthProvider (who is logged in), ToastProvider (pop-up messages), ThemeProvider (light / dark mode)
 ├── hooks/        useAuth, useToast, useTheme (light / dark switch), useFetch (load data), useDebounce (search box), useCountUp (animated numbers),
-│                 useNow (live clock), useNotifications (the bell in the top bar)
+│                 useNow (live clock), useNotifications (the bell in the top bar), useReveal (first page scroll reveal)
 ├── routes/       ProtectedRoute (login + role check)
 ├── layouts/      AppLayout (sidebar + top bar), AdminLayout, CustomerLayout (their menus)
 ├── components/
@@ -38,9 +38,11 @@ src/
 │   └── layout/   Sidebar, Topbar, NotificationBell, AnnouncementStrip + announcements.js (the News messages)
 ├── pages/
 │   ├── auth/     Login (the first page: hero + role based login / customer sign up + scroll-down sections)
-│   ├── admin/    Dashboard, customers/, connections/, readings/, bills/, requests/, reports/
-│   └── customer/ MyDashboard, MyProfile, MyBills, MyBillDetails, MyRequests, MyRequestDetails, NewRequest
-├── utils/        format (money, dates), options (dropdown values), ui (shared classes), routes, time (morning/afternoon/evening/night)
+│   ├── admin/    Dashboard, customers/, connections/, readings/, bills/, requests/, reports/, outages/, activity/, support/
+│   └── customer/ MyDashboard, MyProfile, MyBills, MyBillDetails, MyStatement, MyUsage, MyPayments, MyReceipt,
+│                 MyRequests, MyRequestDetails, NewRequest, MyFeedback
+├── utils/        format (money, dates), options (dropdown values), ui (shared classes), routes, time (morning/afternoon/evening/night),
+│                 accountRules (username / email / password rules), phone (country codes)
 ├── App.jsx       every page/route in one place
 ├── main.jsx      starts React
 └── index.css     Tailwind + "Warm Sunrise" colours (sand greys, deep ember/flame/dusk) + animations (fade-up, scale-in, shimmer, flow ...) + dark mode colours

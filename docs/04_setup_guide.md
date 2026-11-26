@@ -51,7 +51,7 @@ You already connected Supabase to pgAdmin. We run the SQL files there.
 
 **Already set up before?** Run **`11_extra_features.sql`**, **`12_customer_inbox.sql`** and **`13_support_and_deletions.sql`** once (after 10). Also run **`10_auto_save.sql`** once, and **`09_account_security.sql`** again (it adds the tables for email codes and profile change requests, and the customer login codes). It is safe to run more than once. The backend will not start without it.
 
-> "relation already exists" error? You skipped 00. Run `00_reset.sql`, then 01 → 07 again.
+> "relation already exists" error? You skipped 00. Run `00_reset.sql`, then the files above from `01` again.
 
 ---
 
@@ -77,8 +77,8 @@ You already connected Supabase to pgAdmin. We run the SQL files there.
    1. Make a free account at **brevo.com** (300 emails a day).
    2. **Senders, Domains & IPs → Senders → Add a sender** with your Gmail address, and click the link Brevo emails you.
    3. **SMTP & API → API Keys → Generate a new API key**. Put it in `BREVO_API_KEY=`, and your sender address in `EMAIL_FROM=`.
-   4. `APP_URL=` is the website address used for the buttons in the emails (your Vercel address when the site is live).
-   5. `SUPPORT_EMAIL=pums.admins@gmail.com` is where new problems from the **Support** form are emailed (add the same line on Render under **Environment**).
+   4. `APP_URL=` is the website address used for the buttons in the emails (the Render website address when the site is live).
+   5. `SUPPORT_EMAIL=pums.admins@gmail.com` is where new problems from the **Support** form are emailed (it is already in `.env.example`; add the same line on Render under **Environment**).
 
 > `backend/.env` holds your passwords and keys. It is in `.gitignore`: **never** upload it to GitHub, and never paste real values into `.env.example`.
 
@@ -102,7 +102,7 @@ npm install
 npm run db:test
 ```
 
-✅ **Check:** `Connected!` and `Tables found (13)` and `Rows: 7 users, 8 customers, 12 bills`.
+✅ **Check:** `Connected!` and `Tables found (22)`, then a row count of about 200 customers and 1,000+ bills (a few more if people signed up on the website).
 
 ```bash
 npm run dev

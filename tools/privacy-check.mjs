@@ -3,8 +3,13 @@
 //
 //   node tools/privacy-check.mjs            check every file git tracks (what is in the working folder)
 //   node tools/privacy-check.mjs --staged   check only what is staged for the next commit (git pre-commit hook)
-//   node tools/privacy-check.mjs --tree REV check the files of one commit, e.g. HEAD (git pre-push hook)
+//   node tools/privacy-check.mjs --tree REV check the files of one commit, e.g. HEAD
+//   node tools/privacy-check.mjs --commits A..B   check what every commit from A to B added or changed
+//                                           (git pre-push hook and GitHub), so data that was added in one
+//                                           commit and deleted in a later one is caught too
 //   node tools/privacy-check.mjs --history  check every version of every file in the whole git history
+//   node tools/privacy-check.mjs --mark-checked FILE...   after a person looked at a picture or Office
+//                                           file and it shows no real people, write it down as checked
 //
 // It runs automatically before every commit and push (.githooks/, switched on by `npm install`
 // in backend/ or by `git config core.hooksPath .githooks`) and on GitHub for every push and pull request
@@ -20,16 +25,21 @@
 //     (the made-up ones in database/04_sample_data.sql are allowed; see the rules below)
 //   - real website customers in database/04_sample_data.sql (CUST-201 and up, or the old
 //     "WEBSITE CUSTOMERS" part). They belong in database/private/website_customers.sql.
+//   - pictures, PDFs, Word / Excel files and videos cannot be read by this check. A NEW or CHANGED one
+//     is stopped until a person has looked at it (no real names, phones, emails; blur screenshots)
+//     and written it down with --mark-checked (the list is tools/privacy-checked-files.txt).
 //
 // A finding that is NOT private (an example in a comment, the team's public inbox ...) can be
 // allowed by adding the exact text to tools/privacy-allowlist.txt, with a comment that says why.
 import { execFileSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ALLOWLIST_FILE = path.join(ROOT, 'tools', 'privacy-allowlist.txt');
+const CHECKED_FILES_LIST = path.join(ROOT, 'tools', 'privacy-checked-files.txt');
 
 // ---------------------------------------------------------------------
 // The rules
@@ -116,7 +126,9 @@ const RULES = [
 ];
 
 // Big generated files that cannot hold anyone's data
-const SKIP_FILES = (f) => /(^|\/)package-lock\.json$/.test(f) || f === 'tools/privacy-check.mjs' || f === 'tools/privacy-allowlist.txt';
+const SKIP_FILES = (f) =>
+  /(^|\/)package-lock\.json$/.test(f) ||
+  ['tools/privacy-check.mjs', 'tools/privacy-allowlist.txt', 'tools/privacy-checked-files.txt'].includes(f);
 
 // ---------------------------------------------------------------------
 // Helpers
@@ -138,6 +150,23 @@ function readAllowlist() {
 
 const isBinary = (buffer) => buffer.subarray(0, 8000).includes(0);
 
+/** Git's own id of a file's content (the same as `git hash-object FILE`). */
+function blobId(buffer) {
+  return crypto.createHash('sha1').update(`blob ${buffer.length}\0`).update(buffer).digest('hex');
+}
+
+/** The ids of the pictures / Office files a person has already looked at. */
+function readCheckedFiles() {
+  if (!fs.existsSync(CHECKED_FILES_LIST)) return new Set();
+  return new Set(
+    fs
+      .readFileSync(CHECKED_FILES_LIST, 'utf8')
+      .split(/\r?\n/)
+      .filter((line) => /^[0-9a-f]{40}\s/.test(line))
+      .map((line) => line.slice(0, 40))
+  );
+}
+
 /** Shows only the start and end of a finding, so the check itself never prints private data. */
 function hide(text) {
   if (text.length <= 8) return `${text[0]}***`;
@@ -145,12 +174,26 @@ function hide(text) {
 }
 
 /** Checks one file. Returns a list of findings ({ file, line, rule, text, why }). */
-function checkFile(file, buffer, allowlist) {
+function checkFile(file, buffer, allowlist, checkedFiles) {
   const findings = [];
   for (const rule of FORBIDDEN_FILES) {
     if (rule.test(file)) findings.push({ file, line: 0, rule: 'File not allowed in git', text: file, why: rule.why });
   }
-  if (findings.length > 0 || SKIP_FILES(file) || isBinary(buffer)) return findings;
+  if (findings.length > 0 || SKIP_FILES(file)) return findings;
+  if (isBinary(buffer)) {
+    // A picture / PDF / Office file: the text rules cannot read it, so a person has to look at it.
+    // (checkedFiles is null for --history: old versions are not stopped one by one.)
+    if (checkedFiles && !checkedFiles.has(blobId(buffer))) {
+      findings.push({
+        file,
+        line: 0,
+        rule: 'Picture or document not checked yet',
+        text: file,
+        why: `look at it: no real names, phones or emails (blur screenshots). Then run: node tools/privacy-check.mjs --mark-checked "${file}"`,
+      });
+    }
+    return findings;
+  }
 
   const text = buffer.toString('utf8');
   for (const rule of RULES) {
@@ -191,6 +234,24 @@ function* treeFiles(rev) {
   }
 }
 
+function* commitFiles(revs) {
+  // What every commit in the range added or changed (each file version once)
+  const commits = git(['rev-list', ...revs]).toString().split('\n').filter(Boolean);
+  const seen = new Set();
+  for (const commit of commits) {
+    const parts = git(['diff-tree', '-r', '-z', '--root', '--no-commit-id', '--diff-filter=ACMR', commit])
+      .toString()
+      .split('\0');
+    for (let i = 0; i + 1 < parts.length; i += 2) {
+      const sha = parts[i].split(' ')[3];
+      const file = parts[i + 1];
+      if (!sha || seen.has(sha) || /^0+$/.test(sha)) continue;
+      seen.add(sha);
+      if (git(['cat-file', '-t', sha]).toString().trim() === 'blob') yield { file, buffer: git(['cat-file', 'blob', sha]) };
+    }
+  }
+}
+
 function* historyFiles() {
   // Every different version of every file ever committed (each one once)
   const objects = git(['rev-list', '--all', '--objects']);
@@ -207,10 +268,32 @@ function* historyFiles() {
 // ---------------------------------------------------------------------
 // Run
 // ---------------------------------------------------------------------
+/** --mark-checked FILE...: writes the files down as "looked at by a person, no private data". */
+function markChecked(files) {
+  const lines = [];
+  for (const file of files) {
+    const full = path.resolve(process.cwd(), file);
+    if (!fs.existsSync(full)) {
+      console.error(`[privacy check] Not found: ${file}`);
+      process.exitCode = 1;
+      continue;
+    }
+    const relative = path.relative(ROOT, full).split(path.sep).join('/');
+    lines.push(`${blobId(fs.readFileSync(full))}  ${relative}`);
+  }
+  if (lines.length === 0) return;
+  fs.appendFileSync(CHECKED_FILES_LIST, `${lines.join('\n')}\n`);
+  console.log(`[privacy check] Written down as checked by a person:\n  ${lines.join('\n  ')}`);
+}
+
 function main() {
   const args = process.argv.slice(2);
   let mode = 'working folder';
   let files;
+  if (args.includes('--mark-checked')) {
+    markChecked(args.slice(args.indexOf('--mark-checked') + 1));
+    return;
+  }
   if (args.includes('--staged')) {
     mode = 'staged changes';
     files = stagedFiles();
@@ -218,6 +301,10 @@ function main() {
     const rev = args[args.indexOf('--tree') + 1] || 'HEAD';
     mode = `commit ${rev}`;
     files = treeFiles(rev);
+  } else if (args.includes('--commits')) {
+    const revs = args.slice(args.indexOf('--commits') + 1);
+    mode = `commits ${revs.join(' ')}`;
+    files = commitFiles(revs);
   } else if (args.includes('--history')) {
     mode = 'whole git history';
     files = historyFiles();
@@ -226,11 +313,12 @@ function main() {
   }
 
   const allowlist = readAllowlist();
+  const checkedFiles = args.includes('--history') ? null : readCheckedFiles();
   const findings = [];
   let count = 0;
   for (const { file, buffer, sha } of files) {
     count += 1;
-    for (const f of checkFile(file, buffer, allowlist)) findings.push(sha ? { ...f, file: `${file} (version ${sha.slice(0, 7)})` } : f);
+    for (const f of checkFile(file, buffer, allowlist, checkedFiles)) findings.push(sha ? { ...f, file: `${file} (version ${sha.slice(0, 7)})` } : f);
   }
 
   if (findings.length === 0) {

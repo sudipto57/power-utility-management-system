@@ -110,11 +110,11 @@ The live website and API run on Render (`power-utility-website` static site and 
 - Real website sign-ups are copied by the backend into `database/private/website_customers.sql` on the laptop. `database/private/` is in `.gitignore`, so it is never committed. To bring the real customers back into a fresh database, run that file after `13_support_and_deletions.sql`.
 - The staff password is never written in the repository, not even as a hash: `04_sample_data.sql` creates the staff logins **locked**. Set the password once with `cd backend && npm run staff:password`.
 - **Automatic privacy check** (`tools/privacy-check.mjs`): it looks for real email addresses, mobile numbers, password hashes, `.env` files, keys and real customers in the sample data.
-  - On your computer it runs before every **commit** and **push**. It is switched on by `npm install` in `backend/` (or by hand: `git config core.hooksPath .githooks`). If it stops you, remove what it found; never skip it with `--no-verify`.
+  - On your computer it runs before every **commit** and **push** (the push checks every commit, not only the last one). It is switched on by `npm install` in `backend/` (or by hand: `git config core.hooksPath .githooks`). If it stops you, remove what it found; never skip it with `--no-verify`.
   - On GitHub it runs for every push and pull request (`.github/workflows/checks.yml`, together with the lint and build checks).
   - Run it yourself any time: `node tools/privacy-check.mjs` (add `--history` to check every old version of every file).
   - Something it finds that is really not private (a made-up example)? Add the exact text to `tools/privacy-allowlist.txt` with a comment.
-- Screenshots in `docs/` must not show real customers either: blur them before committing.
+- Pictures, PDFs, Word / Excel files and videos cannot be read by the check, so a **new or changed** one is stopped until a person has looked at it. Make sure it shows no real people (blur screenshots of real customers), then run `node tools/privacy-check.mjs --mark-checked "docs/screenshots/new.png"` and commit the updated `tools/privacy-checked-files.txt` with it.
 
 ## Team
 

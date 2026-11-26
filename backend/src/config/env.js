@@ -68,7 +68,7 @@ const env = {
     // Where new Support problems are sent (the office inbox)
     supportTo: (process.env.SUPPORT_EMAIL || 'pums.admins@gmail.com').trim(),
   },
-  // Copy website sign-ups into database/04_sample_data.sql (see utils/saveCustomersToSql.js).
+  // Copy website sign-ups into database/private/website_customers.sql (private, never in GitHub; see utils/saveCustomersToSql.js).
   // On your computer leave it on. On Render set SAVE_CUSTOMERS_TO_SQL_FILE=false (there is no project folder there).
   saveCustomersToSqlFile: (process.env.SAVE_CUSTOMERS_TO_SQL_FILE || 'true').trim().toLowerCase() !== 'false',
   // The website address used in email links (the first CLIENT_URL if APP_URL is not set)

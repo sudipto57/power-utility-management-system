@@ -1,10 +1,13 @@
-// Keeps database/04_sample_data.sql up to date with the REAL customers.
+// Keeps a PRIVATE copy of the REAL customers on the laptop.
 //
-// 04_sample_data.sql loads the 200 sample customers (CUST-001 ... CUST-200).
+// 04_sample_data.sql loads the 200 made-up sample customers (CUST-001 ... CUST-200) and is in GitHub.
 // Everybody who joins later (a sign-up on the website, or a customer an admin adds)
-// is saved in the live database first. This file then copies those customers,
-// their logins and their meters into one marked part at the END of
-// 04_sample_data.sql, so running that file again brings them back.
+// is a real person. They are saved in the live database first. This file then copies those
+// customers, their logins and their meters into database/private/website_customers.sql.
+// That folder is in .gitignore, so real names, phones, emails and password hashes never go
+// to GitHub (users' privacy, 26 Nov 2026). Run that file after 13 to bring them back.
+// (Before 26 Nov 2026 they were written at the end of 04_sample_data.sql; that part is now
+// taken out of 04 automatically the next time this runs.)
 //
 // When does it run?
 //   * automatically, a moment after a sign-up or any change to customers, logins or meters
@@ -25,7 +28,11 @@ import env from '../config/env.js';
 
 const SAMPLE_CUSTOMERS = 200; // CUST-001 ... CUST-200 come from the survey sample
 const FILE_NAME = '04_sample_data.sql';
-export const SQL_FILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'database', FILE_NAME);
+const DATABASE_FOLDER = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'database');
+export const SQL_FILE = path.join(DATABASE_FOLDER, FILE_NAME);
+// The private copy of the real customers (database/private/ is in .gitignore: never in GitHub)
+const PRIVATE_NAME = 'private/website_customers.sql';
+export const PRIVATE_FILE = path.join(DATABASE_FOLDER, 'private', 'website_customers.sql');
 
 // The part of the file that this code owns (everything between these two lines is rewritten)
 const START = '-- >>> WEBSITE CUSTOMERS START (written by the backend, do not edit by hand) >>>';
@@ -102,8 +109,9 @@ function buildSection({ customers, meters }, savedAt) {
     START,
     '-- =====================================================================',
     `-- 11. Customers who joined after the sample data (website sign-ups and customers added by an admin)`,
-    '--     The backend rewrites this part after every sign-up or customer change,',
-    '--     so running this file again brings these customers back.',
+    '--     REAL PEOPLE: this file is private (database/private/ is in .gitignore). Never upload it.',
+    '--     The backend rewrites it after every sign-up or customer change.',
+    '--     Run it after 13_support_and_deletions.sql to bring these customers back.',
     `-- Last saved: ${dhakaTime(savedAt)} (Dhaka time)`,
     `-- Customers: ${customers.length} | Logins: ${logins.length} | Meters: ${meters.length}`,
     '-- =====================================================================',
@@ -245,16 +253,49 @@ function findSection(text) {
 }
 
 /** Writes the whole file at once (temp file, then rename), so two saves can never mix. */
-async function writeFileSafely(text) {
-  const temp = `${SQL_FILE}.saving`;
+async function writeFileSafely(file, text) {
+  const temp = `${file}.saving`;
   try {
     await fs.writeFile(temp, text, 'utf8');
-    await fs.rename(temp, SQL_FILE);
+    await fs.rename(temp, file);
   } catch {
     // e.g. OneDrive is busy with the file for a moment: write it directly instead
-    await fs.writeFile(SQL_FILE, text, 'utf8');
+    await fs.writeFile(file, text, 'utf8');
     await fs.rm(temp, { force: true });
   }
+}
+
+/** Reads a file, or returns '' when it does not exist yet. */
+async function readIfExists(file) {
+  try {
+    return await fs.readFile(file, 'utf8');
+  } catch {
+    return '';
+  }
+}
+
+/** The whole private file: the activity log is off while it loads, like in 04_sample_data.sql. */
+function buildPrivateFile(section, newline) {
+  return [
+    '-- Power Utility Management System - database/private/website_customers.sql',
+    '-- PRIVATE: real customers who signed up on the website (names, phones, emails, password hashes).',
+    '-- Written by the backend (utils/saveCustomersToSql.js). database/private/ is in .gitignore: never upload it.',
+    '-- Run it after 13_support_and_deletions.sql.',
+    '',
+    "SELECT set_config('app.skip_audit', 'on', false);",
+    '',
+    section,
+    '',
+    "SELECT set_config('app.skip_audit', 'off', false);",
+    '',
+  ].join('\n').replace(/\n/g, newline);
+}
+
+/** Takes the old marked part (real customers, before 26 Nov 2026) out of 04_sample_data.sql. */
+function withoutOldSection(text) {
+  const place = findSection(text);
+  if (!place) return text;
+  return text.slice(0, place.start).replace(/(\r?\n)+$/, '$1') + text.slice(place.end).replace(/^(\r?\n)+/, '$1');
 }
 
 /** True when 10_auto_save.sql has been run (the history table exists). */
@@ -272,7 +313,7 @@ async function recordSave(result) {
   );
 }
 
-/** Does database/04_sample_data.sql exist next to this backend? (No on Render.) */
+/** Does database/04_sample_data.sql exist next to this backend? (No on Render: then there is no project folder.) */
 export async function sqlFileExists() {
   try {
     await fs.access(SQL_FILE);
@@ -287,43 +328,39 @@ export async function sqlFileExists() {
 // ---------------------------------------------------------------------
 /** Returns { saved, changed, customers, logins, meters, file } or throws a clear error. */
 export async function saveCustomersToSqlFile() {
-  let fileText;
+  let sampleText;
   try {
-    fileText = await fs.readFile(SQL_FILE, 'utf8');
+    sampleText = await fs.readFile(SQL_FILE, 'utf8');
   } catch {
     throw new Error(`database/${FILE_NAME} was not found next to the backend folder (normal on a hosting site like Render)`);
   }
+  const newline = sampleText.includes('\r\n') ? '\r\n' : '\n'; // keep Windows line endings if the file has them
 
+  // 1. 04_sample_data.sql (in GitHub) keeps only made-up people:
+  //    the old real-customer part is taken out, and sample customers deleted for ever leave it too
+  const cleanedSample = removeDeletedRows(withoutOldSection(sampleText), await readDeletedSampleNumbers());
+  const sampleChanged = cleanedSample !== sampleText;
+  if (sampleChanged) await writeFileSafely(SQL_FILE, cleanedSample);
+
+  // 2. The real customers go into the private file (not in GitHub)
   const data = await readWebsiteCustomers();
-  const newline = fileText.includes('\r\n') ? '\r\n' : '\n'; // keep Windows line endings if the file has them
   const section = buildSection(data, new Date()).replace(/\n/g, newline);
+  const privateText = buildPrivateFile(section, newline);
+  const oldPrivate = await readIfExists(PRIVATE_FILE);
 
-  // Sample customers deleted for ever leave the first part of the file
-  let place = findSection(fileText);
-  const samplePart = place ? fileText.slice(0, place.start) : fileText;
-  const cleanedSample = removeDeletedRows(samplePart, await readDeletedSampleNumbers());
-  if (cleanedSample !== samplePart) {
-    fileText = cleanedSample + fileText.slice(samplePart.length);
-    place = findSection(fileText);
-  }
-  const removedRows = cleanedSample !== samplePart;
-
-  const oldSection = place ? fileText.slice(place.start, place.end) : '';
   const result = {
-    file: `database/${FILE_NAME}`,
+    file: `database/${PRIVATE_NAME}`,
     customers: data.customers.length,
     logins: data.customers.filter((c) => c.username && c.email_confirmed).length,
     meters: data.meters.length,
   };
 
-  if (place && !removedRows && withoutTime(oldSection) === withoutTime(section)) {
-    return { ...result, saved: true, changed: false }; // nothing new: leave the file alone
+  if (oldPrivate && !sampleChanged && withoutTime(oldPrivate) === withoutTime(privateText)) {
+    return { ...result, saved: true, changed: false }; // nothing new: leave the files alone
   }
 
-  const newText = place
-    ? fileText.slice(0, place.start) + section + fileText.slice(place.end)
-    : fileText.replace(/\s*$/, '') + newline + newline + section + newline;
-  await writeFileSafely(newText);
+  await fs.mkdir(path.dirname(PRIVATE_FILE), { recursive: true });
+  await writeFileSafely(PRIVATE_FILE, privateText);
   await recordSave(result);
   return { ...result, saved: true, changed: true };
 }
@@ -335,7 +372,7 @@ export async function saveCustomersToSqlFile() {
  * waiting = customers in the database that are not in the file yet (e.g. the laptop is off).
  */
 export async function readSqlFileStatus() {
-  const status = { file: `database/${FILE_NAME}`, auto_save: env.saveCustomersToSqlFile, found: false };
+  const status = { file: `database/${PRIVATE_NAME}`, auto_save: env.saveCustomersToSqlFile, found: false };
 
   const { rows } = await query(
     "SELECT COUNT(*) AS total FROM customers WHERE COALESCE(substring(customer_number FROM '[0-9]+$')::int, 0) > $1",
@@ -344,7 +381,7 @@ export async function readSqlFileStatus() {
   status.customers_in_database = rows[0].total;
 
   if (env.saveCustomersToSqlFile && (await sqlFileExists())) {
-    const text = await fs.readFile(SQL_FILE, 'utf8');
+    const text = await readIfExists(PRIVATE_FILE);
     const place = findSection(text);
     const section = place ? text.slice(place.start, place.end) : '';
     status.found = true;
@@ -390,7 +427,7 @@ export function scheduleSave() {
 
 /**
  * Express middleware: after a change (not a GET) that worked (status below 400),
- * save the customers into the SQL file. Used in app.js for sign-up, customers, meters and profiles.
+ * save the customers into the private SQL file. Used in app.js for sign-up, customers, meters and profiles.
  */
 export function saveAfterChanges(req, res, next) {
   if (req.method !== 'GET') {

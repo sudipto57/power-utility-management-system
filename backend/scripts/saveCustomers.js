@@ -1,6 +1,6 @@
 // npm run db:save-customers
 // Copies every customer who joined after the 200 sample customers (website sign-ups and
-// customers added by an admin) from the database (Supabase) into database/04_sample_data.sql.
+// customers added by an admin) from the database (Supabase) into database/private/website_customers.sql (private: database/private/ is in .gitignore).
 //
 // node scripts/saveCustomers.js --every 10
 //   keeps running in the background and copies again every 10 minutes.
@@ -72,7 +72,7 @@ if (!minutes) {
   process.on('SIGINT', () => process.exit(0));
   process.on('SIGTERM', () => process.exit(0));
 
-  log(`Auto-save started: copying website sign-ups into 04_sample_data.sql every ${minutes} minutes`);
+  log(`Auto-save started: copying website sign-ups into database/private/website_customers.sql every ${minutes} minutes`);
   const run = async () => {
     let wait = minutes;
     try {

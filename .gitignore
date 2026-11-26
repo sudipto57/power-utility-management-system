@@ -9,6 +9,10 @@ node_modules/
 # Real survey answers (people's names, mobile numbers, emails) - keep them private
 **/Survey Responses*.xlsx
 
+# Real website customers (names, phones, emails, password hashes) copied by the backend.
+# Never in GitHub: see tools/privacy-check.mjs and database/README.md
+database/private/
+
 # Build output
 dist/
 dist-ssr/

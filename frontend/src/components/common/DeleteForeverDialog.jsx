@@ -58,7 +58,7 @@ export default function DeleteForeverDialog({ open, customer, onCancel, onDelete
         <p>
           <b className="text-sand-900">{customer?.full_name}</b> ({customer?.customer_number}) will be removed everywhere: the
           profile, the login, every meter, reading, bill, payment, request and inbox message, the activity history, and the copy
-          in <span className="font-mono text-xs">04_sample_data.sql</span>.
+          in the SQL files.
         </p>
         <p>If you only want to stop the account, use Edit and set the status to Inactive instead.</p>
         <Field label={`Type ${customer?.customer_number} to confirm`}>

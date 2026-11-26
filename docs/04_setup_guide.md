@@ -102,6 +102,12 @@ npm install
 npm run db:test
 ```
 
+Then set the staff password (the staff logins are created **locked**, because the real password is never written in GitHub). Ask the team for it, then type it twice:
+
+```bash
+npm run staff:password
+```
+
 ✅ **Check:** `Connected!` and `Tables found (22)`, then a row count of about 200 customers and 1,000+ bills (a few more if people signed up on the website).
 
 ```bash
@@ -152,7 +158,7 @@ cd frontend && npm run dev
 | `'npm' is not recognized` | Node.js not installed, or terminal opened before installing | Install Node LTS, close and reopen VS Code |
 | `npm.ps1 cannot be loaded because running scripts is disabled` | PowerShell security setting | Run once: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, or switch the terminal to **Command Prompt** (the ˅ next to +) |
 | `Vite requires Node.js version 20.19+ or 22.12+` | Node too old | Install the current Node LTS |
-| Sign-ups are not in `database/04_sample_data.sql` | The laptop was off or the auto-save job is not on | On the laptop, once: `cd backend && npm run auto-save:on` (starts with Windows, copies every 10 minutes). Check with `npm run auto-save:status` |
+| Sign-ups are not in `database/private/website_customers.sql` | The laptop was off or the auto-save job is not on | On the laptop, once: `cd backend && npm run auto-save:on` (starts with Windows, copies every 10 minutes). Check with `npm run auto-save:status` |
 | `SELECT * FROM customers` shows CUST-201 first / numbers "missing" | Rows have no fixed order in PostgreSQL | `SELECT * FROM customers_in_order;` (or add `ORDER BY customer_number`) |
 | `[setup] These settings are missing: DB_HOST ...` | Step 2 not done / file named `.env.txt` | Create `backend/.env` (turn on "File name extensions" in Explorer to see `.txt`). On Render: add the settings on the Environment page |
 | `[database] ... tables for email codes and change requests are missing` | `09_account_security.sql` not run yet | Run it once in pgAdmin / Supabase SQL Editor |
@@ -170,7 +176,7 @@ cd frontend && npm run dev
 | `Connected, but the project tables/functions are missing` | SQL files not run on this database | Do Step 1 (on the `postgres` database) |
 | `Port 5000 is already in use` | The backend is already running in another terminal | Close the other terminal (Ctrl + C) or change `PORT` |
 | Website says **"Cannot reach the server"** | Backend not running | Start it (Step 3) |
-| Login says **"Wrong email/username or password"** | Sample data not loaded, or typo | Run `04_sample_data.sql`; demo logins are `PUMSadmin` / `<staff password>` (Admin tab) and `sumaiya.khanam` / `customer123` (Customer tab) |
+| Login says **"Wrong email/username or password"** | Sample data not loaded, staff password not set, or typo | Run `04_sample_data.sql`, then `npm run staff:password` in `backend`; demo logins are `PUMSadmin` / `<staff password>` (Admin tab) and `sumaiya.khanam` / `customer123` (Customer tab) |
 | Website blank / errors after changing `.env` | Vite reads `.env` only at start | Stop (Ctrl + C) and `npm run dev` again |
 | Opened `http://127.0.0.1:5173` and requests fail | The API only allows `localhost:5173` | Use **http://localhost:5173** or add it to `CLIENT_URL` |
 

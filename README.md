@@ -23,12 +23,12 @@ Academic DBMS project, built by beginners as a simple and finishable full-stack 
 
 > Full beginner guide with screenshots-in-words: **[docs/04_setup_guide.md](docs/04_setup_guide.md)**
 
-**You need:** Node.js 22.12 or newer (Node 24 / 26 LTS recommended), pgAdmin 4, and your Supabase project (or a local PostgreSQL).
+**You need:** Node.js 22.12 or newer (Node 24 / 26 LTS recommended; Node 20.19+ also works), pgAdmin 4, and your Supabase project (or a local PostgreSQL).
 
 1. **Database:** in pgAdmin, open the Query Tool on your database and run the files in `database/` in this order:
    `00_reset.sql` → `01_create_tables.sql` → `02_billing_tables.sql` → `03_functions_triggers_views.sql` → `04_sample_data.sql` → `07_supabase_security.sql` (Supabase only) → `09_account_security.sql` → `10_auto_save.sql` → `11_extra_features.sql` → `12_customer_inbox.sql` → `13_support_and_deletions.sql`.
    The backend does not start without `09`, `11`, `12` and `13`. Full table: [database/README.md](database/README.md).
-2. **Backend settings:** copy `backend/.env.example` to `backend/.env` and fill in the same host / user / password that work in pgAdmin.
+2. **Backend settings:** copy `backend/.env.example` to `backend/.env` and fill in the same host / user / password that work in pgAdmin. `backend/.env` is secret and is never committed (`.gitignore` blocks it).
 3. **Start the API** (terminal 1):
    ```bash
    cd backend
@@ -54,24 +54,59 @@ Other demo logins: `tech.john`, `billing.officer` (staff password) · `nayeem.sh
 ## Folder map
 
 ```
-Power Utility Management System/
-├── frontend/     the website (pages, components, charts, API calls)
-├── backend/      the API (routes -> controllers -> SQL)
-├── database/     SQL files, run in number order
-├── docs/         overview, database design, API reference, setup, user guide, testing
-├── postman/      import both files into Postman
-├── .gitignore
+power-utility-management-system/
+├── frontend/            the website (pages, components, charts, API calls)        -> frontend/README.md
+├── backend/             the API (routes -> controllers -> SQL)                     -> backend/README.md
+├── database/            SQL files, run in number order                            -> database/README.md
+├── docs/                overview, database design, API reference, setup, user guide, testing,
+│                        checkpoints/ (demo scripts), data-collection/ (the survey), images/ + screenshots/
+├── postman/             import both .json files into Postman                      -> postman/README.md
+├── Project Documents/   the team's blueprint, roadmap, tech stack guide, viva questions, survey and UI notes
+├── CLAUDE.md            the team's rules for code, design and git (read it before changing anything)
+├── .gitignore           keeps secrets (.env), node_modules/, dist/ and private survey answers out of git
 ├── .prettierrc.json
 └── README.md
 ```
 
-## Quality checks done
+## Documentation
 
-- Every SQL file runs top to bottom on a fresh database, twice in a row.
-- The Postman collection (105 requests, 190 checks) passes against the API.
-- The frontend builds and lints with **zero** errors and warnings, and every page was opened in Chrome with no runtime errors.
+| Read this | For |
+| --- | --- |
+| [docs/01_project_overview.md](docs/01_project_overview.md) | What the system does, roles, where each feature lives |
+| [docs/02_database_design.md](docs/02_database_design.md) | Tables, triggers, views and the bill formula |
+| [docs/03_api_reference.md](docs/03_api_reference.md) | Every API endpoint |
+| [docs/04_setup_guide.md](docs/04_setup_guide.md) | Step-by-step setup and a troubleshooting table |
+| [docs/05_user_guide.md](docs/05_user_guide.md) | How to use each screen |
+| [docs/06_testing_report.md](docs/06_testing_report.md) | What was tested and how |
+
+## Check your work
+
+```bash
+cd frontend && npm run lint && npm run build     # must show no errors
+cd backend  && npm run db:test                   # database reachable, 22 tables
+```
+
+Then run the Postman collection against the running backend (see [postman/README.md](postman/README.md)).
+
+## Quality checks done (26 Nov 2026)
+
+- Every SQL file (`00` → `13`, plus `05` and `06`) runs top to bottom on a fresh local PostgreSQL 16 database, and `09` → `13` run a second time without errors.
+- The Postman collection (146 requests, 258 checks) passes against the API. The only 2 expected failures are *Save now* when `SAVE_CUSTOMERS_TO_SQL_FILE=false`.
+- `npm ci`, `npm run lint` and `npm run build` in `frontend/` finish with **zero** errors and warnings; `npm ci` in `backend/` reports 0 vulnerabilities.
+- Every page was opened in Chromium as admin and as customer with no console errors and no failed API calls.
 
 See [docs/06_testing_report.md](docs/06_testing_report.md).
+
+## Hosting
+
+The live website and API run on Render (`power-utility-website` static site and `power-utility-api` web service) with the database on Supabase. On Render the settings from `backend/.env.example` are typed on the service's **Environment** page (with `NODE_ENV=production` and `SAVE_CUSTOMERS_TO_SQL_FILE=false`). The website needs `VITE_API_URL` set to the API address.
+
+## Before making this repository public
+
+The repository is private. The marked "WEBSITE CUSTOMERS" part at the end of `database/04_sample_data.sql` holds the real names, phone numbers and emails of people who signed up on the website. Clear that part (and turn the copy off with `SAVE_CUSTOMERS_TO_SQL_FILE=false`) before anyone makes the repository public.
+
 ## Team
+
+- Sudipto Pramanik (sudipto57): Team Member
 - Apurba Das (apurbaByte04): Team Member
 - Tasnim Khan Nova (tasnim56-ctrl): Team Member

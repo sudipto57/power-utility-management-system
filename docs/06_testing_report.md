@@ -19,6 +19,17 @@ Run on a **fresh copy** of the project with a **fresh database** (PostgreSQL 16,
 
 Run the API tests yourself: Postman → collection → **Run collection** (see `postman/README.md`).
 
+### 26 Nov 2026: full repository check before sharing
+
+| Check | How | Result |
+| --- | --- | --- |
+| Clean install | `npm ci` in `backend/` and `frontend/` on Node.js 22 | ✅ 0 vulnerabilities |
+| SQL files | `00 → 04, 09 → 13`, then `06` and `05`, on an empty local PostgreSQL 16 database; `09 → 13` again on top | ✅ no errors, both times; `npm run db:test` finds 22 tables |
+| API | Postman collection with newman: 146 requests, 258 checks | ✅ 256 passed; the 2 that failed are *Save now*, which needs `SAVE_CUSTOMERS_TO_SQL_FILE=true` |
+| Frontend | `npm run lint` + `npm run build` | ✅ 0 warnings, 0 errors, builds |
+| Every page in Chromium | first page, login, 404, all 22 admin pages and all 12 customer pages (with real ids) | ✅ no console errors, no failed API calls, no "undefined" / "NaN" on screen |
+| Secrets | every commit on every branch searched for database passwords, JWT secrets and Brevo keys | ✅ none; `.env.example` files only have placeholders |
+
 ### 25 Nov 2026: Delete permanently, sign-up rules, Support, live clock, 4-digit codes, notification bell
 
 | Check | How | Result |

@@ -1,0 +1,54 @@
+# Runs on GitHub for every push and pull request.
+# 1. Privacy check: no real customers' data, password hashes or secrets (tools/privacy-check.mjs)
+# 2. Website: lint + build      3. API: install + every file parses
+# A red cross on the pull request means: fix it before merging.
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  privacy:
+    name: Privacy check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/privacy-check.mjs
+
+  frontend:
+    name: Website lint and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  backend:
+    name: API install and syntax
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Every backend file parses
+        run: for f in $(git ls-files '*.js'); do node --check "$f" || exit 1; done

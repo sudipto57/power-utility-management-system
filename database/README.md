@@ -13,7 +13,7 @@ For the account features the team asked for (email confirmation, forgot password
 | 01 | `01_create_tables.sql` | 8 core tables, indexes, `updated_at` triggers (original schema) | Both |
 | 02 | `02_billing_tables.sql` | Tariffs + tariff slabs (+ 3 "later" tables) (original schema) | Both |
 | 03 | `03_functions_triggers_views.sql` | Reading-sequence trigger, bill-status trigger, overdue function, 2 views, **fixed bill calculator**, plus the November 2026 fixes (rules, indexes) | Both |
-| 04 | `04_sample_data.sql` | **Deletes all data**, then loads Bangladesh tariffs, 3 staff + 7 customer logins, 200 survey-based customers and meters, 6 months of readings, **calculated** bills, payments, requests | Both |
+| 04 | `04_sample_data.sql` | **Deletes all data**, then loads Bangladesh tariffs, 3 staff (locked) + 7 customer logins, 200 made-up survey-based customers and meters, 6 months of readings, **calculated** bills, payments, requests | Both |
 | 05 | `05_roles_and_grants.sql` | Optional extra login roles (`power_app` ...). Change passwords first | **Local only** (skip on Supabase) |
 | 06 | `06_report_queries.sql` | SELECT-only practice queries behind the Dashboard and Reports | Both (optional) |
 | 07 | `07_supabase_security.sql` | Turns on Row Level Security, blocks the public API from our tables **and functions**, removes unused login roles | **Supabase only** |
@@ -43,7 +43,7 @@ Run each file once, top to bottom. If anything fails halfway, run `00_reset.sql`
 | 1 | Sample bill amounts did not match the readings or the bill function | Bills in `04` are calculated with `calculate_bill_amount()` from the readings |
 | 2 | First slab "0-50" counted 51 units | Each slab now counts exactly its own units (0-75 = 75 units, 76-200 = 125 units ...) |
 | 3 | Rates picked by connection type only, hard-coded, no VAT | Function reads `tariffs` + `tariff_slabs` by customer type **and** connection type and adds VAT |
-| 4 | All demo users had the same password hash | Real bcrypt hashes: staff = `<staff password>` (was `admin123`, which was public), customers = `customer123` |
+| 4 | All demo users had the same password hash | Customers = `customer123` (public demo password); staff logins are created locked and get their private password from `npm run staff:password` (was `admin123`, which was public) |
 | 5 | Users and customers point at each other twice | Kept both columns (schema unchanged); the backend keeps them in sync |
 | 6 | Deleting a customer erased their bills | The API refuses and offers "Deactivate" instead |
 | 7 | `check_overdue_bills()` was never called | The API calls it before showing bills and the dashboard |
@@ -87,38 +87,34 @@ Source: BERC retail tariff order, June 2026. Real irrigation (Tk 6.04) and indus
 
 | Username | Password | Role |
 | --- | --- | --- |
-| PUMSadmin, tech.john, billing.officer | <staff password> | admin |
+| PUMSadmin, tech.john, billing.officer | created **locked**: set the staff password with `cd backend && npm run staff:password` (it is never written in GitHub, not even as a hash) | admin |
 | sumaiya.khanam (CUST-011, has an Overdue bill), nayeem.sheikh, khadija.yasmin (prepaid), rafiqul.islam (shop), sohag.howlader (farm), sadia.sultana (factory), tapas.saha | customer123 | customer |
 
 The 200 sample customers are made-up people built from the electricity survey (see `docs/data-collection/Survey_Sample_Data_200.xlsx`). No real respondent's name, phone, email or meter number is used.
 
-## Website sign-ups are copied into 04 (18 Nov 2026)
+## Website sign-ups are copied into a PRIVATE file (26 Nov 2026)
 
-Everybody who signs up on the website (and every customer an admin adds) is saved **in the live database first**, like before. The backend then copies them into a marked part at the **end of `04_sample_data.sql`**:
+Everybody who signs up on the website (and every customer an admin adds) is a **real person**. They are saved **in the live database first**. The backend then copies them, with their logins and meters, into:
 
-```sql
--- >>> WEBSITE CUSTOMERS START (written by the backend, do not edit by hand) >>>
--- 11. Customers who joined after the sample data ...
-INSERT INTO customers (...) VALUES ('CUST-201', ...);
-INSERT INTO users (...) VALUES (...);      -- the login, password only as a bcrypt hash
-INSERT INTO connections (...) ...;         -- their meters, if an admin added any
--- <<< WEBSITE CUSTOMERS END <<<
+```
+database/private/website_customers.sql      <- in .gitignore: never committed, never on GitHub
 ```
 
-- It happens about one second after a sign-up, an email confirmation, or any change to customers, meters or profiles, and once when the backend starts. Only that marked part is rewritten; the rest of the file is never touched.
+- It happens about one second after a sign-up, an email confirmation, or any change to customers, meters or profiles, and once when the backend starts.
+- `04_sample_data.sql` holds **only made-up people** (CUST-001 … CUST-200). Until 26 Nov 2026 the real sign-ups were written at the end of `04`; the backend now takes that old part out of `04` by itself.
+- To bring the real customers back into a fresh database: run `00` → `13` as usual, then run `database/private/website_customers.sql` (on the laptop that has it).
 - A login is added after the customer confirms the email code (before that, only the customer row is there).
-- So running `04_sample_data.sql` again brings the sample data **and** the real sign-ups back.
 - Readings, bills and payments of new customers stay only in the database (they are not copied).
-- Admin → **Customers** shows a strip with "N new customers · also copied into database/04_sample_data.sql" and a **Save now** button.
-- The code is in `backend/src/utils/saveCustomersToSql.js`.
+- Admin → **Customers** shows a strip with "N new customers · saved live in the database" and a **Save now** button.
+- The code is in `backend/src/utils/saveCustomersToSql.js`. `tools/privacy-check.mjs` stops any commit or push that would put real customers (CUST-201 and up, real emails, phone numbers or password hashes) into the repository.
 
 ### When the laptop is switched off (20 Nov 2026)
 
 The live website (Render) has no copy of your laptop's folder, so it cannot write the file (`SAVE_CUSTOMERS_TO_SQL_FILE=false` there).
 
 1. Someone signs up on the live website → the backend on Render saves them in **Supabase** (the cloud database). Nothing is lost while the laptop is off.
-2. The laptop runs a small background job (turned on once with `cd backend && npm run auto-save:on`). Windows starts it every time you log in. It copies the new sign-ups from Supabase into `04_sample_data.sql` straight away, then again every 10 minutes.
-3. Each copy is noted in the `sql_file_saves` table, so Admin → **Customers** on the live website shows "N waiting … copied automatically when the laptop is on" or "all of them are also in database/04_sample_data.sql on <laptop name>".
+2. The laptop runs a small background job (turned on once with `cd backend && npm run auto-save:on`). Windows starts it every time you log in. It copies the new sign-ups from Supabase into the private file straight away, then again every 10 minutes.
+3. Each copy is noted in the `sql_file_saves` table, so Admin → **Customers** on the live website shows "N waiting … copied automatically when the laptop is on" or "all of them are also in database/private/website_customers.sql on <laptop name>".
 
 | Command (in `backend`) | What it does |
 | --- | --- |

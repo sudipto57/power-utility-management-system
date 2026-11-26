@@ -10,14 +10,14 @@
 1. Start the backend (`cd backend` → `npm run dev`).
 2. Postman → **Import** → choose both files.
 3. Top-right environment dropdown → choose **Power Utility - Local**.
-4. Open **1. Auth → Login as Admin** (`PUMSadmin`; first type the staff password into the **adminPassword** value of the **Local** environment. Ask the team for it: it is never saved in GitHub) → **Send**. The token is saved automatically (`adminToken`).
+4. Open **1. Auth → Login as Admin** (`PUMSadmin`; first type the staff password into the **adminPassword** value of the **Local** environment. Ask the team for it: it is never saved in GitHub, and the privacy check stops a commit that has it filled in) → **Send**. The token is saved automatically (`adminToken`).
    Customers log in in two steps, like on GitHub: send **Login as Customer (step 1)**, copy the 4-digit code from the email (or the backend terminal) into the environment variable **`loginCode`**, then send **step 2** (saves `customerToken`) within 15 minutes.
 5. Send any other request. Admin requests use `{{adminToken}}` automatically (collection Authorization tab).
 
 ## Run everything at once
 
 Right-click the collection → **Run collection** → **Run**. Do step 4 first (so `loginCode` is filled), then run the collection within 15 minutes: all 258 checks should be green (*Save now* needs `SAVE_CUSTOMERS_TO_SQL_FILE` on and *Send feedback* needs `BREVO_API_KEY`). (Logging in again does not send a new code while the last one still works.)
-Running it creates a few test records ("Test Customer", "Temporary Customer"). Run `database/00_reset.sql` … `04_sample_data.sql` again to start fresh.
+Running it creates a few test records ("Test Customer", "Temporary Customer"). Run `database/00_reset.sql` … `04_sample_data.sql` again to start fresh (then `npm run staff:password` in `backend`).
 
 ## Folders
 

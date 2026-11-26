@@ -46,7 +46,7 @@ Academic DBMS project, built by beginners as a simple and finishable full-stack 
 
 | Role | Username | Password |
 | --- | --- | --- |
-| Admin (Admin tab) | `PUMSadmin` (or `admin@powerutility.com`) | the staff password (ask the team: it is shared privately, never written in GitHub) |
+| Admin (Admin tab) | `PUMSadmin` (or `admin@powerutility.com`) | the staff password (ask the team: it is shared privately, never written in GitHub). On a new database set it first: `cd backend && npm run staff:password` |
 | Customer (Customer tab) | `sumaiya.khanam` (or `sumaiya_khanam1988@example.com`) | `customer123`, then the 4-digit code from the email (on your computer it is printed in the backend terminal) |
 
 Other demo logins: `tech.john`, `billing.officer` (staff password) · `nayeem.sheikh`, `khadija.yasmin`, `rafiqul.islam`, `sohag.howlader`, `sadia.sultana`, `tapas.saha` (customer123).
@@ -61,6 +61,9 @@ power-utility-management-system/
 ├── docs/                overview, database design, API reference, setup, user guide, testing,
 │                        checkpoints/ (demo scripts), data-collection/ (the survey), images/ + screenshots/
 ├── postman/             import both .json files into Postman                      -> postman/README.md
+├── tools/               privacy-check.mjs (blocks real people's data and secrets) + its allowlist
+├── .githooks/           pre-commit + pre-push hooks that run the privacy check
+├── .github/workflows/   checks.yml: privacy check, lint and build on GitHub
 ├── Project Documents/   the team's blueprint, roadmap, tech stack guide, viva questions, survey and UI notes
 ├── CLAUDE.md            the team's rules for code, design and git (read it before changing anything)
 ├── .gitignore           keeps secrets (.env), node_modules/, dist/ and private survey answers out of git
@@ -101,9 +104,17 @@ See [docs/06_testing_report.md](docs/06_testing_report.md).
 
 The live website and API run on Render (`power-utility-website` static site and `power-utility-api` web service) with the database on Supabase. On Render the settings from `backend/.env.example` are typed on the service's **Environment** page (with `NODE_ENV=production` and `SAVE_CUSTOMERS_TO_SQL_FILE=false`). The website needs `VITE_API_URL` set to the API address.
 
-## Before making this repository public
+## Privacy: real people's data never goes to GitHub
 
-The repository is private. The marked "WEBSITE CUSTOMERS" part at the end of `database/04_sample_data.sql` holds the real names, phone numbers and emails of people who signed up on the website. Clear that part (and turn the copy off with `SAVE_CUSTOMERS_TO_SQL_FILE=false`) before anyone makes the repository public.
+- `database/04_sample_data.sql` holds only **made-up** people (CUST-001 … CUST-200, emails at `@example.com`).
+- Real website sign-ups are copied by the backend into `database/private/website_customers.sql` on the laptop. `database/private/` is in `.gitignore`, so it is never committed. To bring the real customers back into a fresh database, run that file after `13_support_and_deletions.sql`.
+- The staff password is never written in the repository, not even as a hash: `04_sample_data.sql` creates the staff logins **locked**. Set the password once with `cd backend && npm run staff:password`.
+- **Automatic privacy check** (`tools/privacy-check.mjs`): it looks for real email addresses, mobile numbers, password hashes, `.env` files, keys and real customers in the sample data.
+  - On your computer it runs before every **commit** and **push**. It is switched on by `npm install` in `backend/` (or by hand: `git config core.hooksPath .githooks`). If it stops you, remove what it found; never skip it with `--no-verify`.
+  - On GitHub it runs for every push and pull request (`.github/workflows/checks.yml`, together with the lint and build checks).
+  - Run it yourself any time: `node tools/privacy-check.mjs` (add `--history` to check every old version of every file).
+  - Something it finds that is really not private (a made-up example)? Add the exact text to `tools/privacy-allowlist.txt` with a comment.
+- Screenshots in `docs/` must not show real customers either: blur them before committing.
 
 ## Team
 

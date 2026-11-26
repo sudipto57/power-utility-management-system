@@ -1,0 +1,26 @@
+# Exact texts that tools/privacy-check.mjs may let through because they are NOT private.
+# One per line. Always add a comment that says why. Never add a real person's data or a real secret.
+
+# Bcrypt hash of the PUBLIC demo password "customer123" (the 7 made-up demo customers in 04_sample_data.sql)
+$2b$10$jWddvNY5biturPUc0CnfqOeYV9lHONrIIwGEf0YKu8lEyrml5POCq
+# Bcrypt hash of the OLD public "admin123", used only to find and replace it (09_account_security.sql)
+$2b$10$GvZ9mxL3i7kS/6aVq40m/u.dYGpH8H992AgFe1/R7rttaV5Y7PnwC
+
+# The team's public Support inbox (shown on the website) and a placeholder in .env.example
+pums.admins@gmail.com
+your-verified-sender@gmail.com
+
+# The example mobile number used in comments, docs and form hints (not a real person)
+01712345678
+8801712345678
++8801712345678
+
+# Made-up test numbers in the Postman collection
++8801711000000
++8801811111111
++8801911999998
++8801911999999
+01711000000
+01711000001
+01711000002
+01711000003

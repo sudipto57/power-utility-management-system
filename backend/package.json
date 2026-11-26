@@ -13,7 +13,10 @@
     "auto-save:on": "node scripts/autoSave.js on",
     "auto-save:off": "node scripts/autoSave.js off",
     "auto-save:status": "node scripts/autoSave.js status",
-    "hash": "node scripts/hashPassword.js"
+    "hash": "node scripts/hashPassword.js",
+    "staff:password": "node scripts/setStaffPassword.js",
+    "privacy:check": "node ../tools/privacy-check.mjs",
+    "prepare": "node scripts/installHooks.js"
   },
   "engines": {
     "node": ">=20.19.0"

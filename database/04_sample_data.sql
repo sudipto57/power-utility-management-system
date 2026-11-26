@@ -5,7 +5,7 @@
 --
 -- What is inside:
 --   * Bangladesh tariffs (BERC order of June 2026, 5% VAT) used by calculate_bill_amount()
---   * 3 staff logins (password <staff password>): PUMSadmin, tech.john, billing.officer
+--   * 3 staff logins, created LOCKED (set the password with: cd backend && npm run staff:password): PUMSadmin, tech.john, billing.officer
 --   * 200 sample customers built from the electricity survey (fake people: no real
 --     respondent's name, phone, email or meter number is used). 100 men, 100 women,
 --     all 8 divisions, all 6 distribution companies, homes, shops, factories and farms.
@@ -61,7 +61,9 @@ INSERT INTO tariff_slabs (tariff_id, slab_order, start_unit, end_unit, rate_per_
 SELECT t.id, 1, 0, NULL, 15.36 FROM tariffs t WHERE t.customer_type = 'Commercial';
 
 -- ---------------------------------------------------------------------
--- 3. Staff logins (password: <staff password>)
+-- 3. Staff logins: created LOCKED. The staff password is private, so it is not
+--    written here, not even as a hash. After loading this file, set it once with
+--    cd backend && npm run staff:password
 -- ---------------------------------------------------------------------
 INSERT INTO users (username, email, full_name, role, status, password_hash) VALUES
 ('PUMSadmin',       'admin@powerutility.com',     'System Administrator', 'admin', 'Active', 'LOCKED-run-npm-run-staff-password'),
@@ -3243,7 +3245,7 @@ JOIN users u ON u.username = v.username;
 
 -- ---------------------------------------------------------------------
 -- Demo logins created by this file
---   Staff (Admin tab):     PUMSadmin / <staff password>   (also tech.john, billing.officer)
+--   Staff (Admin tab):     PUMSadmin / the staff password from npm run staff:password   (also tech.john, billing.officer)
 --   Customers (Customer tab), password customer123:
 --     sumaiya.khanam         CUST-011  Sylhet      Postpaid  Home
 --     nayeem.sheikh          CUST-007  Chattogram  Postpaid  Home
@@ -3253,7 +3255,6 @@ JOIN users u ON u.username = v.username;
 --     sadia.sultana          CUST-073  Rajshahi    Postpaid  Factory
 --     tapas.saha             CUST-016  Barishal    Prepaid  Home
 -- ---------------------------------------------------------------------
-
 
 -- Activity log on again (see the top of this file)
 SELECT set_config('app.skip_audit', 'off', false);

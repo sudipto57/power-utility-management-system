@@ -18,10 +18,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the whole history, so every new commit can be checked
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node tools/privacy-check.mjs
+      - name: Check the files as they are now
+        run: node tools/privacy-check.mjs
+      - name: Check every commit of the pull request
+        if: github.event_name == 'pull_request'
+        run: node tools/privacy-check.mjs --commits "${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+      - name: Check every commit of the push
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        run: node tools/privacy-check.mjs --commits "${{ github.event.before }}..${{ github.sha }}"
 
   frontend:
     name: Website lint and build

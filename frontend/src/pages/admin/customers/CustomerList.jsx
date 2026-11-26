@@ -213,7 +213,7 @@ export default function CustomerList() {
 
 /**
  * Small strip above the list. New customers (website sign-ups) are saved live in the database
- * at once. The laptop then copies them into database/04_sample_data.sql (straight away when the
+ * at once. The laptop then copies them into database/private/website_customers.sql, a private file that never goes to GitHub (straight away when the
  * backend runs there, otherwise when the laptop is switched on). "Save now" only exists on the laptop.
  */
 function SqlFileStrip() {
@@ -225,7 +225,7 @@ function SqlFileStrip() {
     setSaving(true);
     try {
       await saveSqlFileNow();
-      toast.success('database/04_sample_data.sql is up to date');
+      toast.success('The private copy of the sign-ups is up to date');
       reload();
     } catch (err) {
       toast.error(err.message);

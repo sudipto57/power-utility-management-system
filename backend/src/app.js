@@ -58,7 +58,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // After a sign-up, or any change to customers, logins or meters, copy the new customers
-// into database/04_sample_data.sql (see utils/saveCustomersToSql.js)
+// into database/private/website_customers.sql, private and never in GitHub (see utils/saveCustomersToSql.js)
 app.use(
   [
     '/api/auth/signup',

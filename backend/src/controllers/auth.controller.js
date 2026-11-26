@@ -133,7 +133,7 @@ async function emailCode(user, purpose, code) {
   return sendEmail({ to: user.email, name: user.full_name, subject, html });
 }
 
-/** "sudipto@example.com" -> "s*****o@gmail.com" (shown on the website, like GitHub does) */
+/** "arif.hossain@example.com" -> "a******n@example.com" (shown on the website, like GitHub does) */
 function maskEmail(email) {
   const [name, domain] = String(email).split('@');
   if (!domain) return email;

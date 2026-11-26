@@ -88,8 +88,9 @@ $$;
 
 -- ---------------------------------------------------------------------
 -- 4. Existing database only (04_sample_data.sql already has these):
---    a) New admin login:  PUMSadmin / <staff password>  (the old admin123 was public)
---       tech.john and billing.officer get the same new password.
+--    a) New admin login name PUMSadmin (the old admin / admin123 was public). The accounts
+--       are LOCKED here: the staff password is private and never written in GitHub, not even
+--       as a hash. Set it with:  cd backend && npm run staff:password
 --       Only accounts that still have the OLD name/password are changed, so running
 --       this file again never undoes a password you changed yourself.
 --    b) Sample customers' emails end in @example.com, so a bill or code email

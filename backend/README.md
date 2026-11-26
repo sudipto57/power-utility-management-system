@@ -21,7 +21,9 @@ Open http://localhost:5000/api/health: `"status": "ok"` means the API and the da
 | `npm start` | Start normally |
 | `npm run db:test` | Test `.env` + database connection, nothing else |
 | `npm run hash -- myPassword` | Print a bcrypt hash (to reset a password in pgAdmin) |
-| `npm run db:save-customers` | Copy website sign-ups from the database into `database/04_sample_data.sql` once |
+| `npm run db:save-customers` | Copy website sign-ups from the database into `database/private/website_customers.sql` once (private, never in GitHub) |
+| `npm run staff:password` | Set the staff (admin) password in the database (`-- PUMSadmin` for one login only) |
+| `npm run privacy:check` | Check the repository for real people's data and secrets (also runs before every commit and push) |
 | `npm run auto-save:on` / `:off` / `:status` | The laptop's background copy of sign-ups (Windows, every 10 minutes) |
 
 ## How the code is organised
@@ -35,7 +37,7 @@ src/
 ├── controllers/   the work: validate input, run SQL, send JSON
 ├── utils/         ApiError, validate.js + countries.js (input rules), constants.js (allowed values),
 │                  generateNumber.js (CUST-009 ...), email.js (Brevo emails), notify.js (customer inbox),
-│                  saveCustomersToSql.js (copies sign-ups into database/04_sample_data.sql)
+│                  saveCustomersToSql.js (copies sign-ups into the private database/private/website_customers.sql)
 ├── app.js         builds the Express app
 └── server.js      checks the database, then starts listening
 ```

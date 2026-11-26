@@ -1,0 +1,4 @@
+#!/bin/sh
+# Runs before every commit: stops real people's data and secrets from being committed.
+# See tools/privacy-check.mjs. Switched on by `npm install` in backend/ (or: git config core.hooksPath .githooks)
+node tools/privacy-check.mjs --staged

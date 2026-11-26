@@ -29,8 +29,18 @@ jobs:
         if: github.event_name == 'pull_request'
         run: node tools/privacy-check.mjs --commits "${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
       - name: Check every commit of the push
-        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
-        run: node tools/privacy-check.mjs --commits "${{ github.event.before }}..${{ github.sha }}"
+        if: github.event_name == 'push'
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          # BEFORE is missing for a new branch or after the history was cleaned (force-push):
+          # then the step above (every file as it is now) is the check.
+          if git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            node tools/privacy-check.mjs --commits "$BEFORE..$AFTER"
+          else
+            echo "No earlier commit to compare with: the files were checked in the step above."
+          fi
 
   frontend:
     name: Website lint and build

@@ -101,6 +101,10 @@ See [docs/06_testing_report.md](docs/06_testing_report.md).
 
 The live website and API run on Render (`power-utility-website` static site and `power-utility-api` web service) with the database on Supabase. On Render the settings from `backend/.env.example` are typed on the service's **Environment** page (with `NODE_ENV=production` and `SAVE_CUSTOMERS_TO_SQL_FILE=false`). The website needs `VITE_API_URL` set to the API address.
 
+## Before making this repository public
+
+The repository is private. The marked "WEBSITE CUSTOMERS" part at the end of `database/04_sample_data.sql` holds the real names, phone numbers and emails of people who signed up on the website. Clear that part (and turn the copy off with `SAVE_CUSTOMERS_TO_SQL_FILE=false`) before anyone makes the repository public.
+
 ## Team
 
 - Sudipto Pramanik (sudipto57): Team Member

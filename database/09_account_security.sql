@@ -91,7 +91,7 @@ $$;
 --    a) New admin login name PUMSadmin (the old admin / admin123 was public). The accounts
 --       are LOCKED here: the staff password is private and never written in GitHub, not even
 --       as a hash. Set it with:  cd backend && npm run staff:password
---       Only accounts that still have the OLD name/password are changed, so running
+--       Only accounts that still have an OLD name/password are changed, so running
 --       this file again never undoes a password you changed yourself.
 --    b) Sample customers' emails end in @example.com, so a bill or code email
 --       never goes to a real person by mistake. Only CUST-001 ... CUST-200
@@ -99,9 +99,17 @@ $$;
 -- ---------------------------------------------------------------------
 UPDATE users SET username = 'PUMSadmin', password_hash = 'LOCKED-run-npm-run-staff-password'
 WHERE username = 'admin';
+-- Lock every staff login that still uses one of the two passwords that were once public in
+-- GitHub (admin123, and the old staff password). This also locks a database
+-- that already ran the older version of this file (for example the live Supabase database).
 UPDATE users SET password_hash = 'LOCKED-run-npm-run-staff-password'
-WHERE username IN ('tech.john', 'billing.officer')
-  AND password_hash = '$2b$10$GvZ9mxL3i7kS/6aVq40m/u.dYGpH8H992AgFe1/R7rttaV5Y7PnwC';  -- the old admin123
+WHERE role = 'admin'
+  AND (
+    password_hash = '$2b$10$GvZ9mxL3i7kS/6aVq40m/u.dYGpH8H992AgFe1/R7rttaV5Y7PnwC'  -- the old admin123
+    -- the old staff password: only a fingerprint (SHA-256) of its hash is written here,
+    -- so the hash itself is not put back into GitHub
+    OR encode(sha256(password_hash::bytea), 'hex') = 'f5c709b1901fcb4c3a7abc2f3737874b02924f9db38166054848cb5e218bbdca'
+  );
 
 UPDATE users u SET email = split_part(u.email, '@', 1) || '@example.com'
 FROM customers c

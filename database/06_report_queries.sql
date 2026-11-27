@@ -1,5 +1,5 @@
 -- =====================================================================
--- Power Utility Management System - 06_report_queries.sql
+-- Sparkility - 06_report_queries.sql
 -- The SQL behind the Dashboard and Reports pages.
 -- These are SELECT-only practice queries: run any of them in pgAdmin's
 -- Query Tool to see the same numbers the website shows. Nothing is changed.

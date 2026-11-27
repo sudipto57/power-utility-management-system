@@ -1,5 +1,5 @@
 -- =====================================================================
--- Power Utility Management System - Roles and Grants   (was 05_grants.sql)
+-- Sparkility - Roles and Grants   (was 05_grants.sql)
 --
 -- OPTIONAL and for a LOCAL PostgreSQL only.
 --   * Using Supabase?  SKIP this file. The backend connects with your

@@ -84,7 +84,7 @@ export default function MyReceipt() {
           </div>
 
           <p className="mt-10 border-t border-dashed border-sand-200 pt-4 text-center text-xs text-sand-500">
-            Confirmed {formatDateTime(p.updated_at)} · Thank you for using Power Utility Management System
+            Confirmed {formatDateTime(p.updated_at)} · Thank you for using Sparkility
           </p>
         </div>
       </article>

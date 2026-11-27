@@ -6,6 +6,7 @@ import { generateNumber } from '../utils/generateNumber.js';
 import { CUSTOMER_STATUSES, CUSTOMER_TYPES } from '../utils/constants.js';
 import { readSqlFileStatus, saveCustomersToSqlFile, scheduleSave } from '../utils/saveCustomersToSql.js';
 import env from '../config/env.js';
+import { photoUrlFor, readPhoto, removePhoto, savePhoto } from '../utils/photo.js';
 import {
   clean,
   optionalEmail,
@@ -82,7 +83,7 @@ export async function getCustomer(req, res) {
   await query('SELECT check_overdue_bills()');
   const customer = await findCustomer(id);
 
-  const [connections, bills, requests] = await Promise.all([
+  const [connections, bills, requests, photo] = await Promise.all([
     query(
       `SELECT co.id, co.meter_number, co.connection_type, co.installation_date, co.status, co.notes,
               lr.current_reading AS last_reading, lr.reading_date AS last_reading_date
@@ -109,9 +110,29 @@ export async function getCustomer(req, res) {
        FROM service_requests WHERE customer_id = $1 ORDER BY created_at DESC`,
       [id]
     ),
+    photoUrlFor(id),
   ]);
 
-  res.json({ data: { ...customer, connections: connections.rows, bills: bills.rows, requests: requests.rows } });
+  res.json({
+    data: { ...customer, photo, connections: connections.rows, bills: bills.rows, requests: requests.rows },
+  });
+}
+
+// PUT /api/customers/:id/photo   body: { photo: "data:image/jpeg;base64,..." }   (new or changed profile picture)
+export async function setCustomerPhoto(req, res) {
+  const id = requireUuid(req.params.id, 'customer id');
+  await findCustomer(id); // 404 if the customer does not exist
+  const photo = readPhoto(req.body?.photo);
+  await savePhoto(id, req.user.id, photo);
+  res.json({ data: { photo: await photoUrlFor(id) } });
+}
+
+// DELETE /api/customers/:id/photo   (back to the initials)
+export async function deleteCustomerPhoto(req, res) {
+  const id = requireUuid(req.params.id, 'customer id');
+  await findCustomer(id);
+  await removePhoto(id, req.user.id);
+  res.json({ data: { photo: null } });
 }
 
 // POST /api/customers

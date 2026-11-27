@@ -1,5 +1,9 @@
+import { useState } from 'react';
 import Skeleton from './Skeleton';
 import EmptyState from './EmptyState';
+import Icon from './Icon';
+
+const PAGE_SIZE = 50; // rows drawn at first; "Show more" adds 50 each time (long lists stay fast)
 
 /**
  * Simple table.
@@ -16,6 +20,8 @@ export default function DataTable({
   emptyIcon = 'search',
   emptyAction,
 }) {
+  const [limit, setLimit] = useState(PAGE_SIZE);
+
   if (loading && !rows) {
     return (
       <div className="space-y-3 p-5">
@@ -46,7 +52,7 @@ export default function DataTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-sand-100">
-          {rows.map((row, index) => (
+          {rows.slice(0, limit).map((row, index) => (
             <tr
               key={row.id ?? index}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
@@ -63,6 +69,20 @@ export default function DataTable({
           ))}
         </tbody>
       </table>
+      {rows.length > limit && (
+        <div className="flex flex-col items-center gap-2 border-t border-sand-100 px-5 py-4 text-sm sm:flex-row sm:justify-center sm:gap-3">
+          <span className="text-sand-500">
+            Showing {limit.toLocaleString('en-US')} of {rows.length.toLocaleString('en-US')}
+          </span>
+          <button
+            type="button"
+            onClick={() => setLimit(limit + PAGE_SIZE)}
+            className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 font-bold text-sand-800 shadow-sm ring-1 ring-sand-200 transition hover:-translate-y-0.5 hover:text-orange-600"
+          >
+            <Icon name="chevronDown" className="h-4 w-4" /> Show {Math.min(PAGE_SIZE, rows.length - limit)} more
+          </button>
+        </div>
+      )}
     </div>
   );
 }

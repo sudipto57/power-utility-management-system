@@ -1,5 +1,5 @@
 -- =====================================================================
--- Power Utility Management System - Functions, Triggers and Views
+-- Sparkility - Functions, Triggers and Views
 -- (was 02_constraints.sql)  Run after 02_billing_tables.sql
 --
 -- What changed compared with the original file:

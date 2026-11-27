@@ -61,7 +61,7 @@ export default function LandingFooter({ onOpenAuth }) {
       </div>
 
       <div className="border-t border-sand-200">
-        <p className="mx-auto max-w-7xl px-5 py-5 text-center text-xs font-medium text-sand-500">© 2026 Power Utility Management System</p>
+        <p className="mx-auto max-w-7xl px-5 py-5 text-center text-xs font-medium text-sand-500">© 2026 Sparkility</p>
       </div>
     </footer>
   );

@@ -48,7 +48,7 @@ export default function FeedbackForm({ name = '', email = '' }) {
           <Icon name="check" className="h-7 w-7" />
         </span>
         <h3 className="mt-4 text-lg font-extrabold text-sand-900">Thank you for your feedback</h3>
-        <p className="mt-1 text-sm text-sand-500">Our team reads every message and uses it to improve Power Utility.</p>
+        <p className="mt-1 text-sm text-sand-500">Our team reads every message and uses it to improve Sparkility.</p>
         <Button
           variant="secondary"
           className="mt-5"
@@ -69,7 +69,7 @@ export default function FeedbackForm({ name = '', email = '' }) {
 
       <div>
         <span className="mb-1.5 block text-xs font-bold text-sand-700">
-          How do you like Power Utility? <span className="text-rose-500">*</span>
+          How do you like Sparkility? <span className="text-rose-500">*</span>
         </span>
         <div className="flex items-center gap-1">
           {[1, 2, 3, 4, 5].map((star) => (

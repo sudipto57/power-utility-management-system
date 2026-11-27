@@ -109,7 +109,7 @@ export default function Sidebar({ items, open, onClose, roleLabel, role = 'custo
         <p className="relative mt-4 whitespace-nowrap border-t border-white/10 pt-4 text-center font-display text-[10px] font-extrabold tracking-tight text-sand-300">
           <span className="text-amber-400">©</span> 2026{' '}
           <span className="bg-gradient-to-r from-amber-300 via-orange-400 to-fuchsia-400 bg-clip-text text-transparent">
-            Power Utility Management System
+            Sparkility
           </span>
         </p>
       </aside>

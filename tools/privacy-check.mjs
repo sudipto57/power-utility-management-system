@@ -1,4 +1,4 @@
-// Privacy check for the Power Utility Management System repository.
+// Privacy check for the Sparkility repository.
 // It stops real people's data and secrets from going to GitHub.
 //
 //   node tools/privacy-check.mjs            check every file git tracks (what is in the working folder)

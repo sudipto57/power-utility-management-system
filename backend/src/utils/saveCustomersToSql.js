@@ -277,7 +277,7 @@ async function readIfExists(file) {
 /** The whole private file: the activity log is off while it loads, like in 04_sample_data.sql. */
 function buildPrivateFile(section, newline) {
   return [
-    '-- Power Utility Management System - database/private/website_customers.sql',
+    '-- Sparkility - database/private/website_customers.sql',
     '-- PRIVATE: real customers who signed up on the website (names, phones, emails, password hashes).',
     '-- Written by the backend (utils/saveCustomersToSql.js). database/private/ is in .gitignore: never upload it.',
     '-- Run it after 13_support_and_deletions.sql.',

@@ -1,4 +1,4 @@
--- Power Utility Management System - Billing Tables
+-- Sparkility - Billing Tables
 -- Additional tables for advanced billing features
 -- (Unchanged from the team's original 04_billing_tables.sql. It now runs BEFORE the
 --  sample data, because the bill function in 03 reads the tariffs + tariff_slabs below.)

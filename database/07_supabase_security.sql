@@ -1,5 +1,5 @@
 -- =====================================================================
--- Power Utility Management System - 07_supabase_security.sql
+-- Sparkility - 07_supabase_security.sql
 --
 -- Run this ONLY on Supabase (it does nothing on a normal local PostgreSQL).
 --

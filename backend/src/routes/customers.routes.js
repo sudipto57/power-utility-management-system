@@ -4,6 +4,8 @@ import {
   createCustomer,
   deleteCustomer,
   deleteCustomerForever,
+  deleteCustomerPhoto,
+  setCustomerPhoto,
   getCustomer,
   getSqlFileStatus,
   listCustomers,
@@ -26,6 +28,8 @@ router.get('/:id', getCustomer);
 router.put('/:id', updateCustomer);
 router.delete('/:id', deleteCustomer);
 router.delete('/:id/permanent', deleteCustomerForever); // for ever, everywhere (type the customer number to confirm)
+router.put('/:id/photo', setCustomerPhoto); // profile picture
+router.delete('/:id/photo', deleteCustomerPhoto);
 router.get('/:id/statement', getCustomerStatement); // bills, late fees and payments with a running balance
 
 export default router;

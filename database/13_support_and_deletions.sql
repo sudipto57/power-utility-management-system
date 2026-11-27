@@ -1,5 +1,5 @@
 -- =====================================================================
--- Power Utility Management System - 13_support_and_deletions.sql   (25 Nov 2026)
+-- Sparkility - 13_support_and_deletions.sql   (25 Nov 2026)
 --
 -- Run after 12_customer_inbox.sql. Safe to run more than once.
 -- Adds TWO new tables (the original tables in 01 and 02 are not changed):

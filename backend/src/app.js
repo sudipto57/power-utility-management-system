@@ -42,6 +42,8 @@ app.use(
 );
 // The Support form may carry one picture or PDF (up to 2 MB, sent as base64 text), so it gets a bigger limit
 app.use('/api/support', express.json({ limit: '3mb' }));
+// Profile pictures arrive as text (a small JPEG of about 30-80 KB), so they get a bigger limit too
+app.use(['/api/my/photo', '/api/customers/:id/photo'], express.json({ limit: '600kb' }));
 app.use(express.json({ limit: '100kb' }));
 
 // Small request logger:  GET /api/customers 200 12ms
@@ -54,7 +56,7 @@ app.use((req, res, next) => {
 // Health check: open http://localhost:5000/api/health in the browser
 app.get('/api/health', async (req, res) => {
   const { rows } = await query('SELECT NOW() AS database_time');
-  res.json({ data: { status: 'ok', app: 'Power Utility Management System API', database_time: rows[0].database_time } });
+  res.json({ data: { status: 'ok', app: 'Sparkility API', database_time: rows[0].database_time } });
 });
 
 // After a sign-up, or any change to customers, logins or meters, copy the new customers

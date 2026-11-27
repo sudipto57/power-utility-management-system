@@ -46,7 +46,7 @@ Base URL: `http://localhost:5000/api`
 - **Password:** 8 to 64 characters with a capital and a small letter, a number and a symbol (or a passphrase of 3+ words, 16+ characters); not containing the name, username, email or phone; no `password`, `qwerty`, `1234`, `abcd`, `aaaa`.
 - **Phone:** saved with the country code (`+8801712345678`); the number must have the right length for its country (`utils/countries.js`). Bangladesh: a mobile number `+880 1XXXXXXXXX` (013 to 019).
 
-**Role Based Login:** when `role` is sent, the account must have that role, otherwise the answer is `403` ("This is an admin account. Switch to the Admin tab to log in."). Sign up always creates a `customer` login + customer profile; admin accounts are never created here.
+**Role Based Login:** when `role` is sent, the account must have that role, otherwise the answer is `403` ("This is an admin account. Switch to the Admin tab to log in." or "This is a customer account. Switch to the Customer tab to log in.", with `code: "WRONG_TAB"`). Sign up always creates a `customer` login + customer profile; admin accounts are never created here.
 
 ## Bill estimator - public (no login)
 
@@ -71,6 +71,8 @@ Base URL: `http://localhost:5000/api`
 | POST | `/customers` | `full_name, phone, email, address, customer_type, status` + optional `create_login: true, username, password` | number CUST-### is generated |
 | PUT | `/customers/:id` | any of the fields above | send only what changes; the linked login is kept in sync |
 | DELETE | `/customers/:id` | | **409 `HAS_BILLS`** if the customer has bills → set status Inactive instead |
+| PUT | `/customers/:id/photo` | `{ "photo": "data:image/jpeg;base64,..." }` | profile picture (27 Nov 2026): JPG, PNG or WebP, 300 KB at most, the first bytes are checked; answer `{ photo }`. `GET /customers/:id` has `photo` (a data URL, or `null`) |
+| DELETE | `/customers/:id/photo` | | removes the picture (`{ photo: null }`) |
 | DELETE | `/customers/:id/permanent` | `{ "confirm": "CUST-207" }` (the customer number) | **Delete permanently** (25 Nov 2026): removes the customer with the login, meters, readings, bills, payments, late fees, requests, inbox messages and their activity-log history; keeps only the number in `deleted_customers`, and the customer also leaves `database/04_sample_data.sql`. **400** if the number does not match |
 | GET | `/customers/sql-file` | | website sign-ups vs. `database/04_sample_data.sql`: `customers_in_database`, `customers_in_file`, `waiting`, `last_saved`, `computer`, `found` (file on this server), `auto_save`. On Render the numbers come from the last laptop copy (`sql_file_saves`) |
 | POST | `/customers/sql-file` | | **Save now** (laptop only): copies every customer after CUST-200 (with login and meters) into `04_sample_data.sql`; **409** on a server without the file (Render) |
@@ -148,7 +150,7 @@ Every query uses the customer id inside the login token, so a customer only ever
 
 | Method | URL | Body | Answer |
 | --- | --- | --- | --- |
-| GET | `/my/profile` | | profile + connections |
+| GET | `/my/profile` | | profile + connections + `photo` (data URL or `null`) |
 | GET | `/my/dashboard` | | amount due, overdue, open requests, latest bill, kWh per month, `alerts` (overdue / due in 3 days / new since the last login / office replies / payment being checked: `{ tone, text, link, amount }`) and `notices`: outage notices for the customer's area (the first place of the notice area is in their address, or the area is *All areas*) |
 | GET | `/my/bills` | `?status=` | own bills |
 | GET | `/my/bills/:id` | | one own bill (404 for other people's bills) |
@@ -165,6 +167,8 @@ Every query uses the customer id inside the login token, so a customer only ever
 | GET | `/my/notifications` | | inbox: newest 30 `items` + `unread` count |
 | POST | `/my/notifications/:id/read` | | marks one message read (`:id` = `all` marks every message); answers like GET |
 | PUT | `/my/profile` | `{ "full_name", "address" }` | saved straight away (email / phone / type here → 400) |
+| PUT | `/my/photo` | `{ "photo": "data:image/jpeg;base64,..." }` | my own profile picture (same rules as the admin one) |
+| DELETE | `/my/photo` | | removes my picture |
 | GET | `/my/change-requests` | | own profile change requests + the office's answer |
 | POST | `/my/change-requests` | `{ "field": "email" \| "phone" \| "customer_type" \| "connection_type", "new_value", "connection_id" (only for connection_type), "reason" }` | new request (Pending); 409 if one is already waiting for the same thing |
 

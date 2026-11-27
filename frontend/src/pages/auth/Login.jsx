@@ -35,6 +35,8 @@ export default function Login() {
   const [mode, setMode] = useState('login'); // 'login' | 'signup'
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
+  // The hero video only on wide screens for people who allow animations (checked once)
+  const [showVideo] = useState(() => window.matchMedia('(min-width: 768px) and (prefers-reduced-motion: no-preference)').matches);
   useReveal(); // sections below the hero rise into view while you scroll
 
   // Already logged in? Go straight to the right home page.
@@ -60,19 +62,24 @@ export default function Login() {
         {/* ================= HERO ================= */}
         <section id="home" className="relative overflow-hidden bg-gradient-to-b from-orange-50/70 via-white to-white">
           {/* Background video: wind and solar power flowing to a city (silent, loops).
-              Hidden on phones and for people who turn animations off. */}
-          <video
-            className="pointer-events-none absolute inset-x-0 top-0 hidden h-[620px] w-full object-cover md:block motion-reduce:hidden"
-            src="/videos/hero-loop.webm"
-            poster="/videos/hero-poster.jpg"
-            autoPlay
-            muted
-            loop
-            playsInline
-            aria-hidden="true"
-          />
-          {/* Soft colour layer on top of the video, so the text stays easy to read */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 hidden h-[620px] bg-gradient-to-b from-orange-50/80 via-white/85 to-white md:block motion-reduce:hidden" />
+              Only added on tablets and computers for people who allow animations,
+              so phones never download it (about 500 KB). */}
+          {showVideo && (
+            <>
+              <video
+                className="pointer-events-none absolute inset-x-0 top-0 h-[620px] w-full object-cover"
+                src="/videos/hero-loop.webm"
+                poster="/videos/hero-poster.jpg"
+                autoPlay
+                muted
+                loop
+                playsInline
+                aria-hidden="true"
+              />
+              {/* Soft colour layer on top of the video, so the text stays easy to read */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-gradient-to-b from-orange-50/80 via-white/85 to-white" />
+            </>
+          )}
           {/* Soft colour blobs (they stay still, so the page stays smooth) */}
           <div className="absolute -left-32 top-10 h-96 w-96 rounded-full bg-amber-300/30 blur-3xl" />
           <div className="absolute right-0 top-40 h-96 w-96 rounded-full bg-rose-300/20 blur-3xl" />
@@ -101,11 +108,10 @@ export default function Login() {
                 />
               </div>
               <h1
-                className="mt-5 animate-fade-up whitespace-nowrap font-display text-[clamp(1.1rem,4.3vw,4rem)] font-extrabold leading-tight tracking-tight"
+                className="mt-5 animate-fade-up whitespace-nowrap font-display text-[clamp(2.75rem,9vw,5.5rem)] font-extrabold leading-tight tracking-tight"
                 style={{ animationDelay: '80ms' }}
               >
-                <span className="text-brand">Power Utility</span>{' '}
-                <span className="text-sand-900">Management System</span>
+                <span className="text-brand">Sparkility</span>
               </h1>
               <p className="mx-auto mt-4 max-w-xl animate-fade-up text-base text-sand-500 sm:text-lg" style={{ animationDelay: '160ms' }}>
                 Keep the lights on. Keep the bills right.

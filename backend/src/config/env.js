@@ -62,7 +62,7 @@ const env = {
   email: {
     brevoApiKey: (process.env.BREVO_API_KEY || '').trim(),
     from: (process.env.EMAIL_FROM || '').trim(),
-    fromName: (process.env.EMAIL_FROM_NAME || 'Power Utility Management System').trim(),
+    fromName: (process.env.EMAIL_FROM_NAME || 'Sparkility').trim(),
     // Where the website's feedback form sends messages (the sender inbox if empty)
     feedbackTo: (process.env.FEEDBACK_EMAIL || process.env.EMAIL_FROM || '').trim(),
     // Where new Support problems are sent (the office inbox)

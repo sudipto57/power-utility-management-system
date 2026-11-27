@@ -30,7 +30,7 @@ export function VisionSection() {
         <SectionTitle
           eyebrow="Vision"
           title="Power that people can trust"
-          text="Why we built the Power Utility Management System."
+          text="Why we built Sparkility."
         />
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {VISION.map((item) => (
@@ -160,7 +160,8 @@ export function ServicesSection({ search, onSearch, category, onCategory }) {
 /* ---------------- Bill estimator ---------------- */
 
 /* ---------------- Tagline: the words light up one by one while you scroll ---------------- */
-const TAGLINE = 'Every bill shows how it was worked out. Every complaint shows where it stands.';
+// Two sentences, shown on two lines (one under the other)
+const TAGLINE_LINES = ['Every bill shows how it was worked out.', 'Every complaint shows where it stands.'];
 
 export function TaglineSection() {
   const textRef = useRef(null);
@@ -193,14 +194,18 @@ export function TaglineSection() {
   }, []);
 
   return (
-    <section className="bg-white py-24 sm:py-32" aria-label="Our promise">
+    <section className="bg-white py-14 sm:py-20" aria-label="Our promise">
       <p
         ref={textRef}
-        className="mx-auto max-w-[680px] px-5 text-center font-display text-3xl font-bold leading-tight text-sand-900 sm:text-5xl sm:leading-tight"
+        className="mx-auto max-w-5xl px-5 text-center font-display text-2xl font-bold leading-snug text-sand-900 sm:text-4xl lg:text-[2.75rem] lg:leading-tight"
       >
-        {TAGLINE.split(' ').map((word, index) => (
-          <span key={index} className="tagline-word">
-            {word}{' '}
+        {TAGLINE_LINES.map((line) => (
+          <span key={line} className="block">
+            {line.split(' ').map((word, index) => (
+              <span key={index} className="tagline-word">
+                {word}{' '}
+              </span>
+            ))}
           </span>
         ))}
       </p>
@@ -283,7 +288,7 @@ export function FeedbackSection() {
       <div className="reveal mx-auto max-w-2xl px-5">
         <SectionTitle
           eyebrow="Feedback"
-          title="Help us make Power Utility better"
+          title="Help us make Sparkility better"
           text="Tell us what you like, what is hard to use, or what we should add next. It takes one minute."
         />
         <div className="mt-10 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-sand-200 sm:p-8">

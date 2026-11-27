@@ -1,10 +1,10 @@
 -- =====================================================================
--- Power Utility Management System - 00_reset.sql
+-- Sparkility - 00_reset.sql
 -- Removes ONLY this project's objects so all files can be re-run cleanly.
 --
 -- SAFE ON SUPABASE: it does NOT drop the "public" schema (Supabase needs it).
 -- WARNING: all project data (customers, bills, ...) is deleted.
--- Run order: 00 -> 01 -> 02 -> 03 -> 04 -> (05 local only) -> 06 -> 07 (Supabase only) -> 09 -> 10 -> 11 -> 12 -> 13
+-- Run order: 00 -> 01 -> 02 -> 03 -> 04 -> (05 local only) -> 06 -> 07 (Supabase only) -> 09 -> 10 -> 11 -> 12 -> 13 -> 14
 -- =====================================================================
 
 -- Views first
@@ -17,6 +17,7 @@ DROP VIEW IF EXISTS customer_billing_summary CASCADE;
 DROP VIEW IF EXISTS connection_consumption CASCADE;
 
 -- Tables (children first; CASCADE also removes their triggers and indexes)
+DROP TABLE IF EXISTS customer_photos CASCADE;         -- from 14
 DROP TABLE IF EXISTS support_tickets CASCADE;         -- from 13
 DROP TABLE IF EXISTS deleted_customers CASCADE;       -- from 13
 DROP TABLE IF EXISTS notifications CASCADE;           -- from 12

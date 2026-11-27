@@ -19,6 +19,28 @@ Run on a **fresh copy** of the project with a **fresh database** (PostgreSQL 16,
 
 Run the API tests yourself: Postman → collection → **Run collection** (see `postman/README.md`).
 
+### 27 Nov 2026 (evening): new name and logo, Sparkility
+
+| Check | How | Result |
+| --- | --- | --- |
+| Old name gone | searched every source file, doc, SQL file and the Postman files for "Power Utility" | ✅ only kept on purpose: the project folder and GitHub repository, the database `power_utility_db`, npm package names, browser storage keys, the Postman file names and `pums.admins@gmail.com` (changing those would break things) |
+| Logo | first page, sign-up, 404 page, admin + customer sidebar, bill, receipt; light + dark + phone size | ✅ navy-head logo in light mode, white-head logo in dark mode and in the dark sidebar; a **printed** bill or receipt always gets the navy-head logo, also when the screen is dark |
+| Browser tab | tab title and icon | ✅ "Sparkility" (e.g. *Bills & Payments · Sparkility*); the icon's head turns white when the browser itself is dark |
+| Emails | code email rendered | ✅ "[Sparkility] ..." subjects, "The Sparkility Team" |
+| Watch demo | new 74-second video recorded from the running app | ✅ shows the new name and logo |
+| Frontend | `npm run lint` + `npm run build` | ✅ 0 warnings, builds |
+
+### 27 Nov 2026: profile pictures, wrong-tab warning, two-line tagline, phone country box, Give Feedback, speed
+
+| Check | How | Result |
+| --- | --- | --- |
+| New SQL file | `14_profile_photos.sql` after `00 → 04, 09 → 13`, then 14 again on top | ✅ no errors, both times |
+| API | Postman collection with newman: 152 requests, 271 checks (folder **18** is new: 6 requests) | ✅ every check in folder 18 passed; the same 3 older checks need `SAVE_CUSTOMERS_TO_SQL_FILE` / `BREVO_API_KEY` |
+| Profile pictures | set / show / remove as admin and as customer; a renamed text file, a 400 KB file and a non-picture refused; no login → 401 | ✅ |
+| Speed (phone with a 4 × slower processor) | time from click to a full page | Bills 4.2 s → 0.8 s, Meter Readings 3.4 s → 0.5 s, Customers 1.1 s → 0.6 s (lists draw 50 rows, **Show 50 more**); the first page on phones no longer downloads the 500 KB background video |
+| Frontend | `npm run lint` + `npm run build` | ✅ 0 warnings, builds |
+| Pages in Chrome | first page, sign-up, Admin tab warning, customer profile, My Profile, Give Feedback, long lists; light + dark + phone size | ✅ no JavaScript errors, nothing wider than the screen |
+
 ### 26 Nov 2026: full repository check before sharing
 
 | Check | How | Result |

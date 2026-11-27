@@ -2,7 +2,7 @@
   "name": "power-utility-frontend",
   "private": true,
   "version": "1.0.0",
-  "description": "Power Utility Management System - website (React + Vite + Tailwind CSS + Chart.js)",
+  "description": "Sparkility - website (React + Vite + Tailwind CSS + Chart.js)",
   "type": "module",
   "scripts": {
     "dev": "vite",

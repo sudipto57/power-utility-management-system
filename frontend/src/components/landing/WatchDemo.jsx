@@ -26,7 +26,7 @@ export default function WatchDemoButton({ dark = false }) {
         Watch demo
       </button>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="Power Utility Management System in 1 minute" size="lg">
+      <Modal open={open} onClose={() => setOpen(false)} title="Sparkility in 1 minute" size="lg">
         {/* controls = play / pause / full screen. The poster shows while the video loads. */}
         <video
           className="w-full rounded-2xl bg-sand-900 ring-1 ring-sand-200"

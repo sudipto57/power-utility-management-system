@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import useFetch from '../../../hooks/useFetch';
 import useToast from '../../../hooks/useToast';
-import { deleteCustomerForever, getCustomer } from '../../../api/customers';
+import { deleteCustomerForever, deleteCustomerPhoto, getCustomer, setCustomerPhoto } from '../../../api/customers';
 import DeleteForeverDialog from '../../../components/common/DeleteForeverDialog';
+import ProfilePhoto from '../../../components/common/ProfilePhoto';
 import PageHeader from '../../../components/common/PageHeader';
 import Card from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
@@ -14,7 +15,7 @@ import DataTable from '../../../components/common/DataTable';
 import ErrorState from '../../../components/common/ErrorState';
 import EmptyState from '../../../components/common/EmptyState';
 import { PageSkeleton } from '../../../components/common/Skeleton';
-import { formatDate, formatDateTime, formatMoney, formatNumber, initials } from '../../../utils/format';
+import { formatDate, formatDateTime, formatMoney, formatNumber } from '../../../utils/format';
 
 export default function CustomerProfile() {
   const { id } = useParams();
@@ -71,9 +72,14 @@ export default function CustomerProfile() {
       <div className="relative animate-fade-up overflow-hidden rounded-2xl bg-sand-950 p-6 text-white shadow-lg">
         <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-amber-500/25 blur-3xl" />
         <div className="relative flex flex-wrap items-center gap-5">
-          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 to-amber-500 text-xl font-extrabold text-sand-900 shadow-lg shadow-amber-500/30">
-            {initials(c.full_name)}
-          </span>
+          <ProfilePhoto
+            key={c.id}
+            name={c.full_name}
+            photo={c.photo}
+            onSave={(photo) => setCustomerPhoto(c.id, photo)}
+            onRemove={() => deleteCustomerPhoto(c.id)}
+            dark
+          />
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-2xl font-extrabold tracking-tight">{c.full_name}</h2>
             <p className="mt-1 text-sm text-sand-400">

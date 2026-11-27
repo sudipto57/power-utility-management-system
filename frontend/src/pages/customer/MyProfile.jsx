@@ -2,7 +2,14 @@ import { useState } from 'react';
 import useFetch from '../../hooks/useFetch';
 import useAuth from '../../hooks/useAuth';
 import useToast from '../../hooks/useToast';
-import { createMyChangeRequest, getMyChangeRequests, getMyProfile, updateMyProfile } from '../../api/my';
+import {
+  createMyChangeRequest,
+  deleteMyPhoto,
+  getMyChangeRequests,
+  getMyProfile,
+  setMyPhoto,
+  updateMyProfile,
+} from '../../api/my';
 import PageHeader from '../../components/common/PageHeader';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -16,10 +23,11 @@ import EmptyState from '../../components/common/EmptyState';
 import FormError from '../../components/common/FormError';
 import { Field, Input, Select, Textarea } from '../../components/common/FormField';
 import PhoneInput from '../../components/common/PhoneInput';
+import ProfilePhoto from '../../components/common/ProfilePhoto';
 import { fullPhone, phoneProblem } from '../../utils/phone';
 import { emailProblem } from '../../utils/accountRules';
 import { PageSkeleton } from '../../components/common/Skeleton';
-import { formatDate, formatDateTime, initials } from '../../utils/format';
+import { formatDate, formatDateTime } from '../../utils/format';
 
 // What the customer can ask the office to change (name and address they change alone)
 const CHANGE_OPTIONS = [
@@ -59,9 +67,7 @@ export default function MyProfile() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="animate-fade-up text-center" bodyClassName="p-7">
-          <span className="keep-dark mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-amber-300 to-amber-500 text-2xl font-extrabold text-sand-900 shadow-lg shadow-amber-500/30">
-            {initials(p.full_name)}
-          </span>
+          <ProfilePhoto name={p.full_name} photo={p.photo} onSave={setMyPhoto} onRemove={deleteMyPhoto} size="lg" />
           <h2 className="mt-4 text-xl font-extrabold text-sand-900">{p.full_name}</h2>
           <p className="text-sm text-sand-500">{p.customer_number}</p>
           <div className="mt-3 flex justify-center gap-2">

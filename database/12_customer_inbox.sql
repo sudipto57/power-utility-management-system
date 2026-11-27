@@ -1,5 +1,5 @@
 -- =====================================================================
--- Power Utility Management System - 12_customer_inbox.sql   (21 Nov 2026)
+-- Sparkility - 12_customer_inbox.sql   (21 Nov 2026)
 --
 -- Run after 11_extra_features.sql. Safe to run more than once.
 -- Adds ONE new table (the original tables in 01 and 02 are not changed):

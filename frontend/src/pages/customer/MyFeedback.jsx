@@ -7,9 +7,10 @@ import FeedbackForm from '../../components/common/FeedbackForm';
 export default function MyFeedback() {
   const { user } = useAuth();
   return (
-    <div>
-      <PageHeader title="Give feedback" subtitle="Tell us what works and what we should improve. Every message reaches our team." />
-      <Card className="max-w-2xl animate-fade-up" title="Your feedback">
+    // One column in the middle of the screen (heading + form)
+    <div className="mx-auto w-full max-w-2xl">
+      <PageHeader title="Give Feedback" subtitle="Tell us what works and what we should improve. Every message reaches our team." />
+      <Card className="animate-fade-up" title="Your feedback">
         <FeedbackForm name={user?.full_name || ''} email={user?.email || ''} />
       </Card>
     </div>

@@ -1,4 +1,4 @@
--- Power Utility Management System Database Schema
+-- Sparkility Database Schema
 -- Run this file to create all tables
 -- (Unchanged from the team's original schema. Run 00_reset.sql first if the tables already exist.)
 

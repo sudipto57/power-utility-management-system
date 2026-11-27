@@ -138,7 +138,7 @@ export const HELP_LINKS = [
   { href: '#how', icon: 'activity', title: 'How it works', text: 'Three simple steps' },
   { href: '#faq', icon: 'info', title: 'FAQ', text: 'Quick answers' },
   { href: '#support', icon: 'complaint', title: 'Support', text: 'Send us a problem, we email you back' },
-  { href: '#feedback', icon: 'send', title: 'Give feedback', text: 'Tell us how to improve' },
+  { href: '#feedback', icon: 'send', title: 'Give Feedback', text: 'Tell us how to improve' },
   { href: '#contact', icon: 'mail', title: 'Contact us', text: 'Phone, email and address' },
 ];
 

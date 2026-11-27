@@ -80,6 +80,13 @@ async function checkDatabase() {
     console.error('           Run database/13_support_and_deletions.sql once (pgAdmin or the Supabase SQL Editor).\n');
     return false;
   }
+  // 27 Nov 2026: customer profile pictures
+  const photos = await pool.query("SELECT to_regclass('public.customer_photos') AS photo_table");
+  if (!photos.rows[0].photo_table) {
+    console.error('\n[database] Connected, but the table for profile pictures is missing.');
+    console.error('           Run database/14_profile_photos.sql once (pgAdmin or the Supabase SQL Editor).\n');
+    return false;
+  }
   return true;
 }
 
@@ -90,7 +97,7 @@ if (!ok) {
 }
 
 const server = app.listen(env.port, () => {
-  console.log('\n  Power Utility Management System API');
+  console.log('\n  Sparkility API');
   console.log(`  Running on   http://localhost:${env.port}/api`);
   console.log(`  Health check http://localhost:${env.port}/api/health`);
   console.log(`  Database     ${env.db.host} / ${env.db.database}`);

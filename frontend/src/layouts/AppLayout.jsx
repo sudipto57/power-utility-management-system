@@ -8,7 +8,14 @@ import { PageSkeleton } from '../components/common/Skeleton';
 import useAuth from '../hooks/useAuth';
 import useNotifications from '../hooks/useNotifications';
 
-const SITE_NAME = 'Power Utility Management System';
+const SITE_NAME = 'Sparkility';
+
+// The page files of each portal (Vite makes one small file per page, the same ones App.jsx loads).
+// Loading them early, while nothing else happens, makes the next click open a page at once.
+const PAGE_FILES = {
+  admin: import.meta.glob('../pages/admin/**/*.jsx'),
+  customer: import.meta.glob('../pages/customer/**/*.jsx'),
+};
 
 // The menu item that matches the open page (the longest matching link wins)
 function currentMenuLabel(menu, pathname) {
@@ -30,7 +37,19 @@ export default function AppLayout({ menu, roleLabel, role }) {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  // Browser tab title, e.g. "(2) My Bills · Power Utility Management System"
+  // When the page is ready and the browser is idle, download the other pages of this portal.
+  // Skipped when the phone asks to save data (Data Saver).
+  useEffect(() => {
+    if (navigator.connection?.saveData) return undefined;
+    const idle = window.requestIdleCallback || ((work) => setTimeout(work, 1500));
+    const cancelIdle = window.cancelIdleCallback || clearTimeout;
+    const id = idle(() => {
+      Object.values(PAGE_FILES[role] || {}).forEach((load) => load().catch(() => {}));
+    });
+    return () => cancelIdle(id);
+  }, [role]);
+
+  // Browser tab title, e.g. "(2) My Bills · Sparkility"
   // Customers see how many unread messages are in their inbox.
   const unread = role === 'customer' ? notifications.count : 0;
   const pageLabel = currentMenuLabel(menu, location.pathname);

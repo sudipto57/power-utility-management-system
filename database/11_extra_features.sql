@@ -1,5 +1,5 @@
 -- =====================================================================
--- Power Utility Management System - 11_extra_features.sql   (20 Nov 2026)
+-- Sparkility - 11_extra_features.sql   (20 Nov 2026)
 --
 -- Six extra database features (+ one fix). Run after 10_auto_save.sql.
 -- Safe to run more than once, on Supabase and on a local PostgreSQL.

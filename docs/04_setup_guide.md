@@ -16,7 +16,7 @@ Follow the steps **in order**. Each step ends with a ✅ check, so don't move on
 
 > Close and reopen VS Code / terminals after installing Node, otherwise `npm` is "not recognized".
 
-Open the **whole project folder** in VS Code: *File → Open Folder → `Power Utility Management System`*.
+Open the **whole project folder** in VS Code: *File → Open Folder → `Power Utility Management System`* (the project folder keeps its old name; the app itself is called **Sparkility**).
 You will use **two terminals** (*Terminal → New Terminal*, then the **+** button): one for the backend, one for the frontend.
 
 ---
@@ -42,6 +42,7 @@ You already connected Supabase to pgAdmin. We run the SQL files there.
 | 9 | `database/11_extra_features.sql` (activity log, statement, usage alerts, late fees, outage notices, meter replacement) |
 | 10 | `database/12_customer_inbox.sql` (the customer inbox: messages and due reminders) |
 | 11 | `database/13_support_and_deletions.sql` (the Support form + Delete permanently) |
+| 12 | `database/14_profile_photos.sql` (customer profile pictures) |
 
 *(Skip `05_roles_and_grants.sql` on Supabase. `06_report_queries.sql` is optional practice.)*
 
@@ -49,7 +50,7 @@ You already connected Supabase to pgAdmin. We run the SQL files there.
 
 ✅ **Check:** run `SELECT * FROM calculate_bill_amount('Residential', 'Single Phase', 250);`. The total should be **2095.80**.
 
-**Already set up before?** Run **`11_extra_features.sql`**, **`12_customer_inbox.sql`** and **`13_support_and_deletions.sql`** once (after 10). Also run **`10_auto_save.sql`** once, and **`09_account_security.sql`** again (it adds the tables for email codes and profile change requests, and the customer login codes). It is safe to run more than once. The backend will not start without it.
+**Already set up before?** Run **`11_extra_features.sql`**, **`12_customer_inbox.sql`**, **`13_support_and_deletions.sql`** and **`14_profile_photos.sql`** once (after 10). Also run **`10_auto_save.sql`** once, and **`09_account_security.sql`** again (it adds the tables for email codes and profile change requests, and the customer login codes). It is safe to run more than once. The backend will not start without it.
 
 > "relation already exists" error? You skipped 00. Run `00_reset.sql`, then the files above from `01` again.
 
@@ -136,7 +137,7 @@ npm run dev
 
 ## Step 5 · Postman (optional but recommended)
 
-Import both files in `postman/`, select the **Power Utility - Local** environment, and send **1. Auth → Login as Admin**. See `postman/README.md`.
+Import both files in `postman/`, select the **Sparkility - Local** environment, and send **1. Auth → Login as Admin**. See `postman/README.md`.
 
 ---
 
@@ -164,6 +165,7 @@ cd frontend && npm run dev
 | `[database] ... tables for email codes and change requests are missing` | `09_account_security.sql` not run yet | Run it once in pgAdmin / Supabase SQL Editor |
 | `[database] ... table for the customer inbox is missing` | `12_customer_inbox.sql` not run yet | Run it once in pgAdmin / Supabase SQL Editor |
 | `[database] ... tables for Support and permanent deletes are missing` | `13_support_and_deletions.sql` not run yet | Run it once in pgAdmin / Supabase SQL Editor |
+| `[database] ... table for profile pictures is missing` | `14_profile_photos.sql` not run yet | Run it once in pgAdmin / Supabase SQL Editor |
 | `[database] The database is missing the newest change for customer login codes` | An older copy of `09_account_security.sql` was run | Run the newest `09_account_security.sql` again |
 | No email arrives | `BREVO_API_KEY` / `EMAIL_FROM` empty or the sender not verified in Brevo | Without a key the email is printed in the backend terminal. With a key, check Brevo → Transactional → Logs |
 | `[setup] backend/.env still has the example values` | Example values left in `.env` | Put your real DB_USER / DB_PASSWORD |

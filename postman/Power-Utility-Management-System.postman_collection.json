@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Power Utility Management System API",
-    "description": "All endpoints of the Power Utility Management System backend.\n\nHOW TO USE\n1. Import this collection and Local.postman_environment.json\n2. Pick the \"Power Utility - Local\" environment (top-right)\n3. Start the backend (npm run dev in the backend folder)\n4. Run \"Login as Admin\" (saves adminToken). Customers log in like on GitHub: run \"Login as Customer (step 1)\", copy the 4-digit code from the email (or the backend terminal) into the environment variable loginCode, then run \"step 2\" (saves customerToken)\n5. Or press \"Run collection\" to test everything in order.\n\nDemo logins: PUMSadmin / {{adminPassword}}   and   sumaiya.khanam / customer123",
+    "name": "Sparkility API",
+    "description": "All endpoints of the Sparkility backend.\n\nHOW TO USE\n1. Import this collection and Local.postman_environment.json\n2. Pick the \"Sparkility - Local\" environment (top-right)\n3. Start the backend (npm run dev in the backend folder)\n4. Run \"Login as Admin\" (saves adminToken). Customers log in like on GitHub: run \"Login as Customer (step 1)\", copy the 4-digit code from the email (or the backend terminal) into the environment variable loginCode, then run \"step 2\" (saves customerToken)\n5. Or press \"Run collection\" to test everything in order.\n\nDemo logins: PUMSadmin / {{adminPassword}}   and   sumaiya.khanam / customer123",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -6193,6 +6193,249 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Status is 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "18. Profile pictures & login tabs",
+      "description": "27 Nov 2026. Needs database/14_profile_photos.sql.",
+      "item": [
+        {
+          "name": "Customer account on the Admin tab (expect 403 warning)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "A customer types their login on the Admin tab: the website shows a yellow warning with a \"Switch to the Customer tab\" button.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"sumaiya.khanam\",\n  \"password\": \"customer123\",\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 403\", () => pm.response.to.have.status(403));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Says it is a customer account\", () => pm.expect(body.message).to.eql(\"This is a customer account. Switch to the Customer tab to log in.\"));",
+                  "pm.test(\"Code WRONG_TAB (the website shows a yellow warning)\", () => pm.expect(body.code).to.eql(\"WRONG_TAB\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Find CUST-002 (for the picture tests)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customers?search=CUST-002",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "CUST-002"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const row = pm.response.json().data.find((c) => c.customer_number === \"CUST-002\");",
+                  "pm.test(\"CUST-002 found\", () => pm.expect(row).to.be.an(\"object\"));",
+                  "if (row) pm.environment.set(\"photoCustomerId\", row.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Set a profile picture",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{photoCustomerId}}/photo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "{{photoCustomerId}}",
+                "photo"
+              ]
+            },
+            "description": "The website sends a small square JPEG made in the browser; any JPG, PNG or WebP up to 300 KB works.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"photo\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAFklEQVR4XmN8FcHDgA0wYRVlYBikEgAKSQFew5FZLAAAAABJRU5ErkJggg==\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"The saved picture comes back\", () => pm.expect(pm.response.json().data.photo).to.match(/^data:image\\/png;base64,/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Profile shows the picture",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{photoCustomerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "{{photoCustomerId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"photo is a data URL\", () => pm.expect(pm.response.json().data.photo).to.match(/^data:image\\//));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Fake picture (expect 400)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{photoCustomerId}}/photo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "{{photoCustomerId}}",
+                "photo"
+              ]
+            },
+            "description": "The first bytes of the file are checked, so a renamed text file is refused.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"photo\": \"data:image/png;base64,dGhpcyBpcyBvbmx5IHRleHQsIG5vdCBhIHBpY3R1cmU=\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Not a real picture\", () => pm.expect(pm.response.json().message).to.eql(\"This file is not a real picture\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Remove the profile picture",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{photoCustomerId}}/photo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "{{photoCustomerId}}",
+                "photo"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"photo is null (initials again)\", () => pm.expect(pm.response.json().data.photo).to.eql(null));"
                 ]
               }
             }

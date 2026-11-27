@@ -9,6 +9,9 @@ export const deleteCustomer = (id) => apiRequest(`/customers/${id}`, { method: '
 export const deleteCustomerForever = (id, confirm) =>
   apiRequest(`/customers/${id}/permanent`, { method: 'DELETE', body: { confirm } });
 export const getCustomerStatement = (id) => apiRequest(`/customers/${id}/statement`);
+// Profile picture (photo = a data URL made by components/common/ProfilePhoto.jsx)
+export const setCustomerPhoto = (id, photo) => apiRequest(`/customers/${id}/photo`, { method: 'PUT', body: { photo } });
+export const deleteCustomerPhoto = (id) => apiRequest(`/customers/${id}/photo`, { method: 'DELETE' });
 
 // Website sign-ups copied into the private file database/private/website_customers.sql
 export const getSqlFileStatus = () => apiRequest('/customers/sql-file');

@@ -288,6 +288,20 @@ p {
 /* Lets you also write dark:... classes that follow the switch */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Sparkility logo (components/common/Logo.jsx): the navy-head version on light screens and on paper,
+   the white-head version in dark mode. Only on screen, so a printed bill always gets the light version. */
+.logo-for-dark {
+  display: none;
+}
+@media screen {
+  .dark .logo-for-light {
+    display: none;
+  }
+  .dark .logo-for-dark {
+    display: block;
+  }
+}
+
 @media screen {
   .dark {
     color-scheme: dark; /* dark scrollbars, date pickers and dropdown lists */

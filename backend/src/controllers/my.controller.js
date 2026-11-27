@@ -11,6 +11,7 @@ import { REQUEST_SELECT, findRequest } from './requests.controller.js';
 import { activeSlabs } from './tariffs.controller.js';
 import { NOTICE_FOR_CUSTOMER } from './outages.controller.js';
 import { formatTaka } from '../utils/email.js';
+import { photoUrlFor, readPhoto, removePhoto, savePhoto } from '../utils/photo.js';
 
 function myCustomerId(req) {
   if (!req.user.customerId) throw new ApiError(403, 'Your login is not linked to a customer profile');
@@ -41,7 +42,21 @@ export async function getMyProfile(req, res) {
      WHERE co.customer_id = $1 ORDER BY co.installation_date`,
     [customerId]
   );
-  res.json({ data: { ...rows[0], connections: connections.rows } });
+  res.json({ data: { ...rows[0], photo: await photoUrlFor(customerId), connections: connections.rows } });
+}
+
+// PUT /api/my/photo   body: { photo: "data:image/jpeg;base64,..." }   (my own profile picture)
+export async function setMyPhoto(req, res) {
+  const customerId = myCustomerId(req);
+  const photo = readPhoto(req.body?.photo);
+  await savePhoto(customerId, req.user.id, photo);
+  res.json({ data: { photo: await photoUrlFor(customerId) } });
+}
+
+// DELETE /api/my/photo
+export async function deleteMyPhoto(req, res) {
+  await removePhoto(myCustomerId(req), req.user.id);
+  res.json({ data: { photo: null } });
 }
 
 // PUT /api/my/profile   body: { full_name, address }

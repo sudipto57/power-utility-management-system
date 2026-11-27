@@ -5,7 +5,7 @@ import ApiError from './ApiError.js';
 // The website sends the picture as a "data URL": data:image/jpeg;base64,/9j/4AAQ...
 // The first bytes of the file are checked too, so a renamed file is refused.
 
-const MAX_BYTES = 300 * 1024; // the website shrinks pictures to about 30-80 KB, so this is plenty
+const MAX_BYTES = 300000; // same limit as the database (14_profile_photos.sql); the website sends about 30-80 KB
 const FIRST_BYTES = {
   'image/jpeg': (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
   'image/png': (b) => b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47,

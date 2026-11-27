@@ -6,16 +6,16 @@ How to use each feature. Screenshots are in `docs/images/`.
 
 Open http://localhost:5173. The first page has the login card on the right.
 
-1. Pick **Customer** or **Admin** on the slide switch (Role Based Login: an account only works on its own tab).
+1. Pick **Customer** or **Admin** on the slide switch (Role Based Login: an account only works on its own tab). A customer who types their login on the Admin tab sees a yellow warning, *This is a customer account. Switch to the Customer tab to log in.*, with a button that switches tabs and keeps what was typed.
 2. Type your **email or username** and password (demo logins: `PUMSadmin` / `<staff password>` on the Admin tab, `sumaiya.khanam` / `customer123` on the Customer tab). The eye button shows or hides the password.
 3. New customers can press **Create an account** (or **Sign up** in the top bar). Sign up is for customers only; admin accounts are made by the system administrator.
    The sign-up form checks everything while you type (a green tick for each rule that is met):
    - **Username:** 3 to 20 characters, only letters, numbers, `.` and `_`, starting and ending with a letter or number, no `..` or `__`, not a system word like `admin` or `support`.
    - **Email:** a real-looking address such as `jane.doe@company.com` (no `..`, no spaces, an ending like `.com`).
    - **Password:** 8 to 64 characters with a capital and a small letter, a number and a symbol (or a passphrase of 3+ words), without your name, username, email or phone, and without easy patterns like `1234` or `qwerty`. Use a password you do not use anywhere else.
-   - **Phone number:** pick the country code first (Bangladesh +880 is at the top), then the number. Bangladeshi numbers must be mobile numbers (013 to 019).
+   - **Phone number:** pick the country code first (the box shows the code, e.g. **+880**, with the country name under it; Bangladesh is at the top of the list), then the number. Bangladeshi numbers must be mobile numbers (013 to 019).
    - **Address:** House / road is optional, but **Area** and **City** are both required.
-   **Customers: every login has a second step, like GitHub.** After the right password, the card shows **Verify your identity**: a **4-digit code** is emailed to you (subject *[Power Utility] Sudo email verification code*), valid for 15 minutes and usable once. Type it and press **Verify**. No email? Check spam, or press **Send a new code** (once a minute). Admins log in with the password only.
+   **Customers: every login has a second step, like GitHub.** After the right password, the card shows **Verify your identity**: a **4-digit code** is emailed to you (subject *[Sparkility] Sudo email verification code*), valid for 15 minutes and usable once. Type it and press **Verify**. No email? Check spam, or press **Send a new code** (once a minute). Admins log in with the password only.
 4. After signing up, a **4-digit code** arrives by email. Type it in the box to confirm the email; you are then logged in. No email? Check spam, or press **Send a new code** (once a minute). The code works for 15 minutes.
 5. **Forgot password?** (under the password box, Customer tab): type your **email or phone number** → a 4-digit code goes to the email saved on your account → type the code and a new password. Anyone still logged in with the old password is logged out.
 
@@ -54,6 +54,8 @@ On every page (Admin and Customer):
 - **Customers** menu → search by name, ID, phone or e-mail; filter by type and status.
 - **Add customer** → fill the form. Tick *Create a login for this customer* to give them portal access.
 - Click a row to open the **profile**: contact details, connections (meters), bills and requests.
+- **Profile picture:** press the small camera button on the picture (or on the initials) and choose a JPG, PNG or WebP photo. The website cuts out the middle square and makes it small (a 320 × 320 picture), then saves it. **Remove picture** goes back to the initials.
+- Long lists (bills, readings, customers ...) show the first **50 rows**; **Show 50 more** at the bottom adds the next ones. Search and the filters always look through every record.
 - ✏️ edits, 🗑️ deletes. A customer **with bills cannot be deleted** (that would erase billing history), so the app offers **Set as Inactive** instead.
 - The newest customers are at the top; people who joined in the last 7 days have a green **New** label.
 - The green strip above the list says how many customers joined after the 200 sample customers. They are saved live in the database **and** copied into `database/private/website_customers.sql` on the laptop (a private file that never goes to GitHub). On the live website an amber strip means some sign-ups are waiting for the laptop to be switched on (they are copied automatically). On the laptop you can also press **Save now**.
@@ -136,7 +138,7 @@ Totals (billed, collected, outstanding, VAT), customers by type, **top customers
 - **My Payments**: every payment (being checked, completed, not received) with totals. **Receipt** opens a printable receipt with a *PAID* stamp (*Print / Save as PDF*).
 - **My Statement**: all your bills and payments in date order with the balance after each one.
 - **My Requests → New request**: choose what it is about, how urgent, describe it. Follow the progress bar (Pending → In Progress → Resolved) and staff replies. While it is open you can **reply** to the office at the bottom of *Updates*.
-- **My Profile**: contact details and meters (the meter numbers roll up like a real meter).
+- **My Profile**: contact details and meters (the meter numbers roll up like a real meter). Press the camera button on your picture to add or change your **profile picture**.
 - **Give Feedback** (also at the bottom of the first page, no login needed): choose 1-5 stars and a topic, write what you think. Each message is emailed to the team.
   - **Edit my details**: change your **name and address** straight away.
   - **Request a change**: a new **email, phone number, customer type** or a meter's **connection type** needs the office's OK. The request appears under **My change requests** as *Pending*, then *Approved* or *Rejected* (with the office's note). You also get an email with the answer.

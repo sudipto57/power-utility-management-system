@@ -1,7 +1,7 @@
 {
   "name": "power-utility-backend",
   "version": "1.0.0",
-  "description": "Power Utility Management System - REST API (Node.js + Express + PostgreSQL)",
+  "description": "Sparkility - REST API (Node.js + Express + PostgreSQL)",
   "private": true,
   "type": "module",
   "main": "src/server.js",

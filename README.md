@@ -1,6 +1,8 @@
-# Power Utility Management System
+# Sparkility
 
-A web app where an electricity company manages **customers, connections, meters, readings, bills, payments and complaints**, and where **customers log in** to see their own bills and send service requests.
+<img src="frontend/public/brand/sparkility-logo-light.svg" alt="Sparkility logo" width="120" />
+
+**Sparkility** (called *Power Utility Management System* until 27 Nov 2026) is a web app where an electricity company manages **customers, connections, meters, readings, bills, payments and complaints**, and where **customers log in** to see their own bills and send service requests.
 
 Academic DBMS project, built by beginners as a simple and finishable full-stack project.
 

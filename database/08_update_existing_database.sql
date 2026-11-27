@@ -1,5 +1,5 @@
 -- =====================================================================
--- Power Utility Management System - 08_update_existing_database.sql
+-- Sparkility - 08_update_existing_database.sql
 --
 -- For a database that was built BEFORE 17 Nov 2026 (like the team's Supabase project).
 -- It adds the fixes that are now part of 03 and 07, without rebuilding anything.

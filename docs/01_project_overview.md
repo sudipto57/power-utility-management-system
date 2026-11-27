@@ -2,7 +2,7 @@
 
 ## What it is
 
-The **Power Utility Management System** is a web application for an electricity company. Staff use it to manage customers, their electricity connections and meters, meter readings, bills, payments and complaints. Customers log in to see their own bills and to send service requests.
+**Sparkility** (called *Power Utility Management System* until 27 Nov 2026) is a web application for an electricity company. Staff use it to manage customers, their electricity connections and meters, meter readings, bills, payments and complaints. Customers log in to see their own bills and to send service requests.
 
 It is an academic Database Management Systems (DBMS) project. The database does the important work with **foreign keys, CHECK constraints, triggers, views and a PL/pgSQL function**, and the website shows it off.
 

@@ -10,6 +10,8 @@ import {
   getMyPayment,
   getMyPayments,
   getMyProfile,
+  setMyPhoto,
+  deleteMyPhoto,
   getMyRequest,
   getMyRequests,
   getMyUsage,
@@ -28,6 +30,8 @@ router.use(requireAuth, requireRole('customer'));
 
 router.get('/profile', getMyProfile);
 router.put('/profile', updateMyProfile); // name and address only
+router.put('/photo', setMyPhoto); // my profile picture
+router.delete('/photo', deleteMyPhoto);
 router.get('/change-requests', getMyChangeRequests); // email, phone, types: admin must approve
 router.post('/change-requests', createMyChangeRequest);
 router.get('/dashboard', getMyDashboard);

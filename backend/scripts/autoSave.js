@@ -4,7 +4,7 @@
 //   npm run auto-save:off     stop it and do not start it any more
 //   npm run auto-save:status  is it on? what did it do last?
 //
-// How it works: "on" puts a small file "Power Utility auto-save.cmd" in your Windows
+// How it works: "on" puts a small file "Sparkility auto-save.cmd" in your Windows
 // Startup folder. Windows runs every file in that folder when you log in. The file starts
 // "node scripts/saveCustomers.js --every 10" hidden in the background, which copies new
 // sign-ups from Supabase into database/private/website_customers.sql (private, not in GitHub) right away and then every 10 minutes.
@@ -21,7 +21,10 @@ const LOCK_FILE = path.join(backendFolder, 'auto-save.lock');
 const MINUTES = 10;
 
 const startupFolder = path.join(process.env.APPDATA || '', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup');
-const startupFile = path.join(startupFolder, 'Power Utility auto-save.cmd');
+const startupFile = path.join(startupFolder, 'Sparkility auto-save.cmd');
+// The same file had this name before the project was renamed Sparkility (27 Nov 2026).
+// "on" and "off" remove it, so Windows never starts the job twice.
+const oldStartupFile = path.join(startupFolder, 'Power Utility auto-save.cmd');
 
 const command = process.argv[2] || 'status';
 
@@ -54,7 +57,7 @@ function startupFileText() {
   const quote = (text) => `'${text.replace(/'/g, "''")}'`; // PowerShell 'text' (a ' inside becomes '')
   return [
     '@echo off',
-    'rem Power Utility Management System: copies website sign-ups from Supabase into',
+    'rem Sparkility: copies website sign-ups from Supabase into',
     `rem database\\private\\website_customers.sql when Windows starts, then every ${MINUTES} minutes.`,
     'rem Made by "npm run auto-save:on" in the backend folder. Remove it with "npm run auto-save:off".',
     `powershell -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath ${quote(process.execPath)} ` +
@@ -79,6 +82,7 @@ if (process.platform !== 'win32' && command !== 'status') {
 if (command === 'on') {
   fs.mkdirSync(startupFolder, { recursive: true });
   fs.writeFileSync(startupFile, startupFileText());
+  fs.rmSync(oldStartupFile, { force: true });
   if (!runningPid()) startNow();
   console.log('\nAuto-save is ON.');
   console.log(`  Starts with Windows: ${startupFile}`);
@@ -86,12 +90,14 @@ if (command === 'on') {
   console.log('  Check it any time with: npm run auto-save:status\n');
 } else if (command === 'off') {
   fs.rmSync(startupFile, { force: true });
+  fs.rmSync(oldStartupFile, { force: true });
   const pid = runningPid();
   if (pid) process.kill(pid);
   console.log('\nAuto-save is OFF. (Turn it on again with: npm run auto-save:on)\n');
 } else {
   const pid = runningPid();
-  console.log(`\nStarts with Windows: ${fs.existsSync(startupFile) ? 'yes' : 'no'}`);
+  const starts = fs.existsSync(startupFile) || fs.existsSync(oldStartupFile);
+  console.log(`\nStarts with Windows: ${starts ? 'yes' : 'no'}`);
   console.log(`Running now:         ${pid ? `yes (process ${pid})` : 'no'}`);
   const lines = lastLogLines(5);
   console.log(lines.length ? `Last messages (backend/auto-save.log):\n  ${lines.join('\n  ')}\n` : 'No messages yet.\n');

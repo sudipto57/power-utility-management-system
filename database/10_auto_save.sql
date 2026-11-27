@@ -1,5 +1,5 @@
 -- =====================================================================
--- Power Utility Management System - 10_auto_save.sql   (20 Nov 2026)
+-- Sparkility - 10_auto_save.sql   (20 Nov 2026)
 --
 -- Run after 09_account_security.sql. Safe to run more than once.
 --

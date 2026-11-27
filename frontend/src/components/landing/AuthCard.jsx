@@ -53,6 +53,7 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
   const [loginForm, setLoginForm] = useState({ login: '', password: '' });
   const [signupForm, setSignupForm] = useState(EMPTY_SIGNUP);
   const [error, setError] = useState('');
+  const [wrongTab, setWrongTab] = useState(null); // { message, role }: the account belongs on the other tab
   const [notice, setNotice] = useState(''); // green message (e.g. "password changed")
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(null); // null | 'login_code' | 'confirm' | 'forgot'
@@ -72,12 +73,14 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
     setLoading(false);
   };
 
-  const switchRole = (newRole) => {
+  // keepLogin: keep the typed email/username (used by the "Switch to the ... tab" button)
+  const switchRole = (newRole, keepLogin = false) => {
     onRoleChange(newRole);
     if (newRole === 'admin') onModeChange('login'); // admins never sign up here
-    setLoginForm({ login: '', password: '' });
+    setLoginForm({ login: keepLogin ? loginForm.login : '', password: '' });
     setStep(null);
     setError('');
+    setWrongTab(null);
     setNotice('');
   };
 
@@ -91,6 +94,7 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
   const handleLogin = async (event) => {
     event.preventDefault();
     setError('');
+    setWrongTab(null);
     if (!loginForm.login.trim() || !loginForm.password) {
       setError('Please enter your email/username and password.');
       return;
@@ -112,6 +116,9 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
         setCodeLogin(loginForm.login.trim());
         setNotice(err.message);
         setStep('confirm');
+      } else if (err.code === 'WRONG_TAB') {
+        // A customer on the Admin tab (or an admin on the Customer tab): a warning, not an error
+        setWrongTab({ message: err.message, role: role === 'admin' ? 'customer' : 'admin' });
       } else {
         setError(err.message);
       }
@@ -387,6 +394,16 @@ export default function AuthCard({ role, mode, onRoleChange, onModeChange }) {
 
             <FormNotice message={notice} />
             <FormError message={error} />
+            <FormError message={wrongTab?.message} tone="warning">
+              <button
+                type="button"
+                onClick={() => switchRole(wrongTab.role, true)}
+                className="mt-1.5 inline-flex items-center gap-1 text-xs font-extrabold text-amber-900 underline-offset-2 hover:underline"
+              >
+                Switch to the {wrongTab?.role === 'customer' ? 'Customer' : 'Admin'} tab
+                <Icon name="arrowRight" className="h-3.5 w-3.5" />
+              </button>
+            </FormError>
             <SubmitButton
               loading={loading}
               gradient={theme.gradient}

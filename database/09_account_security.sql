@@ -1,5 +1,5 @@
 -- =====================================================================
--- Power Utility Management System - 09_account_security.sql   (18 Nov 2026)
+-- Sparkility - 09_account_security.sql   (18 Nov 2026)
 --
 -- For the new account features:
 --   * email confirmation after sign up   (4-digit code sent by email)

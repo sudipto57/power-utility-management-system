@@ -213,8 +213,9 @@ export async function login(req, res) {
     throw new ApiError(
       403,
       role === 'admin'
-        ? 'This is not an admin account. Switch to the Customer tab to log in.'
-        : 'This is an admin account. Switch to the Admin tab to log in.'
+        ? 'This is a customer account. Switch to the Customer tab to log in.'
+        : 'This is an admin account. Switch to the Admin tab to log in.',
+      'WRONG_TAB' // the login card shows this as a yellow warning with a "switch" button
     );
   }
   if (user.status !== 'Active') {

@@ -1,5 +1,5 @@
 -- =====================================================================
--- Power Utility Management System - 04_sample_data.sql   (Bangladesh, 17 Nov 2026)
+-- Sparkility - 04_sample_data.sql   (Bangladesh, 17 Nov 2026)
 -- Run after 03_functions_triggers_views.sql.  WARNING: deletes ALL customers, meters,
 -- readings, bills, payments, requests and logins, then loads fresh sample data.
 --

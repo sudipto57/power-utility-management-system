@@ -59,22 +59,22 @@ export async function sendEmail({ to, name, subject, html, replyTo, attachments 
 // The three kinds of code email (written like GitHub's "Please verify your identity" email)
 const CODE_EMAILS = {
   login: {
-    subject: '[Power Utility] Sudo email verification code',
+    subject: '[Sparkility] Sudo email verification code',
     heading: 'Please verify your identity',
-    intro: 'Here is your Power Utility sudo authentication code:',
-    why: 'You are receiving this email because someone typed your password to log in to Power Utility. If this was not you, change your password now.',
+    intro: 'Here is your Sparkility sudo authentication code:',
+    why: 'You are receiving this email because someone typed your password to log in to Sparkility. If this was not you, change your password now.',
   },
   confirm_email: {
-    subject: '[Power Utility] Email confirmation code',
+    subject: '[Sparkility] Email confirmation code',
     heading: 'Please confirm your email',
-    intro: 'Here is your Power Utility email confirmation code:',
-    why: 'You are receiving this email because this address was used to create a Power Utility account. If this was not you, you can ignore it.',
+    intro: 'Here is your Sparkility email confirmation code:',
+    why: 'You are receiving this email because this address was used to create a Sparkility account. If this was not you, you can ignore it.',
   },
   reset_password: {
-    subject: '[Power Utility] Password reset code',
+    subject: '[Sparkility] Password reset code',
     heading: 'Reset your password',
-    intro: 'Here is your Power Utility password reset code:',
-    why: 'You are receiving this email because a password reset was asked for your Power Utility account. If this was not you, ignore it: your password stays the same.',
+    intro: 'Here is your Sparkility password reset code:',
+    why: 'You are receiving this email because a password reset was asked for your Sparkility account. If this was not you, ignore it: your password stays the same.',
   },
 };
 
@@ -89,7 +89,7 @@ export function codeEmail(username, code, purpose) {
        <p style="font-family:Consolas,'Courier New',monospace;font-size:34px;font-weight:800;letter-spacing:10px;margin:18px 0;color:#1f1a15">${code}</p>
        <p>This code is valid for 15 minutes and can only be used once.</p>
        <p><b>Please don't share this code with anyone:</b> we'll never ask for it on the phone or via email.</p>
-       <p>Thanks,<br />The Power Utility Team</p>
+       <p>Thanks,<br />The Sparkility Team</p>
        <p style="margin-top:20px;color:#94a3b8;font-size:12px">${text.why}</p>`
     ),
   };
@@ -165,7 +165,7 @@ export function changeDecisionEmail(fullName, fieldLabel, newValue, approved, no
 export function feedbackEmail({ rating, topic, message, name, email }) {
   const stars = '&#9733;'.repeat(rating) + '&#9734;'.repeat(5 - rating);
   return {
-    subject: `[Power Utility feedback] ${rating}/5 - ${topic}`,
+    subject: `[Sparkility feedback] ${rating}/5 - ${topic}`,
     html: layout(
       'New website feedback',
       `<p style="font-size:22px;color:#f59e0b;margin:0 0 8px">${stars}</p>
@@ -183,10 +183,10 @@ export function feedbackEmail({ rating, topic, message, name, email }) {
 /** The 4-digit code that proves the email address is real */
 export function supportCodeEmail(name, code) {
   return {
-    subject: '[Power Utility] Support email verification code',
+    subject: '[Sparkility] Support email verification code',
     html: layout(
       `Please confirm your email, ${escapeHtml(name)}`,
-      `<p>Here is your code to send your problem to the Power Utility office:</p>
+      `<p>Here is your code to send your problem to the Sparkility office:</p>
        <p style="font-family:Consolas,'Courier New',monospace;font-size:34px;font-weight:800;letter-spacing:10px;margin:18px 0;color:#1f1a15">${code}</p>
        <p>This code is valid for 15 minutes and can only be used once.</p>
        <p style="margin-top:20px;color:#94a3b8;font-size:12px">You are receiving this email because this address was typed in the Support form. If this was not you, you can ignore it.</p>`
@@ -206,7 +206,7 @@ const ticketTable = (ticket) =>
 /** To the office: a new problem (the email address was confirmed with the code) */
 export function supportNewEmail(ticket) {
   return {
-    subject: `[Power Utility support] ${ticket.ticket_number} - ${ticket.category}: ${ticket.subject}`,
+    subject: `[Sparkility support] ${ticket.ticket_number} - ${ticket.category}: ${ticket.subject}`,
     html: layout(
       'New support problem',
       `<p>The sender confirmed this email address with a 4-digit code.</p>
@@ -237,7 +237,7 @@ export function supportSolvedEmail(ticket) {
     html: layout(
       'Your problem is solved',
       `<p>Hello ${escapeHtml(ticket.name)},</p>
-       <p>Good news: the Power Utility office has solved the problem you sent us.</p>
+       <p>Good news: the Sparkility office has solved the problem you sent us.</p>
        <p><b>Reply from the office:</b></p>
        <p style="white-space:pre-wrap;background:#ecfdf5;border-radius:10px;padding:12px">${escapeHtml(ticket.admin_reply)}</p>
        ${ticketTable(ticket)}
@@ -256,12 +256,12 @@ function layout(title, body, button) {
   <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0">
     <div style="height:6px;background:linear-gradient(90deg,#fbbf24,#f97316,#f43f5e)"></div>
     <div style="padding:28px;color:#1e293b;font-size:15px;line-height:1.6">
-      <p style="margin:0 0 4px;font-weight:800;color:#f97316">&#9889; Power Utility</p>
+      <p style="margin:0 0 4px;font-weight:800;color:#f97316">&#9889; Sparkility</p>
       <h1 style="margin:0 0 16px;font-size:22px;color:#0f172a">${title}</h1>
       ${body}
       ${button ? `<p style="margin-top:24px"><a href="${button.url}" style="background:#f97316;color:#ffffff;padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:700">${button.label}</a></p>` : ''}
     </div>
-    <p style="margin:0;padding:16px 28px;background:#f1f5f9;color:#64748b;font-size:12px">Power Utility Management System - this is an automatic email, please do not reply.</p>
+    <p style="margin:0;padding:16px 28px;background:#f1f5f9;color:#64748b;font-size:12px">Sparkility - this is an automatic email, please do not reply.</p>
   </div>
 </div>`;
 }

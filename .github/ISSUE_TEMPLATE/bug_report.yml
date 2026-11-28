@@ -1,0 +1,50 @@
+name: Bug report
+description: Something does not work as it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please do **not** paste real customers' names, phone numbers, emails or passwords.
+        Security problems go by email instead: see SECURITY.md.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where is the problem?
+      options:
+        - Website (admin pages)
+        - Website (customer pages)
+        - Website (first page / login / sign-up)
+        - API
+        - Database (SQL files)
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to see it again
+      placeholder: |
+        1. Log in as sumaiya.khanam
+        2. Open My bills
+        3. Click ...
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Live site or local?
+      placeholder: "Live site / local (browser and operating system)"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error message or API answer
+      description: Copy the text from the browser console or the API terminal, if any.
+      render: text

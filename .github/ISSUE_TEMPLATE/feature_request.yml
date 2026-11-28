@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest a new feature or a change to an existing one
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does it solve?
+      description: Who needs it (admin or customer) and why?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What should it do?
+    validations:
+      required: true
+  - type: checkboxes
+    id: parts
+    attributes:
+      label: Which parts would change?
+      options:
+        - label: Database (SQL)
+        - label: API
+        - label: Website
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Sketches, examples or links.

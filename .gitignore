@@ -13,6 +13,11 @@ node_modules/
 # Never in GitHub: see tools/privacy-check.mjs and database/README.md
 database/private/
 
+# The team's UI change notes and screenshots (design feedback, not part of the project).
+# Removed from the repository and its history on 28 Nov 2026: never upload them again.
+Project Documents/Project's UI Interface/
+**/*UI Interface/
+
 # Build output
 dist/
 dist-ssr/

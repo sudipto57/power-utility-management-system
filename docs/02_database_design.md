@@ -1,6 +1,6 @@
 # 2. Database design
 
-PostgreSQL. 22 tables: the team's 13 original tables (files `01` and `02`) and 9 added for the requested features (files `09` to `13`, described further down), plus views, functions and triggers. Primary keys are UUIDs (`uuid_generate_v4()`); people-friendly numbers (CUST-001, MET-0045, BILL-2026-001, PAY-2026-001, REQ-2026-001) are separate UNIQUE columns.
+PostgreSQL. 23 tables: the team's 13 original tables (files `01` and `02`) and 10 added for the requested features (files `09` to `14`, described further down), plus views, functions and triggers. Primary keys are UUIDs (`uuid_generate_v4()`); people-friendly numbers (CUST-001, MET-0045, BILL-2026-001, PAY-2026-001, REQ-2026-001) are separate UNIQUE columns.
 
 ## ER diagram
 

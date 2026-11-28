@@ -4,7 +4,7 @@ A Google Form + Google Sheet that collects real data for our database, without
 asking people to remember meter numbers or readings.
 
 - Form (share this): https://docs.google.com/forms/d/e/1FAIpQLSdUL9gdxOfDcL4-ILh2zDlo8jYPGSAKRL7qdAuYahaqN9HAqQ/viewform
-- Script project: "Electricity Survey Builder" at script.google.com (whoresearcher account)
+- Script project: "Electricity Survey Builder" at script.google.com (the team's Google account)
 
 ## Files in this folder
 

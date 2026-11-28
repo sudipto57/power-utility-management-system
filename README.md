@@ -1,125 +1,211 @@
-# Sparkility
+<div align="center">
 
 <img src="frontend/public/brand/sparkility-logo-light.svg" alt="Sparkility logo" width="120" />
 
-**Sparkility** (called *Power Utility Management System* until 27 Nov 2026) is a web app where an electricity company manages **customers, connections, meters, readings, bills, payments and complaints**, and where **customers log in** to see their own bills and send service requests.
+# Sparkility
 
-Academic DBMS project, built by beginners as a simple and finishable full-stack project.
+**Electricity billing and customer service, in one web app.**
 
-| Part | Technology | Folder |
+An electricity company manages customers, connections, meters, readings, bills, payments and complaints.
+Customers log in to see their own bills, pay, and send service requests.
+
+[![Checks](https://github.com/sudipto57/power-utility-management-system/actions/workflows/checks.yml/badge.svg)](https://github.com/sudipto57/power-utility-management-system/actions/workflows/checks.yml)
+![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
+![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?logo=tailwindcss&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A520.19-339933?logo=nodedotjs&logoColor=white)
+![Express 5](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-4169E1?logo=postgresql&logoColor=white)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE)
+
+[Live demo](https://power-utility-website.onrender.com) · [Documentation](docs/README.md) · [API reference](docs/03_api_reference.md) · [Database design](docs/02_database_design.md)
+
+</div>
+
+> Academic DBMS project. The database does the important work (foreign keys, CHECK constraints, triggers, views and PL/pgSQL functions); the API and the website show it off.
+> The app was called *Power Utility Management System* until 27 Nov 2026, so some technical names (repository, database `power_utility_db`, npm packages) keep the old name on purpose.
+
+---
+
+## Contents
+
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Architecture](#architecture)
+- [Getting started](#getting-started)
+- [Project structure](#project-structure)
+- [Quality checks](#quality-checks)
+- [Privacy and security](#privacy-and-security)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [Team](#team)
+- [License](#license)
+
+## Screenshots
+
+| Admin dashboard | Customer dashboard |
+| --- | --- |
+| ![Admin dashboard](docs/images/02_dashboard.png) | ![Customer dashboard](docs/images/10_customer_dashboard.png) |
+| **Bill details** | **Reports** |
+| ![Bill details](docs/images/07_bill_details.png) | ![Reports](docs/images/09_reports.png) |
+
+More pages: [docs/05_user_guide.md](docs/05_user_guide.md) and [docs/screenshots/](docs/screenshots/). All people in the pictures are made up or blurred.
+
+## Features
+
+**Core (the 15 planned features)**
+
+| | | |
 | --- | --- | --- |
-| Website | React + Vite + Tailwind CSS + Chart.js (+ React Router) | `frontend/` |
-| API | Node.js + Express 5 + plain SQL (`pg`) | `backend/` |
-| Database | PostgreSQL (Supabase or local) + pgAdmin 4 | `database/` |
-| API tests | Postman collection + environment | `postman/` |
-| Documents | Markdown docs | `docs/` |
+| Login with roles (Admin / Customer) | Admin and customer dashboards | Customer management and profiles |
+| Electricity connections and meters | Meter reading entry | Bill generation from tariff slabs |
+| Bill list with Paid / Unpaid status | Customer service requests | Complaint management |
+| Search and filter on every list | Reports with charts | |
 
-## The 15 features
+**Database-driven extras**
 
-1. Login system · 2. Admin and Customer roles · 3. Main dashboard · 4. Customer management · 5. Customer profile ·
-6. Electricity service (connection) management · 7. Meter information · 8. Meter reading entry · 9. Bill generation ·
-10. Bill list · 11. Paid / Unpaid status · 12. Customer service requests · 13. Complaint management ·
-14. Search & filter · 15. Reports
+- Activity log written by a database trigger (who changed what, and when)
+- Account statement with a running balance (SQL view)
+- Usage alerts for unusual readings, automatic 5 % late fees and waivers
+- Outage notices per area and meter replacement history
 
-## Run it in 5 steps
+**Customer portal**
 
-> Full beginner guide with screenshots-in-words: **[docs/04_setup_guide.md](docs/04_setup_guide.md)**
+- Own meter readings and "this month so far", price-band warning, bill calculator with an appliance helper
+- Pay now (saved as *Pending* until staff confirm), payment history and receipts
+- Inbox with due reminders, replies on requests, profile pictures and profile change requests
 
-**You need:** Node.js 22.12 or newer (Node 24 / 26 LTS recommended; Node 20.19+ also works), pgAdmin 4, and your Supabase project (or a local PostgreSQL).
+**Accounts and security**
 
-1. **Database:** in pgAdmin, open the Query Tool on your database and run the files in `database/` in this order:
-   `00_reset.sql` → `01_create_tables.sql` → `02_billing_tables.sql` → `03_functions_triggers_views.sql` → `04_sample_data.sql` → `07_supabase_security.sql` (Supabase only) → `09_account_security.sql` → `10_auto_save.sql` → `11_extra_features.sql` → `12_customer_inbox.sql` → `13_support_and_deletions.sql`.
-   The backend does not start without `09`, `11`, `12` and `13`. Full table: [database/README.md](database/README.md).
-2. **Backend settings:** copy `backend/.env.example` to `backend/.env` and fill in the same host / user / password that work in pgAdmin. `backend/.env` is secret and is never committed (`.gitignore` blocks it).
-3. **Start the API** (terminal 1):
-   ```bash
-   cd backend
-   npm install
-   npm run db:test     # checks the database connection
-   npm run dev         # http://localhost:5000/api/health
-   ```
-4. **Start the website** (terminal 2):
-   ```bash
-   cd frontend
-   npm install
-   npm run dev         # http://localhost:5173
-   ```
-5. **Log in** with a demo account:
+- Sign-up with email confirmation, forgot password, and a 4-digit email code at every customer login
+- Passwords hashed with bcrypt, JWT login tokens, role checks on every admin route, rate limits on login and codes
+- Support form on the first page, light and dark mode
+
+## Tech stack
+
+| Layer | Technology | Folder |
+| --- | --- | --- |
+| Website | React 19, Vite, Tailwind CSS v4, Chart.js, React Router | [`frontend/`](frontend/README.md) |
+| API | Node.js, Express 5, plain SQL with `pg` (no ORM) | [`backend/`](backend/README.md) |
+| Database | PostgreSQL on Supabase (also runs on local PostgreSQL), pgAdmin 4 | [`database/`](database/README.md) |
+| API tests | Postman collection + environment | [`postman/`](postman/README.md) |
+| Email | Brevo API (prints to the terminal when no key is set) | `backend/src/utils/email.js` |
+| CI | GitHub Actions: privacy check, lint, build, syntax check | [`.github/workflows/`](.github/workflows/checks.yml) |
+
+## Architecture
+
+```
+ Browser (React)  ── HTTPS + JWT ──▶  Express API  ── SQL (parameterised) ──▶  PostgreSQL
+ localhost:5173   ◀───── JSON ──────  localhost:5000  ◀──────── rows ────────  (Supabase)
+```
+
+- The browser never talks to the database. Only the API does.
+- Request flow: **route → requireAuth → requireRole → controller → SQL → `{ "data": ... }`**. Errors come back as `{ "message": "..." }` with a proper status code.
+- Bill amounts are calculated **in the database** (`calculate_bill_amount()`), and balances come from the `bill_balance` view, never from JavaScript.
+
+## Getting started
+
+**You need:** Node.js 22.12 or newer (20.19+ also works), and a PostgreSQL database (a free Supabase project or a local PostgreSQL with pgAdmin 4).
+
+**1. Database.** Run the files in [`database/`](database/README.md) in this order (pgAdmin → Query Tool, or Supabase → SQL Editor):
+
+```
+00_reset → 01_create_tables → 02_billing_tables → 03_functions_triggers_views → 04_sample_data
+→ 07_supabase_security (Supabase only) → 09_account_security → 10_auto_save → 11_extra_features
+→ 12_customer_inbox → 13_support_and_deletions → 14_profile_photos
+```
+
+**2. API** (terminal 1):
+
+```bash
+cd backend
+cp .env.example .env      # Windows: copy .env.example .env, then fill in your database details
+npm install               # also switches on the privacy-check git hooks
+npm run db:test           # checks the database connection (23 tables)
+npm run staff:password    # sets the staff password (staff logins start locked)
+npm run dev               # http://localhost:5000/api/health
+```
+
+**3. Website** (terminal 2):
+
+```bash
+cd frontend
+npm install
+npm run dev               # http://localhost:5173
+```
+
+**4. Log in** with a demo account from the made-up sample data:
 
 | Role | Username | Password |
 | --- | --- | --- |
-| Admin (Admin tab) | `PUMSadmin` (or `admin@powerutility.com`) | the staff password (ask the team: it is shared privately, never written in GitHub). On a new database set it first: `cd backend && npm run staff:password` |
-| Customer (Customer tab) | `sumaiya.khanam` (or `sumaiya_khanam1988@example.com`) | `customer123`, then the 4-digit code from the email (on your computer it is printed in the backend terminal) |
+| Admin (Admin tab) | `PUMSadmin` | the staff password you set in step 2 |
+| Customer (Customer tab) | `sumaiya.khanam` | `customer123`, then the 4-digit code (printed in the API terminal when no email key is set) |
 
-Other demo logins: `tech.john`, `billing.officer` (staff password) · `nayeem.sheikh`, `khadija.yasmin`, `rafiqul.islam`, `sohag.howlader`, `sadia.sultana`, `tapas.saha` (customer123).
+The full beginner guide, with a troubleshooting table, is [docs/04_setup_guide.md](docs/04_setup_guide.md).
 
-## Folder map
+## Project structure
 
 ```
 power-utility-management-system/
-├── frontend/            the website (pages, components, charts, API calls)        -> frontend/README.md
-├── backend/             the API (routes -> controllers -> SQL)                     -> backend/README.md
-├── database/            SQL files, run in number order                            -> database/README.md
-├── docs/                overview, database design, API reference, setup, user guide, testing,
-│                        checkpoints/ (demo scripts), data-collection/ (the survey), images/ + screenshots/
-├── postman/             import both .json files into Postman                      -> postman/README.md
-├── tools/               privacy-check.mjs (blocks real people's data and secrets) + its allowlist
-├── .githooks/           pre-commit + pre-push hooks that run the privacy check
-├── .github/workflows/   checks.yml: privacy check, lint and build on GitHub
-├── Project Documents/   the team's blueprint, roadmap, tech stack guide, viva questions, survey and UI notes
-├── CLAUDE.md            the team's rules for code, design and git (read it before changing anything)
-├── .gitignore           keeps secrets (.env), node_modules/, dist/ and private survey answers out of git
-├── .prettierrc.json
-└── README.md
+├── frontend/            React website: pages, components, charts, API calls
+├── backend/             Express API: routes → controllers → SQL
+├── database/            SQL files, run in number order
+├── docs/                overview, database design, API reference, setup, user guide, testing, demo scripts
+├── postman/             Postman collection and environment
+├── tools/               privacy-check.mjs (blocks real people's data and secrets) + its lists
+├── .githooks/           pre-commit and pre-push hooks that run the privacy check
+├── .github/             CI workflow, issue templates, pull request template
+├── Project Documents/   blueprint, roadmap, tech stack guide, viva questions, survey
+├── CLAUDE.md            the team's coding, design and git rules (read before changing anything)
+├── CONTRIBUTING.md      how to work on the project
+├── SECURITY.md          how to report a security problem
+└── CHANGELOG.md         what changed, by date
 ```
 
-## Documentation
+## Quality checks
 
-| Read this | For |
+Every push and pull request runs [`checks.yml`](.github/workflows/checks.yml):
+
+| Check | What it does |
 | --- | --- |
-| [docs/01_project_overview.md](docs/01_project_overview.md) | What the system does, roles, where each feature lives |
-| [docs/02_database_design.md](docs/02_database_design.md) | Tables, triggers, views and the bill formula |
-| [docs/03_api_reference.md](docs/03_api_reference.md) | Every API endpoint |
-| [docs/04_setup_guide.md](docs/04_setup_guide.md) | Step-by-step setup and a troubleshooting table |
-| [docs/05_user_guide.md](docs/05_user_guide.md) | How to use each screen |
-| [docs/06_testing_report.md](docs/06_testing_report.md) | What was tested and how |
+| Privacy check | No real emails, phone numbers, password hashes, keys or `.env` files in any new commit |
+| Website lint and build | `oxlint` with zero warnings, then a production `vite build` |
+| API install and syntax | `npm ci`, then every backend file must parse |
 
-## Check your work
+Run them yourself before you push:
 
 ```bash
-cd frontend && npm run lint && npm run build     # must show no errors
-cd backend  && npm run db:test                   # database reachable, 22 tables
+cd frontend && npm run lint && npm run build
+cd backend  && npm run db:test
+node tools/privacy-check.mjs
 ```
 
-Then run the Postman collection against the running backend (see [postman/README.md](postman/README.md)).
+The Postman collection (146 requests, 258 checks) passes against the API. Details: [docs/06_testing_report.md](docs/06_testing_report.md).
 
-## Quality checks done (26 Nov 2026)
+## Privacy and security
 
-- Every SQL file (`00` → `13`, plus `05` and `06`) runs top to bottom on a fresh local PostgreSQL 16 database, and `09` → `13` run a second time without errors.
-- The Postman collection (146 requests, 258 checks) passes against the API. The only 2 expected failures are *Save now* when `SAVE_CUSTOMERS_TO_SQL_FILE=false`.
-- `npm ci`, `npm run lint` and `npm run build` in `frontend/` finish with **zero** errors and warnings; `npm ci` in `backend/` reports 0 vulnerabilities.
-- Every page was opened in Chromium as admin and as customer with no console errors and no failed API calls.
+- **No real people's data in git.** `04_sample_data.sql` holds only made-up people (CUST-001 … CUST-200, emails at `@example.com`). Real website sign-ups are copied to `database/private/`, which is git-ignored.
+- **No secrets in git.** Only `.env.example` files with fake values are committed. The staff password is never written in the repository, not even as a hash.
+- **Automatic privacy check** before every commit and push, and on GitHub. Never skip it with `--no-verify`. New pictures and documents need a person to look at them first: `node tools/privacy-check.mjs --mark-checked "path/to/file.png"`.
+- Found a security problem? See [SECURITY.md](SECURITY.md).
 
-See [docs/06_testing_report.md](docs/06_testing_report.md).
+## Deployment
 
-## Hosting
+The live site runs on **Render** (a static site for the website and a web service for the API) with the database on **Supabase**. Both Render services deploy automatically from `main`. On Render the settings from `backend/.env.example` are set on the service's *Environment* page, with `NODE_ENV=production` and `SAVE_CUSTOMERS_TO_SQL_FILE=false`; the website needs `VITE_API_URL`. The free plan sleeps when idle, so the first visit can take about a minute.
 
-The live website and API run on Render (`power-utility-website` static site and `power-utility-api` web service) with the database on Supabase. On Render the settings from `backend/.env.example` are typed on the service's **Environment** page (with `NODE_ENV=production` and `SAVE_CUSTOMERS_TO_SQL_FILE=false`). The website needs `VITE_API_URL` set to the API address.
+## Contributing
 
-## Privacy: real people's data never goes to GitHub
-
-- `database/04_sample_data.sql` holds only **made-up** people (CUST-001 … CUST-200, emails at `@example.com`).
-- Real website sign-ups are copied by the backend into `database/private/website_customers.sql` on the laptop. `database/private/` is in `.gitignore`, so it is never committed. To bring the real customers back into a fresh database, run that file after `13_support_and_deletions.sql`.
-- The staff password is never written in the repository, not even as a hash: `04_sample_data.sql` creates the staff logins **locked**. Set the password once with `cd backend && npm run staff:password`.
-- **Automatic privacy check** (`tools/privacy-check.mjs`): it looks for real email addresses, mobile numbers, password hashes, `.env` files, keys and real customers in the sample data.
-  - On your computer it runs before every **commit** and **push** (the push checks every commit, not only the last one). It is switched on by `npm install` in `backend/` (or by hand: `git config core.hooksPath .githooks`). If it stops you, remove what it found; never skip it with `--no-verify`.
-  - On GitHub it runs for every push and pull request (`.github/workflows/checks.yml`, together with the lint and build checks).
-  - Run it yourself any time: `node tools/privacy-check.mjs` (add `--history` to check every old version of every file).
-  - Something it finds that is really not private (a made-up example)? Add the exact text to `tools/privacy-allowlist.txt` with a comment.
-- Pictures, PDFs, Word / Excel files and videos cannot be read by the check, so a **new or changed** one is stopped until a person has looked at it. Make sure it shows no real people (blur screenshots of real customers), then run `node tools/privacy-check.mjs --mark-checked "docs/screenshots/new.png"` and commit the updated `tools/privacy-checked-files.txt` with it.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) and [CLAUDE.md](CLAUDE.md) first. In short: one feature per branch, SQL → API → Postman → page → docs, small commits, and a pull request with green checks.
 
 ## Team
 
-- Sudipto Pramanik (sudipto57): Team Member
-- Apurba Das (apurbaByte04): Team Member
-- Tasnim Khan Nova (tasnim56-ctrl): Team Member
+| Name | GitHub |
+| --- | --- |
+| Sudipto Pramanik | [@sudipto57](https://github.com/sudipto57) |
+| Apurba Das | [@apurbaByte04](https://github.com/apurbaByte04) |
+| Tasnim Khan Nova | [@tasnim56-ctrl](https://github.com/tasnim56-ctrl) |
+
+## License
+
+[ISC](LICENSE) © 2026 the Sparkility team.

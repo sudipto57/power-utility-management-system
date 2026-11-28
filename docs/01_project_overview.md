@@ -8,12 +8,11 @@ It is an academic Database Management Systems (DBMS) project. The database does 
 
 ## Team
 
-| Name | Role in the project |
+| Name | GitHub |
 | --- | --- |
-| _(add name)_ | Database |
-| _(add name)_ | Backend / API |
-| _(add name)_ | Frontend / UI |
-| _(add name)_ | Testing & docs |
+| Sudipto Pramanik | [@sudipto57](https://github.com/sudipto57) |
+| Apurba Das | [@apurbaByte04](https://github.com/apurbaByte04) |
+| Tasnim Khan Nova | [@tasnim56-ctrl](https://github.com/tasnim56-ctrl) |
 
 ## Users and roles
 
